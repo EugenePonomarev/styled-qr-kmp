@@ -25,17 +25,17 @@ Then choose the smallest module that provides the UI you need:
 ```kotlin
 dependencies {
     // Android XML layouts and imperative View code:
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.2.1")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.2.2")
 
     // Or Jetpack Compose (also brings the Android View adapter):
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.2.1")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.2.2")
 
     // Encoder, SVG renderer, and Android Bitmap renderer only:
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-core:0.2.1")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-core:0.2.2")
 }
 ```
 
-Use the Git tag shown in GitHub Releases in place of `0.2.1`. JitPack builds a public tag on the
+Use the Git tag shown in GitHub Releases in place of `0.2.2`. JitPack builds a public tag on the
 first request; its status page is linked from the repository's README badge after the first release.
 
 ### Native iOS
@@ -49,7 +49,7 @@ For CocoaPods without a private token, reference the public release tag in the a
 ```ruby
 pod "StyledQrKmp",
     :git => "https://github.com/EugenePonomarev/styled-qr-kmp.git",
-    :tag => "0.2.1"
+    :tag => "0.2.2"
 ```
 
 The podspec downloads the matching XCFramework from that GitHub Release. This keeps native iOS
@@ -83,7 +83,7 @@ Add the Android View module, then create `StyledQrView` exactly as any other And
 
 ```kotlin
 dependencies {
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.2.1")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.2.2")
 }
 
 val qrView = StyledQrView(context).apply {
@@ -127,7 +127,7 @@ imperative code.
 
 ```kotlin
 dependencies {
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.2.1")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.2.2")
 }
 
 StyledQrCode(
@@ -253,12 +253,12 @@ dependency. Gradle and the Kotlin Multiplatform/Android plugins are build tools;
 ## Release a new version
 
 1. Update `VERSION_NAME` in `gradle.properties`, `StyledQrKmp.podspec`, and `CHANGELOG.md`.
-2. Commit the change and create a matching Git tag, for example `0.2.1`.
+2. Commit the change and create a matching Git tag, for example `0.2.2`.
 3. Push the `main` branch and the tag.
 
 ```bash
 git push origin main
-git push origin 0.2.1
+git push origin 0.2.2
 ```
 
 GitHub Actions verifies the Gradle artifacts and, for a tag, publishes a GitHub Release containing
