@@ -1,0 +1,265 @@
+# Styled QR KMP
+
+[![JitPack](https://jitpack.io/v/EugenePonomarev/styled-qr-kmp.svg)](https://jitpack.io/#EugenePonomarev/styled-qr-kmp)
+[![Verify](https://github.com/EugenePonomarev/styled-qr-kmp/actions/workflows/verify.yml/badge.svg)](https://github.com/EugenePonomarev/styled-qr-kmp/actions/workflows/verify.yml)
+
+`Styled QR KMP` is a Kotlin Multiplatform QR-code generator. Its encoding core is implemented in Kotlin and does not depend on ZXing, ML Kit, or another QR generation library.
+
+## Install from GitHub
+
+The public Android and JVM artifacts are distributed through JitPack. Add its repository once in
+the consuming project's `settings.gradle.kts`:
+
+```kotlin
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven("https://jitpack.io")
+    }
+}
+```
+
+Then choose the smallest module that provides the UI you need:
+
+```kotlin
+dependencies {
+    // Android XML layouts and imperative View code:
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.2.1")
+
+    // Or Jetpack Compose (also brings the Android View adapter):
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.2.1")
+
+    // Encoder, SVG renderer, and Android Bitmap renderer only:
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-core:0.2.1")
+}
+```
+
+Use the Git tag shown in GitHub Releases in place of `0.2.1`. JitPack builds a public tag on the
+first request; its status page is linked from the repository's README badge after the first release.
+
+### Native iOS
+
+Every GitHub Release contains `StyledQrKmp.xcframework.zip`, built on macOS for iPhone devices
+and Intel/Apple Silicon simulators. Add the extracted `StyledQrKmp.xcframework` to an Xcode target
+under **Frameworks, Libraries, and Embedded Content**, then import `StyledQrKmp`.
+
+For CocoaPods without a private token, reference the public release tag in the app's `Podfile`:
+
+```ruby
+pod "StyledQrKmp",
+    :git => "https://github.com/EugenePonomarev/styled-qr-kmp.git",
+    :tag => "0.2.1"
+```
+
+The podspec downloads the matching XCFramework from that GitHub Release. This keeps native iOS
+consumption independent of Gradle while the shared source remains Kotlin Multiplatform.
+
+The first version supports:
+
+- QR versions 1–40 and error-correction levels L, M, Q, and H;
+- UTF-8 text and URLs through Byte mode with UTF-8 ECI;
+- automatic version and mask selection;
+- standard Reed–Solomon error correction;
+- common SVG output with colours, circles, rounded modules, diamonds, quiet zone, and a validated central logo;
+- Android `Bitmap` output using only Android's `Canvas` API;
+- iOS `UIImage` output using UIKit/CoreGraphics.
+
+## UI components
+
+The shared `qrcode-core` module remains independent of UI frameworks. Choose the platform layer
+that matches the host application:
+
+| Platform | Module / API | Use it in |
+| --- | --- | --- |
+| Android Views | `qrcode-android-view` / `StyledQrView` | Kotlin/Java code and XML layouts |
+| Android Compose | `qrcode-compose` / `StyledQrCode` | Jetpack Compose |
+| iOS UIKit | `qrcode-core` / `StyledQrView` | UIKit code |
+| iOS SwiftUI | `examples/ios/StyledQrCodeView.swift` | `UIViewRepresentable` adapter in the app target |
+
+### Android View and XML
+
+Add the Android View module, then create `StyledQrView` exactly as any other Android view:
+
+```kotlin
+dependencies {
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.2.1")
+}
+
+val qrView = StyledQrView(context).apply {
+    setQrCode(
+        content = "https://eugeneponomarev.com",
+        errorCorrection = QrErrorCorrectionLevel.H,
+        style = QrStyle(
+            foreground = QrColor.fromHex("#14532D"),
+            moduleShape = QrModuleShape.Circle,
+            moduleScale = 0.92,
+            functionPatternStyle = QrFunctionPatternStyle.MatchDataModules,
+        ),
+    )
+}
+```
+
+The same component supports XML. Its `qrLogo` attribute accepts a bitmap, vector, or other Android
+drawable resource. Its logo area is still validated by the shared renderer.
+
+```xml
+<io.github.eugeneponomarev.styledqr.android.StyledQrView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="240dp"
+    android:layout_height="240dp"
+    app:qrContent="https://eugeneponomarev.com"
+    app:qrErrorCorrection="h"
+    app:qrForegroundColor="#14532D"
+    app:qrModuleShape="circle"
+    app:qrModuleScale="0.92"
+    app:qrFunctionPatternStyle="matchDataModules" />
+```
+
+The attributes shown above are the complete public XML contract of `StyledQrView`.
+
+### Jetpack Compose
+
+`qrcode-compose` is optional: it is the only module that brings an AndroidX Compose UI dependency.
+It delegates to `StyledQrView`, so styling and logo-safety rules stay identical to XML and
+imperative code.
+
+```kotlin
+dependencies {
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.2.1")
+}
+
+StyledQrCode(
+    content = "https://eugeneponomarev.com",
+    modifier = Modifier.size(240.dp),
+    style = QrStyle(
+        foreground = QrColor.fromHex("#143A5A"),
+        moduleShape = QrModuleShape.RoundedSquare,
+        moduleScale = 0.92,
+    ),
+)
+```
+
+### iOS UIKit and SwiftUI
+
+The generated KMP framework is named `StyledQrKmp`. UIKit consumers can use the native
+`StyledQrView` directly; it is a `UIImageView` subclass that regenerates its image when its
+content, style, logo, or bounds change.
+
+```swift
+let qrView = StyledQrView(frame: .zero)
+qrView.content = "https://eugeneponomarev.com"
+qrView.translatesAutoresizingMaskIntoConstraints = false
+```
+
+SwiftUI cannot place a UIKit view directly. Add the ready-made
+`examples/ios/StyledQrCodeView.swift` file to the iOS app target, then use:
+
+```swift
+StyledQrCodeView(content: "https://eugeneponomarev.com")
+    .frame(width: 240, height: 240)
+```
+
+## Quick start
+
+```kotlin
+val qrCode = QrCodeGenerator.encodeText(
+    text = "https://eugeneponomarev.com",
+    errorCorrection = QrErrorCorrectionLevel.H,
+)
+
+val svg = qrCode.toSvg(
+    style = QrStyle(
+        foreground = QrColor.fromHex("#143A5A"),
+        background = QrColor.White,
+        moduleShape = QrModuleShape.Circle,
+        moduleScale = 0.92,
+        logo = QrLogoOptions(sizeFraction = 0.16),
+    ),
+    logoDataUri = "data:image/png;base64,...",
+)
+```
+
+On Android:
+
+```kotlin
+val bitmap = qrCode.toBitmap(
+    sizePx = 1024,
+    style = QrStyle(
+        foreground = QrColor.fromHex("#143A5A"),
+        moduleShape = QrModuleShape.RoundedSquare,
+        logo = QrLogoOptions(),
+    ),
+    logo = myBitmap,
+)
+```
+
+## Logo safety and design rules
+
+The QR matrix always remains a square grid. The library changes how each dark module is rendered, not where modules are located. For reliable scanning:
+
+- use `QrFunctionPatternStyle.PreserveAll` for the most conservative output;
+- use `QrFunctionPatternStyle.MatchDataModules` for a fully styled output;
+- use a light background and a noticeably darker foreground;
+- keep the quiet zone at four modules or more;
+- use correction level `H` when placing a logo;
+- call `calculateLogoLayout()` or let a renderer call it automatically before showing a logo;
+- test the final bitmap or image in the devices and lighting conditions your users will have.
+
+QR does not have a standard mechanism for leaving arbitrary central data modules unused. A logo
+therefore visually overwrites a small set of encoded codeword bits. The library makes that
+operation conservative: it aligns the box to whole modules, refuses to cover a mandatory QR
+pattern, counts affected codewords per Reed–Solomon block, and keeps one correctable codeword as
+a safety margin. If the requested logo cannot fit, rendering throws an `IllegalArgumentException`
+instead of silently producing an unreliable image.
+
+```kotlin
+val layout = qrCode.calculateLogoLayout(QrLogoOptions(sizeFraction = 0.16))
+println("Logo reserve: ${layout.sizeModules}×${layout.sizeModules} modules")
+```
+
+The three large finder patterns are not rendered as seven-by-seven grids of dots. They are
+composed from an outer 7-module shape, a 5-module background ring, and a 3-module centre. This
+creates proper circular, rounded, square, or diamond QR "eyes" instead of square frames made of
+individual circles. The default library behaviour remains conservative; configure the full style
+explicitly when you want the demo result:
+
+```kotlin
+QrStyle(
+    moduleShape = QrModuleShape.Circle,
+    functionPatternStyle = QrFunctionPatternStyle.MatchDataModules,
+    finderPatternShape = QrFinderPatternShape.MatchModuleShape,
+)
+```
+
+The current encoder intentionally starts with UTF-8 Byte mode. It creates fully valid QR codes, but does not yet optimise a mixed numeric/alphanumeric payload into the smallest possible version. That optimisation can be added in a later iteration without changing the public rendering API.
+
+## Build
+
+Use JDK 17 and Gradle 8.13. The repository includes the Gradle Wrapper:
+
+```bash
+./gradlew :qrcode-core:jvmTest
+./gradlew :qrcode-core:assembleDebug
+./gradlew :qrcode-android-view:assembleDebug
+./gradlew :qrcode-compose:assembleDebug
+```
+
+The QR encoder, SVG renderer, Android View, and UIKit view have no third-party QR-generation
+dependency. Gradle and the Kotlin Multiplatform/Android plugins are build tools; the optional
+`qrcode-compose` module adds AndroidX Compose UI solely to expose a Compose API.
+
+## Release a new version
+
+1. Update `VERSION_NAME` in `gradle.properties`, `StyledQrKmp.podspec`, and `CHANGELOG.md`.
+2. Commit the change and create a matching Git tag, for example `0.2.1`.
+3. Push the `main` branch and the tag.
+
+```bash
+git push origin main
+git push origin 0.2.1
+```
+
+GitHub Actions verifies the Gradle artifacts and, for a tag, publishes a GitHub Release containing
+the native iOS XCFramework. JitPack publishes the Android/JVM modules from the same public tag.

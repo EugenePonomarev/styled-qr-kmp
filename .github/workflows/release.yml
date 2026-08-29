@@ -1,0 +1,47 @@
+name: Create release
+
+on:
+  push:
+    tags: ["*"]
+
+permissions:
+  contents: write
+
+jobs:
+  native-ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Make Gradle Wrapper executable
+        run: chmod +x gradlew
+
+      - name: Build the release XCFramework
+        run: >-
+          ./gradlew --no-daemon --no-configuration-cache
+          :qrcode-core:assembleStyledQrKmpReleaseXCFramework
+          --stacktrace
+
+      - name: Archive the XCFramework
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent \
+            qrcode-core/build/XCFrameworks/release/StyledQrKmp.xcframework \
+            StyledQrKmp.xcframework.zip
+          shasum -a 256 StyledQrKmp.xcframework.zip > StyledQrKmp.xcframework.sha256
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release create "${GITHUB_REF_NAME}"
+          StyledQrKmp.xcframework.zip
+          StyledQrKmp.xcframework.sha256
+          --title "Styled QR KMP ${GITHUB_REF_NAME}"
+          --generate-notes

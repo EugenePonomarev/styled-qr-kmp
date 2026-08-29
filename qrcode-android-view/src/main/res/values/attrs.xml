@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="StyledQrView">
+        <attr name="qrContent" format="string" />
+        <attr name="qrErrorCorrection">
+            <enum name="l" value="0" />
+            <enum name="m" value="1" />
+            <enum name="q" value="2" />
+            <enum name="h" value="3" />
+        </attr>
+        <attr name="qrForegroundColor" format="color" />
+        <attr name="qrBackgroundColor" format="color" />
+        <attr name="qrModuleShape">
+            <enum name="square" value="0" />
+            <enum name="roundedSquare" value="1" />
+            <enum name="circle" value="2" />
+            <enum name="diamond" value="3" />
+        </attr>
+        <attr name="qrModuleScale" format="float" />
+        <attr name="qrRoundedModuleRadiusFraction" format="float" />
+        <attr name="qrQuietZoneModules" format="integer" />
+        <attr name="qrFunctionPatternStyle">
+            <enum name="preserveAll" value="0" />
+            <enum name="preserveFindersAndAlignment" value="1" />
+            <enum name="matchDataModules" value="2" />
+        </attr>
+        <attr name="qrLogo" format="reference" />
+        <attr name="qrLogoSizeFraction" format="float" />
+        <attr name="qrLogoPaddingFraction" format="float" />
+    </declare-styleable>
+</resources>

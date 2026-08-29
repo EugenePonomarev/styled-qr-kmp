@@ -1,0 +1,7 @@
+jdk:
+  - openjdk17
+
+# JitPack builds on Linux. Publish the common metadata plus Android/JVM variants; the macOS
+# GitHub Release workflow exports the native iOS XCFramework.
+install:
+  - ./gradlew --no-daemon --no-configuration-cache :qrcode-core:publishKotlinMultiplatformPublicationToMavenLocal :qrcode-core:publishAndroidReleasePublicationToMavenLocal :qrcode-core:publishJvmPublicationToMavenLocal :qrcode-android-view:publishReleasePublicationToMavenLocal :qrcode-compose:publishReleasePublicationToMavenLocal -x test
