@@ -14,7 +14,7 @@ val libraryGroup = providers
     .orElse("com.github.EugenePonomarev.styled-qr-kmp")
 val libraryVersion = providers
     .gradleProperty("VERSION_NAME")
-    .orElse("0.2.1")
+    .orElse("0.2.2")
 
 allprojects {
     group = libraryGroup.get()

@@ -1,3 +1,5 @@
+@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
+
 package io.github.eugeneponomarev.styledqr.ios
 
 import io.github.eugeneponomarev.styledqr.core.QrCode
@@ -47,8 +49,8 @@ public fun QrCode.toUIImage(
             for (column in 0 until size) {
                 if (
                     !this[row, column] ||
-                        isFinderPatternCore(row, column) ||
-                        logoLayout?.contains(row, column) == true
+                    isFinderPatternCore(row, column) ||
+                    logoLayout?.contains(row, column) == true
                 ) continue
 
                 val preserveAsSquare = shouldPreserveAsSquare(row, column, style)

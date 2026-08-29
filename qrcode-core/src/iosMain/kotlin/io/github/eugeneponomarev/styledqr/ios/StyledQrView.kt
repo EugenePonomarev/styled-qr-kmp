@@ -1,3 +1,5 @@
+@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
+
 package io.github.eugeneponomarev.styledqr.ios
 
 import io.github.eugeneponomarev.styledqr.core.QrCodeGenerator
@@ -11,7 +13,7 @@ import platform.CoreGraphics.CGRectMake
 import platform.UIKit.UIImage
 import platform.UIKit.UIImageView
 import platform.UIKit.UIColor
-import platform.UIKit.UIViewContentModeScaleAspectFit
+import platform.UIKit.UIViewContentMode
 import kotlin.math.min
 
 /**
@@ -64,7 +66,7 @@ public class StyledQrView(
     private var renderedSidePoints: Double = Double.NaN
 
     init {
-        contentMode = UIViewContentModeScaleAspectFit
+        contentMode = UIViewContentMode.UIViewContentModeScaleAspectFit
         clipsToBounds = true
         backgroundColor = qrStyle.background.toUiColor()
     }
