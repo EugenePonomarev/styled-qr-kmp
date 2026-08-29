@@ -1,4 +1,5 @@
 import org.gradle.api.JavaVersion
+import org.gradle.api.publish.maven.MavenPublication
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -10,7 +11,7 @@ plugins {
 
 android {
     namespace = "io.github.eugeneponomarev.styledqr.compose"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 26
@@ -38,9 +39,19 @@ kotlin {
     }
 }
 
+publishing {
+    publications {
+        register<MavenPublication>("release") {
+            afterEvaluate {
+                from(components["release"])
+            }
+        }
+    }
+}
+
 dependencies {
     api(project(":qrcode-android-view"))
-    api(platform("androidx.compose:compose-bom:2025.06.00"))
+    api(platform("androidx.compose:compose-bom:2026.08.00"))
     api("androidx.compose.ui:ui")
     api("androidx.compose.foundation:foundation-layout")
 }
