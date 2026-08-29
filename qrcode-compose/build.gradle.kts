@@ -11,7 +11,7 @@ plugins {
 
 android {
     namespace = "io.github.eugeneponomarev.styledqr.compose"
-    compileSdk = 37
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 26

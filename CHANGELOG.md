@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.3 — Fix JitPack Android publishing for 0.2.3
+
+## 0.2.3 — Fix iOS publishing for 0.2.2
+
 ## 0.2.1 — First public release
 
 - Added public Maven publication metadata, JitPack Android/JVM installation, and source JARs.
