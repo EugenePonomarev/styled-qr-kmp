@@ -117,7 +117,7 @@ public data class QrStyle(
      * Legacy shorthand retained for source compatibility. [functionPatternStyle] takes priority
      * when it is explicitly supplied.
      */
-    val preserveFunctionPatterns: Boolean = true,
+    val preserveFunctionPatterns: Boolean = false,
     val functionPatternStyle: QrFunctionPatternStyle = if (preserveFunctionPatterns) {
         QrFunctionPatternStyle.PreserveAll
     } else {
