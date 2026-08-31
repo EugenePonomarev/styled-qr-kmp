@@ -1,5 +1,7 @@
 # Changelog
 
+## 0.2.4 — Fix CocoaPods release metadata and Swift iOS renderer
+
 ## 0.2.3 — Fix JitPack Android publishing for 0.2.3
 
 ## 0.2.2 — Fix iOS publishing for 0.2.2

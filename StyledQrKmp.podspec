@@ -1,6 +1,15 @@
+version_line = File.readlines(File.join(__dir__, "gradle.properties"))
+  .find { |line| line.start_with?("VERSION_NAME=") }
+
+
+raise "VERSION_NAME is missing from gradle.properties" if version_line.nil?
+
+version_name = version_line.split("=", 2).last.strip
+raise "VERSION_NAME must not be blank" if version_name.empty?
+
 Pod::Spec.new do |spec|
   spec.name                  = "StyledQrKmp"
-  spec.version               = "0.2.1"
+  spec.version               = version_name
   spec.summary               = "Dependency-free Kotlin Multiplatform QR-code generator with styled rendering."
   spec.description           = <<-DESC
 Styled QR KMP creates QR codes without ZXing or another QR-generation library.
