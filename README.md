@@ -25,17 +25,17 @@ Then choose the smallest module that provides the UI you need:
 ```kotlin
 dependencies {
     // Android XML layouts and imperative View code:
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.2.4")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.2.5")
 
     // Or Jetpack Compose (also brings the Android View adapter):
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.2.4")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.2.5")
 
     // Encoder, SVG renderer, and Android Bitmap renderer only:
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-core:0.2.4")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-core:0.2.5")
 }
 ```
 
-Use the Git tag shown in GitHub Releases in place of `0.2.4`. JitPack builds a public tag on the
+Use the Git tag shown in GitHub Releases in place of `0.2.5`. JitPack builds a public tag on the
 first request; its status page is linked from the repository's README badge after the first release.
 
 ### Native iOS
@@ -48,12 +48,15 @@ For CocoaPods without a private token, reference the public release tag in the a
 
 ```ruby
 pod "StyledQrKmp",
-    :git => "https://github.com/EugenePonomarev/styled-qr-kmp.git",
-    :tag => "0.2.4"
+    :podspec => "https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/0.2.5/StyledQrKmp.podspec"
 ```
 
-The podspec downloads the matching XCFramework from that GitHub Release. This keeps native iOS
-consumption independent of Gradle while the shared source remains Kotlin Multiplatform.
+The standalone podspec downloads the matching XCFramework from that GitHub Release. Do not use
+`:git` here: it checks out the Kotlin source repository and cannot obtain the separately published
+framework archive.
+
+Run `pod deintegrate && pod install --repo-update`, then open the generated `.xcworkspace` file —
+not the app's `.xcodeproj` file.
 
 The first version supports:
 
@@ -83,7 +86,7 @@ Add the Android View module, then create `StyledQrView` exactly as any other And
 
 ```kotlin
 dependencies {
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.2.4")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.2.5")
 }
 
 val qrView = StyledQrView(context).apply {
@@ -127,7 +130,7 @@ imperative code.
 
 ```kotlin
 dependencies {
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.2.4")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.2.5")
 }
 
 StyledQrCode(
@@ -252,13 +255,13 @@ dependency. Gradle and the Kotlin Multiplatform/Android plugins are build tools;
 
 ## Release a new version
 
-1. Update `VERSION_NAME` in `gradle.properties`, `StyledQrKmp.podspec`, and `CHANGELOG.md`.
-2. Commit the change and create a matching Git tag, for example `0.2.4`.
-3. Push the `main` branch and the tag.
+1. Update `VERSION_NAME` only in `gradle.properties`.
+2. Run `./gradlew updateVersionedDocs`; it generates `README.md` and `StyledQrKmp.podspec`.
+3. Update the human-written release notes in `CHANGELOG.md`, commit the generated files, and create a matching Git tag.
 
 ```bash
 git push origin main
-git push origin 0.2.4
+git push origin 0.2.5
 ```
 
 GitHub Actions verifies the Gradle artifacts and, for a tag, publishes a GitHub Release containing

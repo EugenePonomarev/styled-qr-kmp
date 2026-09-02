@@ -1,16 +1,36 @@
 # Changelog
 
-## 0.2.4 — Fix CocoaPods release metadata and Swift iOS renderer
+## 0.2.5 — CocoaPods remote installation repair
 
-## 0.2.3 — Fix JitPack Android publishing for 0.2.3
+- Fix the incompatibility between a `:git` Podfile dependency and an XCFramework published only
+  as a GitHub Release asset.
+- Generate a standalone `StyledQrKmp.podspec` from a template using `VERSION_NAME` in
+  `gradle.properties`; it can be loaded through a raw GitHub podspec URL.
+- Update the README to use `:podspec` rather than `:git` for CocoaPods installation.
+- Make `updateVersionedDocs` and `checkVersionedDocs` compatible with Gradle Configuration Cache.
+- Validate the standalone podspec and published XCFramework in the release workflow.
 
-## 0.2.2 — Fix iOS publishing for 0.2.2
+## 0.2.4 — Swift iOS renderer and release metadata
+
+- Add `StyledQrImageRenderer`, a Swift-importable iOS renderer that returns `UIImage`.
+- Update the SwiftUI adapter to use the importable renderer rather than a Kotlin UIKit subclass.
+- Align the release tag, Gradle version, and CocoaPods release metadata.
+
+## 0.2.3 — JitPack Android repair
+
+- Align every Android module with compile SDK 36, the supported level for the current Android
+  Gradle Plugin and JitPack build image.
+
+## 0.2.2 — iOS publishing repair
+
+- Fixed Kotlin/Native UIKit opt-ins and the iOS image-view content mode used by `StyledQrView`.
+- Added a macOS GitHub Release workflow that exports the native iOS XCFramework.
+- Added the XCFramework build to the normal GitHub Actions verification workflow.
 
 ## 0.2.1 — First public release
 
 - Added public Maven publication metadata, JitPack Android/JVM installation, and source JARs.
-- Added a macOS GitHub Release workflow that exports the native iOS XCFramework and a CocoaPods
-  specification that downloads the matching release asset.
+- Added the initial CocoaPods specification for the iOS XCFramework release asset.
 
 ## 0.2.0 — Platform UI components
 
