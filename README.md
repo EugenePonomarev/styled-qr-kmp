@@ -1,3 +1,5 @@
+<!-- Generated from docs/templates/README.md.template. Change VERSION_NAME only in gradle.properties. -->
+
 # Styled QR KMP
 
 [![JitPack](https://jitpack.io/v/EugenePonomarev/styled-qr-kmp.svg)](https://jitpack.io/#EugenePonomarev/styled-qr-kmp)
@@ -73,12 +75,12 @@ The first version supports:
 The shared `qrcode-core` module remains independent of UI frameworks. Choose the platform layer
 that matches the host application:
 
-| Platform        | Module / API                            | Use it in                                       |
-|-----------------|-----------------------------------------|-------------------------------------------------|
-| Android Views   | `qrcode-android-view` / `StyledQrView`  | Kotlin/Java code and XML layouts                |
-| Android Compose | `qrcode-compose` / `StyledQrCode`       | Jetpack Compose                                 |
-| iOS UIKit       | `qrcode-core` / `StyledQrImageRenderer` | UIKit code                                      |
-| iOS SwiftUI     | `examples/ios/StyledQrCodeView.swift`   | `UIViewRepresentable` adapter in the app target |
+| Platform | Module / API | Use it in |
+| --- | --- | --- |
+| Android Views | `qrcode-android-view` / `StyledQrView` | Kotlin/Java code and XML layouts |
+| Android Compose | `qrcode-compose` / `StyledQrCode` | Jetpack Compose |
+| iOS UIKit | `qrcode-core` / `StyledQrImageRenderer` | UIKit code |
+| iOS SwiftUI | `examples/ios/StyledQrCodeView.swift` | `UIViewRepresentable` adapter in the app target |
 
 ### Android View and XML
 
@@ -227,7 +229,7 @@ println("Logo reserve: ${layout.sizeModules}×${layout.sizeModules} modules")
 ```
 
 The three large finder patterns are not rendered as seven-by-seven grids of dots. They are
-composed of an outer 7-module shape, a 5-module background ring, and a 3-module centre. This
+composed from an outer 7-module shape, a 5-module background ring, and a 3-module centre. This
 creates proper circular, rounded, square, or diamond QR "eyes" instead of square frames made of
 individual circles. The default library behaviour remains conservative; configure the full style
 explicitly when you want the demo result:
