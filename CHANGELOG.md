@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.6 — Swift-importable iOS rendering API
+
+- Add StyledQrImageRenderer, a public Kotlin/Native type that returns a native UIImage to
+  Swift/UIKit without exposing a Kotlin subclass of UIImageView.
+- Replace the non-compilable SwiftUI example with a native Swift UIImageView and
+  UIViewRepresentable wrapper around StyledQrImageRenderer.
+- Hide the old Kotlin StyledQrView : UIImageView implementation from the Swift framework API.
+- Add a macOS CI smoke test that imports the built XCFramework from Swift and compiles the public
+  StyledQrImageRenderer call site.
+
 ## 0.2.5 — CocoaPods remote installation repair
 
 - Fix the incompatibility between a `:git` Podfile dependency and an XCFramework published only
@@ -12,8 +22,6 @@
 
 ## 0.2.4 — Swift iOS renderer and release metadata
 
-- Add `StyledQrImageRenderer`, a Swift-importable iOS renderer that returns `UIImage`.
-- Update the SwiftUI adapter to use the importable renderer rather than a Kotlin UIKit subclass.
 - Align the release tag, Gradle version, and CocoaPods release metadata.
 
 ## 0.2.3 — JitPack Android repair

@@ -10,16 +10,22 @@ import kotlinx.cinterop.CValue
 import kotlinx.cinterop.useContents
 import platform.CoreGraphics.CGRect
 import platform.CoreGraphics.CGRectMake
+import platform.UIKit.UIColor
 import platform.UIKit.UIImage
 import platform.UIKit.UIImageView
-import platform.UIKit.UIColor
 import platform.UIKit.UIViewContentMode
+import kotlin.experimental.ExperimentalObjCRefinement
 import kotlin.math.min
+import kotlin.native.HiddenFromObjC
 
 /**
- * Native UIKit QR-code view. It extends [UIImageView], so it works directly in UIKit and can be
- * wrapped by `UIViewRepresentable` in SwiftUI.
+ * UIKit QR-code view for Kotlin-side usage only.
+ *
+ * Kotlin/Native cannot expose Kotlin subclasses of Objective-C classes as usable Swift types.
+ * Swift/UIKit and SwiftUI must use StyledQrImageRenderer and its UIImage result instead.
  */
+@OptIn(ExperimentalObjCRefinement::class)
+@HiddenFromObjC
 public class StyledQrView(
     frame: CValue<CGRect>,
 ) : UIImageView(frame = frame) {

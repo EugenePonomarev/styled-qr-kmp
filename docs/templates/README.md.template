@@ -1,3 +1,5 @@
+<!-- Generated from docs/templates/README.md.template. Change VERSION_NAME only in gradle.properties. -->
+
 # Styled QR KMP
 
 [![JitPack](https://jitpack.io/v/EugenePonomarev/styled-qr-kmp.svg)](https://jitpack.io/#EugenePonomarev/styled-qr-kmp)
@@ -25,17 +27,17 @@ Then choose the smallest module that provides the UI you need:
 ```kotlin
 dependencies {
     // Android XML layouts and imperative View code:
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.2.6")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:{{VERSION_NAME}}")
 
     // Or Jetpack Compose (also brings the Android View adapter):
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.2.6")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:{{VERSION_NAME}}")
 
     // Encoder, SVG renderer, and Android Bitmap renderer only:
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-core:0.2.6")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-core:{{VERSION_NAME}}")
 }
 ```
 
-Use the Git tag shown in GitHub Releases in place of `0.2.6`. JitPack builds a public tag on the
+Use the Git tag shown in GitHub Releases in place of `{{VERSION_NAME}}`. JitPack builds a public tag on the
 first request; its status page is linked from the repository's README badge after the first release.
 
 ### Native iOS
@@ -48,7 +50,7 @@ For CocoaPods without a private token, reference the standalone podspec at the p
 
 ```ruby
 pod "StyledQrKmp",
-    :podspec => "https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/0.2.6/StyledQrKmp.podspec"
+    :podspec => "https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/{{VERSION_NAME}}/StyledQrKmp.podspec"
 ```
 
 The standalone podspec downloads the matching XCFramework from that GitHub Release. Do not use
@@ -73,12 +75,12 @@ The first version supports:
 The shared `qrcode-core` module remains independent of UI frameworks. Choose the platform layer
 that matches the host application:
 
-| Platform        | Module / API                            | Use it in                                       |
-|-----------------|-----------------------------------------|-------------------------------------------------|
-| Android Views   | `qrcode-android-view` / `StyledQrView`  | Kotlin/Java code and XML layouts                |
-| Android Compose | `qrcode-compose` / `StyledQrCode`       | Jetpack Compose                                 |
-| iOS UIKit       | `qrcode-core` / `StyledQrImageRenderer` | UIKit code                                      |
-| iOS SwiftUI     | `examples/ios/StyledQrCodeView.swift`   | `UIViewRepresentable` adapter in the app target |
+| Platform | Module / API | Use it in |
+| --- | --- | --- |
+| Android Views | `qrcode-android-view` / `StyledQrView` | Kotlin/Java code and XML layouts |
+| Android Compose | `qrcode-compose` / `StyledQrCode` | Jetpack Compose |
+| iOS UIKit | `qrcode-core` / `StyledQrImageRenderer` | UIKit code |
+| iOS SwiftUI | `examples/ios/StyledQrCodeView.swift` | `UIViewRepresentable` adapter in the app target |
 
 ### Android View and XML
 
@@ -86,7 +88,7 @@ Add the Android View module, then create `StyledQrView` exactly as any other And
 
 ```kotlin
 dependencies {
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.2.6")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:{{VERSION_NAME}}")
 }
 
 val qrView = StyledQrView(context).apply {
@@ -130,7 +132,7 @@ imperative code.
 
 ```kotlin
 dependencies {
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.2.6")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:{{VERSION_NAME}}")
 }
 
 StyledQrCode(
@@ -227,7 +229,7 @@ println("Logo reserve: ${layout.sizeModules}×${layout.sizeModules} modules")
 ```
 
 The three large finder patterns are not rendered as seven-by-seven grids of dots. They are
-composed of an outer 7-module shape, a 5-module background ring, and a 3-module centre. This
+composed from an outer 7-module shape, a 5-module background ring, and a 3-module centre. This
 creates proper circular, rounded, square, or diamond QR "eyes" instead of square frames made of
 individual circles. The default library behaviour remains conservative; configure the full style
 explicitly when you want the demo result:
@@ -261,12 +263,12 @@ dependency. Gradle and the Kotlin Multiplatform/Android plugins are build tools;
 
 1. Update `VERSION_NAME` only in `gradle.properties`.
 2. Run `./gradlew updateVersionedDocs`; it generates `README.md` and `StyledQrKmp.podspec`.
-3. Update the human-written release notes in `CHANGELOG.md`, commit the generated files, and create a matching Git tag, for example `0.2.6`.
+3. Update the human-written release notes in `CHANGELOG.md`, commit the generated files, and create a matching Git tag, for example `{{VERSION_NAME}}`.
 4. Push the `main` branch and the tag.
 
 ```bash
 git push origin main
-git push origin 0.2.6
+git push origin {{VERSION_NAME}}
 ```
 
 GitHub Actions verifies the Gradle artifacts and, for a tag, publishes a GitHub Release containing

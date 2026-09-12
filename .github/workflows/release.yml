@@ -20,14 +20,35 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      - name: Verify release versions
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          gradle_version="$(awk -F= '/^VERSION_NAME=/{print $2}' gradle.properties)"
+          test "$RELEASE_TAG" = "$gradle_version"
+
       - name: Make Gradle Wrapper executable
         run: chmod +x gradlew
+
+      - name: Verify generated documentation
+        run: ./gradlew --no-daemon checkVersionedDocs
+
+      - name: Validate standalone CocoaPods specification
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          podspec_url="https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/${RELEASE_TAG}/StyledQrKmp.podspec"
+          curl --fail --location --silent --show-error "$podspec_url" --output /tmp/StyledQrKmp.podspec
+          pod ipc spec /tmp/StyledQrKmp.podspec > /dev/null
 
       - name: Build the release XCFramework
         run: >-
           ./gradlew --no-daemon --no-configuration-cache
           :qrcode-core:assembleStyledQrKmpReleaseXCFramework
           --stacktrace
+
+      - name: Verify the public Swift API
+        run: bash scripts/verify-ios-swift-api.sh
 
       - name: Archive the XCFramework
         run: |
@@ -45,3 +66,9 @@ jobs:
           StyledQrKmp.xcframework.sha256
           --title "Styled QR KMP ${GITHUB_REF_NAME}"
           --generate-notes
+
+      - name: Validate the published CocoaPods artifact
+        run: >-
+          pod spec lint StyledQrKmp.podspec
+          --allow-warnings
+          --platforms=ios

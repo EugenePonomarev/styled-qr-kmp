@@ -1,10 +1,10 @@
 Pod::Spec.new do |spec|
   spec.name                  = "StyledQrKmp"
-  spec.version               = "0.2.6"
+  spec.version               = "{{VERSION_NAME}}"
   spec.summary               = "Dependency-free Kotlin Multiplatform QR-code generator with styled rendering."
   spec.description           = <<-DESC
 Styled QR KMP creates QR codes without ZXing or another QR-generation library.
-The prebuilt framework includes the shared encoder and UIKit image renderer.
+The prebuilt framework includes the shared encoder and UIKit adapter.
   DESC
   spec.homepage              = "https://github.com/EugenePonomarev/styled-qr-kmp"
   spec.license               = { :type => "MIT", :file => "LICENSE" }
