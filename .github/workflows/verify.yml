@@ -42,7 +42,8 @@ jobs:
           :qrcode-android-view:assembleDebug
           :qrcode-compose:assembleDebug
           :qrcode-web:jsBrowserTest
-          :qrcode-web:jsBrowserProductionWebpack
+          :qrcode-web:verifyJsNpmPackage
+          :qrcode-web:packJsPackage
           --stacktrace
 
       - name: Verify Maven publications used by JitPack
