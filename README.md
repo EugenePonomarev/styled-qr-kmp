@@ -27,17 +27,17 @@ Then choose the smallest module that provides the UI you need:
 ```kotlin
 dependencies {
     // Android XML layouts and imperative View code:
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.2.6")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.2.7")
 
     // Or Jetpack Compose (also brings the Android View adapter):
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.2.6")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.2.7")
 
     // Encoder, SVG renderer, and Android Bitmap renderer only:
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-core:0.2.6")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-core:0.2.7")
 }
 ```
 
-Use the Git tag shown in GitHub Releases in place of `0.2.6`. JitPack builds a public tag on the
+Use the Git tag shown in GitHub Releases in place of `0.2.7`. JitPack builds a public tag on the
 first request; its status page is linked from the repository's README badge after the first release.
 
 ### Native iOS
@@ -50,7 +50,7 @@ For CocoaPods without a private token, reference the standalone podspec at the p
 
 ```ruby
 pod "StyledQrKmp",
-    :podspec => "https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/0.2.6/StyledQrKmp.podspec"
+    :podspec => "https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/0.2.7/StyledQrKmp.podspec"
 ```
 
 The standalone podspec downloads the matching XCFramework from that GitHub Release. Do not use
@@ -81,6 +81,7 @@ that matches the host application:
 | Android Compose | `qrcode-compose` / `StyledQrCode` | Jetpack Compose |
 | iOS UIKit | `qrcode-core` / `StyledQrImageRenderer` | UIKit code |
 | iOS SwiftUI | `examples/ios/StyledQrCodeView.swift` | `UIViewRepresentable` adapter in the app target |
+| Web / JavaScript | `qrcode-web` / `generateStyledQrSvg` | Browser applications bundled as ES modules |
 
 ### Android View and XML
 
@@ -88,7 +89,7 @@ Add the Android View module, then create `StyledQrView` exactly as any other And
 
 ```kotlin
 dependencies {
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.2.6")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.2.7")
 }
 
 val qrView = StyledQrView(context).apply {
@@ -132,7 +133,7 @@ imperative code.
 
 ```kotlin
 dependencies {
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.2.6")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.2.7")
 }
 
 StyledQrCode(
@@ -169,6 +170,33 @@ For a reusable native `UIImageView` and a SwiftUI `UIViewRepresentable`, add the
 StyledQrCodeView(content: "https://eugeneponomarev.com")
     .frame(width: 240, height: 240)
 ```
+
+### Web / npm
+
+The browser adapter is available as an ES module on npm:
+
+```bash
+npm install styled-qr-kmp-web
+```
+
+```ts
+import { generateStyledQrSvg } from "styled-qr-kmp-web";
+
+const svg = generateStyledQrSvg(
+  "https://eugeneponomarev.com",
+  "H",
+  "#143A5A",
+  "#FFFFFF",
+  "rounded-square",
+  0.88,
+);
+
+document.querySelector<HTMLImageElement>("#qr")!.src =
+  `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+```
+
+`errorCorrection` accepts `L`, `M`, `Q`, or `H`. Supported module shapes are
+`square`, `rounded-square`, `circle`, and `diamond`.
 
 ## Quick start
 
@@ -263,12 +291,12 @@ dependency. Gradle and the Kotlin Multiplatform/Android plugins are build tools;
 
 1. Update `VERSION_NAME` only in `gradle.properties`.
 2. Run `./gradlew updateVersionedDocs`; it generates `README.md` and `StyledQrKmp.podspec`.
-3. Update the human-written release notes in `CHANGELOG.md`, commit the generated files, and create a matching Git tag, for example `0.2.6`.
+3. Update the human-written release notes in `CHANGELOG.md`, commit the generated files, and create a matching Git tag, for example `0.2.7`.
 4. Push the `main` branch and the tag.
 
 ```bash
 git push origin main
-git push origin 0.2.6
+git push origin 0.2.7
 ```
 
 GitHub Actions verifies the Gradle artifacts and, for a tag, publishes a GitHub Release containing
