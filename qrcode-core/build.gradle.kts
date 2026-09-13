@@ -1,4 +1,5 @@
 import org.gradle.api.JavaVersion
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
@@ -19,6 +20,15 @@ kotlin {
 
     // Lets the QR core and SVG renderer run in local unit tests without an Android device.
     jvm()
+
+    js {
+        browser()
+    }
+
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
+    }
 
     // JitPack builds on Linux, so Apple binaries are exported by the macOS release workflow.
     if (System.getenv("JITPACK") != "true") {

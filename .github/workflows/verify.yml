@@ -32,7 +32,7 @@ jobs:
       - name: Verify generated documentation
         run: ./gradlew --no-daemon checkVersionedDocs
 
-      - name: Run Android and JVM tests
+      - name: Run Android, JVM, and Web checks
         env:
           JITPACK: "true"
         run: >-
@@ -41,6 +41,8 @@ jobs:
           :qrcode-core:assembleDebug
           :qrcode-android-view:assembleDebug
           :qrcode-compose:assembleDebug
+          :qrcode-web:jsBrowserTest
+          :qrcode-web:jsBrowserProductionWebpack
           --stacktrace
 
       - name: Verify Maven publications used by JitPack
