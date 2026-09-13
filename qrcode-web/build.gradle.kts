@@ -73,10 +73,13 @@ tasks.register("verifyJsNpmPackage") {
     description =
         "Checks that the assembled npm package contains the ESM entry point and TypeScript definitions."
 
+    val jsPackageDirectory = layout.buildDirectory.dir("packages/js")
+
     dependsOn("assembleJsPackage")
+    inputs.dir(jsPackageDirectory)
 
     doLast {
-        val packageDirectory = layout.buildDirectory.dir("packages/js").get().asFile
+        val packageDirectory = jsPackageDirectory.get().asFile
         val requiredFiles = listOf(
             "package.json",
             "README.md",
