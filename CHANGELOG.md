@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.8 — Correct npm package publication
+
+- Package `styled-qr-kmp-web` as a complete publishable ES module.
+- Include JavaScript modules, TypeScript definitions, README, and MIT license in the npm tarball.
+- Verify npm packaging in CI with Gradle configuration-cache support.
+
 ## 0.2.7 — Web / npm package
 
 - Add the `qrcode-web` Kotlin/JS module and publishable ES-module package
