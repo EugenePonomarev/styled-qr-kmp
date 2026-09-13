@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.7 — Web / npm package
+
+- Add the `qrcode-web` Kotlin/JS module and publishable ES-module package
+  `styled-qr-kmp-web`.
+- Export `generateStyledQrSvg` for browser applications.
+- Add browser API tests and production Webpack verification.
+- Document npm installation and browser usage.
+
 ## 0.2.6 — Swift-importable iOS rendering API
 
 - Add StyledQrImageRenderer, a public Kotlin/Native type that returns a native UIImage to

@@ -81,6 +81,7 @@ that matches the host application:
 | Android Compose | `qrcode-compose` / `StyledQrCode` | Jetpack Compose |
 | iOS UIKit | `qrcode-core` / `StyledQrImageRenderer` | UIKit code |
 | iOS SwiftUI | `examples/ios/StyledQrCodeView.swift` | `UIViewRepresentable` adapter in the app target |
+| Web / JavaScript | `qrcode-web` / `generateStyledQrSvg` | Browser applications bundled as ES modules |
 
 ### Android View and XML
 
@@ -169,6 +170,33 @@ For a reusable native `UIImageView` and a SwiftUI `UIViewRepresentable`, add the
 StyledQrCodeView(content: "https://eugeneponomarev.com")
     .frame(width: 240, height: 240)
 ```
+
+### Web / npm
+
+The browser adapter is available as an ES module on npm:
+
+```bash
+npm install styled-qr-kmp-web
+```
+
+```ts
+import { generateStyledQrSvg } from "styled-qr-kmp-web";
+
+const svg = generateStyledQrSvg(
+  "https://eugeneponomarev.com",
+  "H",
+  "#143A5A",
+  "#FFFFFF",
+  "rounded-square",
+  0.88,
+);
+
+document.querySelector<HTMLImageElement>("#qr")!.src =
+  `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+```
+
+`errorCorrection` accepts `L`, `M`, `Q`, or `H`. Supported module shapes are
+`square`, `rounded-square`, `circle`, and `diamond`.
 
 ## Quick start
 
