@@ -130,7 +130,7 @@ private class QrDataBitReader(
             val bitIndex = 7 - (bitOffset and 7)
 
             result = (result shl 1) or (
-                    (bytes[byteIndex].toInt() ushr bitIndex) and 1
+                (bytes[byteIndex].toInt() ushr bitIndex) and 1
             )
             bitOffset += 1
         }
