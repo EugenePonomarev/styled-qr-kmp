@@ -61,19 +61,26 @@ public enum class QrFinderPatternShape {
     Diamond,
 }
 
-/** Controls which QR structural modules remain square when a custom shape is selected. */
+/**
+ * Controls the shape of dark non-finder function modules.
+ *
+ * Finder patterns are always rendered as composed 7:5:3 eyes and are controlled separately by
+ * [QrStyle.finderPatternShape].
+ */
 public enum class QrFunctionPatternStyle {
-    /** Keeps every function module square: finder, alignment, timing, format, and version bits. */
+    /**
+     * Keeps every non-finder function module square: alignment, timing, format, version, and fixed
+     * dark modules.
+     */
     PreserveAll,
 
     /**
-     * Keeps only finder and alignment patterns square. Timing, format, version, and fixed dark
-     * modules use the selected [QrModuleShape], so the visible square lines change with the rest
-     * of the code.
+     * Keeps alignment patterns square. Timing, format, version, and fixed dark modules use the
+     * selected [QrModuleShape].
      */
     PreserveFindersAndAlignment,
 
-    /** Applies the selected shape to every dark QR module. Use only after device scan testing. */
+    /** Applies the selected [QrModuleShape] to every dark non-finder function module. */
     MatchDataModules,
 }
 

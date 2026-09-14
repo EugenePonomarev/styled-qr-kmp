@@ -3,6 +3,7 @@ package io.github.eugeneponomarev.styledqr
 import io.github.eugeneponomarev.styledqr.core.QrCodeGenerator
 import io.github.eugeneponomarev.styledqr.core.QrErrorCorrectionLevel
 import io.github.eugeneponomarev.styledqr.render.QrColor
+import io.github.eugeneponomarev.styledqr.render.QrFinderPatternShape
 import io.github.eugeneponomarev.styledqr.render.QrFunctionPatternStyle
 import io.github.eugeneponomarev.styledqr.render.QrLogoOptions
 import io.github.eugeneponomarev.styledqr.render.QrModuleShape
@@ -12,10 +13,10 @@ import io.github.eugeneponomarev.styledqr.render.toSvg
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
-import kotlin.test.assertFailsWith
 
 class QrCodeGeneratorTest {
     @Test
@@ -165,5 +166,21 @@ class QrCodeGeneratorTest {
         assertContains(svg, "<circle cx=\"7.5\" cy=\"7.5\" r=\"2.5\"")
         assertContains(svg, "<circle cx=\"7.5\" cy=\"7.5\" r=\"1.5\"")
         assertFalse(svg.contains("<circle cx=\"4.5\" cy=\"4.5\" r=\"0.5\""))
+    }
+
+    @Test
+    fun finderPatternShapeIsIndependentFromFunctionPatternStyle() {
+        val code = QrCodeGenerator.encodeBytes(byteArrayOf(0x42))
+
+        val svg = code.toSvg(
+            style = QrStyle(
+                moduleShape = QrModuleShape.Circle,
+                functionPatternStyle = QrFunctionPatternStyle.PreserveAll,
+                finderPatternShape = QrFinderPatternShape.Square,
+            ),
+        )
+
+        assertContains(svg, "<rect x=")
+        assertFalse(svg.contains("<circle cx=\"7.5\" cy=\"7.5\" r=\"3.5\""))
     }
 }

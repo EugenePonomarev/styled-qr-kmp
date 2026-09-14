@@ -24,7 +24,9 @@ public class QrCode internal constructor(
 
     /**
      * Returns `true` for finder, alignment, timing, format, version, and fixed dark modules.
-     * Renderers can keep all of them square, or preserve only the locator patterns.
+     *
+     * Renderers may use this marker to keep non-finder function modules square. Finder patterns are
+     * rendered separately as composed eyes and use the configured finder-pattern shape.
      */
     public fun isFunctionModule(row: Int, column: Int): Boolean {
         require(row in 0 until size) { "Row $row is outside 0..${size - 1}" }
