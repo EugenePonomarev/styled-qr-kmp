@@ -66,6 +66,7 @@ The first version supports:
 - UTF-8 text and URLs through Byte mode with UTF-8 ECI;
 - automatic version and mask selection;
 - standard Reed–Solomon error correction;
+- QR matrix decoding for Byte-mode payloads and ECI, with Reed–Solomon error correction;
 - common SVG output with colours, circles, rounded modules, diamonds, quiet zone, and a validated central logo;
 - Android `Bitmap` output using only Android's `Canvas` API;
 - iOS `UIImage` output using UIKit/CoreGraphics.
@@ -241,6 +242,24 @@ val bitmap = qrCode.toBitmap(
 )
 ```
 
+### Decode a QR matrix
+
+`QrCodeDecoder` accepts an already sampled square QR module matrix without a quiet
+zone. It is a matrix decoder, not an image or camera scanner: QR detection,
+binarisation, and perspective correction are outside this API.
+
+The initial decoder supports Byte-mode payloads and ECI, including UTF-8 QR codes
+created by `QrCodeGenerator`.
+
+```kotlin
+val decoded = QrCodeDecoder.decode(qrCode.copyModules())
+
+println(decoded.utf8TextOrNull())
+println("Corrected codeword errors: ${decoded.correctedErrorCount}")
+```
+
+Use `copyBytes()` when the payload is binary or does not declare UTF-8 through ECI.
+
 ## Logo safety and design rules
 
 The QR matrix always remains a square grid. The library changes how each dark module is rendered, not where modules are located. For reliable scanning:
@@ -294,9 +313,10 @@ Use JDK 17 and Gradle 8.13. The repository includes the Gradle Wrapper:
 ./gradlew :qrcode-compose:assembleDebug
 ```
 
-The QR encoder, SVG renderer, Android View, and UIKit view have no third-party QR-generation
-dependency. Gradle and the Kotlin Multiplatform/Android plugins are build tools; the optional
-`qrcode-compose` module adds AndroidX Compose UI solely to expose a Compose API.
+The QR encoder, QR matrix decoder, SVG renderer, Android View, and UIKit view have no
+third-party QR-generation or QR-decoding dependency. Gradle and the Kotlin
+Multiplatform/Android plugins are build tools; the optional `qrcode-compose` module adds AndroidX
+Compose UI solely to expose a Compose API.
 
 ## Release a new version
 
