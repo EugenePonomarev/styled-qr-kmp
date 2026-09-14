@@ -60,13 +60,13 @@ internal object QrPayloadDecoder {
 
             firstByte and 0xC0 == 0x80 -> {
                 ((firstByte and 0x3F) shl BITS_PER_BYTE) or
-                        reader.readBits(BITS_PER_BYTE)
+                    reader.readBits(BITS_PER_BYTE)
             }
 
             firstByte and 0xE0 == 0xC0 -> {
                 ((firstByte and 0x1F) shl (BITS_PER_BYTE * 2)) or
-                        (reader.readBits(BITS_PER_BYTE) shl BITS_PER_BYTE) or
-                        reader.readBits(BITS_PER_BYTE)
+                    (reader.readBits(BITS_PER_BYTE) shl BITS_PER_BYTE) or
+                    reader.readBits(BITS_PER_BYTE)
             }
 
             else -> throw QrDecodeException("QR ECI designator is invalid")
@@ -131,7 +131,7 @@ private class QrDataBitReader(
 
             result = (result shl 1) or (
                     (bytes[byteIndex].toInt() ushr bitIndex) and 1
-                    )
+            )
             bitOffset += 1
         }
         return result
