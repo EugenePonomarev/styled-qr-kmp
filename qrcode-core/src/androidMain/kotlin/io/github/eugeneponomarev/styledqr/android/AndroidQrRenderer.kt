@@ -13,6 +13,7 @@ import io.github.eugeneponomarev.styledqr.render.QrLogoOptions
 import io.github.eugeneponomarev.styledqr.render.QrModuleShape
 import io.github.eugeneponomarev.styledqr.render.QrStyle
 import io.github.eugeneponomarev.styledqr.render.calculateLogoLayout
+import io.github.eugeneponomarev.styledqr.render.calculateRasterModuleLayout
 import io.github.eugeneponomarev.styledqr.render.finderPatternTopLefts
 import io.github.eugeneponomarev.styledqr.render.isFinderPatternCore
 import io.github.eugeneponomarev.styledqr.render.resolvedFinderPatternShape
@@ -25,11 +26,12 @@ public fun QrCode.toBitmap(
     logo: Bitmap? = null,
 ): Bitmap {
     val totalModules = size + style.quietZoneModules * 2
-    require(sizePx >= totalModules) {
-        "sizePx must be at least $totalModules to represent every QR module"
-    }
-
-    val moduleSize = sizePx.toFloat() / totalModules
+    val rasterLayout = calculateRasterModuleLayout(
+        sizePx = sizePx,
+        totalModules = totalModules,
+    )
+    val moduleSize = rasterLayout.moduleSizePx.toFloat()
+    val offset = rasterLayout.offsetPx.toFloat()
     val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
     canvas.drawColor(style.background.toArgb())
@@ -61,8 +63,8 @@ public fun QrCode.toBitmap(
             }
             val scale = if (preserveAsSquare) 1.0 else style.moduleScale
             canvas.drawModule(
-                left = (column + style.quietZoneModules) * moduleSize,
-                top = (row + style.quietZoneModules) * moduleSize,
+                left = offset + (column + style.quietZoneModules) * moduleSize,
+                top = offset + (row + style.quietZoneModules) * moduleSize,
                 moduleSize = moduleSize,
                 scale = scale.toFloat(),
                 shape = shape,
@@ -76,6 +78,7 @@ public fun QrCode.toBitmap(
         qrCode = this,
         moduleSize = moduleSize,
         quietZoneModules = style.quietZoneModules,
+        offset = offset,
         shape = style.resolvedFinderPatternShape(),
         roundedRadiusFraction = style.roundedModuleRadiusFraction.toFloat(),
         foregroundPaint = modulePaint,
@@ -86,6 +89,7 @@ public fun QrCode.toBitmap(
         canvas.drawLogo(
             moduleSize = moduleSize,
             quietZoneModules = style.quietZoneModules,
+            offset = offset,
             layout = requireNotNull(logoLayout),
             options = requireNotNull(logoOptions),
             bitmap = logo,
@@ -99,14 +103,15 @@ private fun Canvas.drawFinderPatterns(
     qrCode: QrCode,
     moduleSize: Float,
     quietZoneModules: Int,
+    offset: Float,
     shape: QrModuleShape,
     roundedRadiusFraction: Float,
     foregroundPaint: Paint,
     backgroundPaint: Paint,
 ) {
     qrCode.finderPatternTopLefts().forEach { (row, column) ->
-        val left = (column + quietZoneModules) * moduleSize
-        val top = (row + quietZoneModules) * moduleSize
+        val left = offset + (column + quietZoneModules) * moduleSize
+        val top = offset + (row + quietZoneModules) * moduleSize
         drawFinderLayer(left, top, moduleSize * 7f, shape, roundedRadiusFraction, foregroundPaint)
         drawFinderLayer(
             left + moduleSize,
@@ -186,6 +191,7 @@ private fun Canvas.drawModule(
 private fun Canvas.drawLogo(
     moduleSize: Float,
     quietZoneModules: Int,
+    offset: Float,
     layout: QrLogoLayout,
     options: QrLogoOptions,
     bitmap: Bitmap,
@@ -193,8 +199,8 @@ private fun Canvas.drawLogo(
     val boxSize = layout.sizeModules * moduleSize
     val padding = layout.paddingModules * moduleSize
     val logoSize = boxSize - padding * 2f
-    val left = (quietZoneModules + layout.leftModule) * moduleSize
-    val top = (quietZoneModules + layout.topModule) * moduleSize
+    val left = offset + (quietZoneModules + layout.leftModule) * moduleSize
+    val top = offset + (quietZoneModules + layout.topModule) * moduleSize
     val backgroundRect = RectF(left, top, left + boxSize, top + boxSize)
     val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = options.background.toArgb()
