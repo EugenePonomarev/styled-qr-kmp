@@ -2,6 +2,7 @@ package io.github.eugeneponomarev.styledqr.web
 
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class StyledQrWebTest {
@@ -36,5 +37,47 @@ class StyledQrWebTest {
                 moduleShape = "triangle",
             )
         }
+    }
+
+    @Test
+    fun defaultsToFullyStyledFunctionPatterns() {
+        val svg = generateStyledQrSvg(
+            content = "https://eugeneponomarev.com",
+            moduleShape = "diamond",
+        )
+
+        assertFalse(svg.contains("shape-rendering=\"crispEdges\""))
+    }
+
+    @Test
+    fun allowsConservativeFunctionPatterns() {
+        val svg = generateStyledQrSvg(
+            content = "https://eugeneponomarev.com",
+            moduleShape = "diamond",
+            functionPatternStyle = "preserve-all",
+        )
+
+        assertTrue(svg.contains("shape-rendering=\"crispEdges\""))
+    }
+
+    @Test
+    fun rejectsUnsupportedFunctionPatternStyle() {
+        assertFailsWith<IllegalArgumentException> {
+            generateStyledQrSvg(
+                content = "https://eugeneponomarev.com",
+                functionPatternStyle = "unsupported",
+            )
+        }
+    }
+
+    @Test
+    fun preservesAlignmentPatternsWhenRequested() {
+        val svg = generateStyledQrSvg(
+            content = "https://eugeneponomarev.com",
+            moduleShape = "diamond",
+            functionPatternStyle = "preserve-finders-and-alignment",
+        )
+
+        assertTrue(svg.contains("shape-rendering=\"crispEdges\""))
     }
 }
