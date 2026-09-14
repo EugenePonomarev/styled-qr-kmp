@@ -132,7 +132,7 @@ internal object QrReedSolomonDecoder {
 
         val inverseLocatorAtZero = QrGaloisField.inverse(locatorAtZero)
         return auxiliary.multiplyByScalar(inverseLocatorAtZero) to
-                remainder.multiplyByScalar(inverseLocatorAtZero)
+            remainder.multiplyByScalar(inverseLocatorAtZero)
     }
 
     private fun findErrorLocations(
