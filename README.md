@@ -198,6 +198,15 @@ document.querySelector<HTMLImageElement>("#qr")!.src =
 `errorCorrection` accepts `L`, `M`, `Q`, or `H`. Supported module shapes are
 `square`, `rounded-square`, `circle`, and `diamond`.
 
+`functionPatternStyle` is an optional seventh argument. It defaults to
+`match-data-modules`, which applies the selected shape to data modules and all dark
+non-finder function modules, including alignment, timing, format, version, and fixed
+dark modules. Finder patterns remain composed eyes in the selected visual shape.
+
+Use `preserve-all` to keep non-finder structural modules square, or
+`preserve-finders-and-alignment` to keep alignment patterns square while timing, format,
+and version modules follow the selected shape.
+
 ## Quick start
 
 ```kotlin
@@ -259,8 +268,10 @@ println("Logo reserve: ${layout.sizeModules}×${layout.sizeModules} modules")
 The three large finder patterns are not rendered as seven-by-seven grids of dots. They are
 composed from an outer 7-module shape, a 5-module background ring, and a 3-module centre. This
 creates proper circular, rounded, square, or diamond QR "eyes" instead of square frames made of
-individual circles. The default library behaviour remains conservative; configure the full style
-explicitly when you want the demo result:
+individual circles. The shared `QrStyle` default and the Web API default use
+`MatchDataModules`, producing a fully styled result. Use `PreserveAll` when non-finder
+structural modules should remain square, and configure `finderPatternShape` separately
+when using the shared Kotlin API:
 
 ```kotlin
 QrStyle(

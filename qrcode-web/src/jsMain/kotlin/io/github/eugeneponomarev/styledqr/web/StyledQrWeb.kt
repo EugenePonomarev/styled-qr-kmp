@@ -19,6 +19,7 @@ public fun generateStyledQrSvg(
     background: String = "#FFFFFF",
     moduleShape: String = "square",
     moduleScale: Double = 1.0,
+    functionPatternStyle: String = "match-data-modules",
 ): String {
     require(content.isNotBlank()) { "content must not be blank" }
 
@@ -32,7 +33,7 @@ public fun generateStyledQrSvg(
             quietZoneModules = 4,
             moduleShape = moduleShape.toQrModuleShape(),
             moduleScale = moduleScale,
-            functionPatternStyle = QrFunctionPatternStyle.PreserveAll,
+            functionPatternStyle = functionPatternStyle.toQrFunctionPatternStyle(),
             finderPatternShape = QrFinderPatternShape.MatchModuleShape,
         ),
     )
@@ -58,5 +59,25 @@ private fun String.toQrModuleShape(): QrModuleShape = when (lowercase()) {
     "diamond" -> QrModuleShape.Diamond
     else -> throw IllegalArgumentException(
         "moduleShape must be square, rounded-square, circle, or diamond; was '$this'",
+    )
+}
+
+private fun String.toQrFunctionPatternStyle(): QrFunctionPatternStyle = when (lowercase()) {
+    "preserve-all", "preserve_all", "preserveall" ->
+        QrFunctionPatternStyle.PreserveAll
+
+    "preserve-finders-and-alignment",
+    "preserve_finders_and_alignment",
+    "preservefindersandalignment" ->
+        QrFunctionPatternStyle.PreserveFindersAndAlignment
+
+    "match-data-modules",
+    "match_data_modules",
+    "matchdatamodules" ->
+        QrFunctionPatternStyle.MatchDataModules
+
+    else -> throw IllegalArgumentException(
+        "functionPatternStyle must be one of preserve-all, " +
+            "preserve-finders-and-alignment, match-data-modules; was '$this'",
     )
 }
