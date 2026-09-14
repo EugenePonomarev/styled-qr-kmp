@@ -278,8 +278,10 @@ private class QrGaloisPolynomial(
         if (isZero) return other
         if (other.isZero) return this
 
-        val larger = if (coefficients.size >= other.coefficients.size) coefficients else other.coefficients
-        val smaller = if (coefficients.size < other.coefficients.size) coefficients else other.coefficients
+        val larger =
+            if (coefficients.size >= other.coefficients.size) coefficients else other.coefficients
+        val smaller =
+            if (coefficients.size < other.coefficients.size) coefficients else other.coefficients
         val result = larger.copyOf()
         val difference = larger.size - smaller.size
 

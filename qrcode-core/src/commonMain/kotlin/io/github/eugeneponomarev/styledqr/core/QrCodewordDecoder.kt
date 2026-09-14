@@ -21,7 +21,7 @@ internal object QrCodewordDecoder {
         if (extracted.interleavedCodewords.size != rawCodewordCount) {
             throw QrDecodeException(
                 "QR contains ${extracted.interleavedCodewords.size} codewords, " +
-                        "expected $rawCodewordCount",
+                    "expected $rawCodewordCount",
             )
         }
 

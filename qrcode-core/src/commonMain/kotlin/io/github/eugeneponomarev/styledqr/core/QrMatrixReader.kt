@@ -151,7 +151,7 @@ internal class QrMatrixReader(
                         val byteIndex = bitIndex ushr 3
                         val bitInByte = 7 - (bitIndex and 7)
                         result[byteIndex] = (
-                                result[byteIndex].toInt() or (1 shl bitInByte)
+                                    result[byteIndex].toInt() or (1 shl bitInByte)
                                 ).toByte()
                     }
                     bitIndex += 1
@@ -183,8 +183,8 @@ internal class QrMatrixReader(
             alignmentPositions.forEachIndexed { columnIndex, column ->
                 val overlapsFinder =
                     (rowIndex == 0 && columnIndex == 0) ||
-                            (rowIndex == 0 && columnIndex == alignmentPositions.lastIndex) ||
-                            (rowIndex == alignmentPositions.lastIndex && columnIndex == 0)
+                        (rowIndex == 0 && columnIndex == alignmentPositions.lastIndex) ||
+                        (rowIndex == alignmentPositions.lastIndex && columnIndex == 0)
 
                 if (!overlapsFinder) {
                     drawAlignmentMap(result, centerX = column, centerY = row)
@@ -293,7 +293,7 @@ internal class QrMatrixReader(
         repeat(FORMAT_BCH_DEGREE) {
             remainder = (
                     remainder shl 1
-                    ) xor if ((remainder ushr (FORMAT_BCH_DEGREE - 1)) != 0) {
+            ) xor if ((remainder ushr (FORMAT_BCH_DEGREE - 1)) != 0) {
                 FORMAT_GENERATOR
             } else {
                 0
@@ -309,7 +309,7 @@ internal class QrMatrixReader(
         repeat(VERSION_BCH_DEGREE) {
             remainder = (
                     remainder shl 1
-                    ) xor if ((remainder ushr (VERSION_BCH_DEGREE - 1)) != 0) {
+            ) xor if ((remainder ushr (VERSION_BCH_DEGREE - 1)) != 0) {
                 VERSION_GENERATOR
             } else {
                 0
