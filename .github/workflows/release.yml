@@ -72,3 +72,50 @@ jobs:
           pod spec lint StyledQrKmp.podspec
           --allow-warnings
           --platforms=ios
+
+  npm-web:
+    needs: native-ios
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Verify release versions
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          gradle_version="$(awk -F= '/^VERSION_NAME=/{print $2}' gradle.properties)"
+          test "$RELEASE_TAG" = "$gradle_version"
+
+      - name: Make Gradle Wrapper executable
+        run: chmod +x gradlew
+
+      - name: Build and verify the npm package
+        run: >-
+          ./gradlew --no-daemon --no-configuration-cache
+          :qrcode-web:jsBrowserTest
+          :qrcode-web:verifyJsNpmPackage
+          :qrcode-web:packJsPackage
+          --stacktrace
+
+      - name: Use an npm CLI that supports trusted publishing
+        run: npm install --global npm@11
+
+      - name: Publish npm package
+        run: npm publish ./qrcode-web/build/packages/js --access public
