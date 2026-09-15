@@ -126,6 +126,10 @@ drawable resource. Its logo area is still validated by the shared renderer.
 
 The attributes shown above are the complete public XML contract of `StyledQrView`.
 
+`app:qrFunctionPatternStyle` is optional. When omitted, it defaults to `matchDataModules`,
+matching the shared `QrStyle` default. Explicit `preserveAll` and
+`preserveFindersAndAlignment` values keep their existing meanings.
+
 ### Jetpack Compose
 
 `qrcode-compose` is optional: it is the only module that brings an AndroidX Compose UI dependency.
