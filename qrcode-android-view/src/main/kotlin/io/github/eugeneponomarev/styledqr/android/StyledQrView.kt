@@ -218,10 +218,14 @@ public class StyledQrView @JvmOverloads constructor(
                     defaultStyle.roundedModuleRadiusFraction.toFloat(),
                 ).toDouble(),
                 functionPatternStyle = functionPatternStyleFrom(
-                    attributes.getInt(
-                        R.styleable.StyledQrView_qrFunctionPatternStyle,
-                        FUNCTION_PATTERN_PRESERVE_ALL,
-                    ),
+                    if (attributes.hasValue(R.styleable.StyledQrView_qrFunctionPatternStyle)) {
+                        attributes.getInt(
+                            R.styleable.StyledQrView_qrFunctionPatternStyle,
+                            FUNCTION_PATTERN_PRESERVE_ALL,
+                        )
+                    } else {
+                        null
+                    },
                 ),
                 logo = logoOptions,
             )
@@ -261,7 +265,8 @@ private fun moduleShapeFrom(value: Int): QrModuleShape = when (value) {
     else -> QrModuleShape.Square
 }
 
-private fun functionPatternStyleFrom(value: Int): QrFunctionPatternStyle = when (value) {
+internal fun functionPatternStyleFrom(value: Int?): QrFunctionPatternStyle = when (value) {
+    null -> QrStyle().functionPatternStyle
     1 -> QrFunctionPatternStyle.PreserveFindersAndAlignment
     2 -> QrFunctionPatternStyle.MatchDataModules
     else -> QrFunctionPatternStyle.PreserveAll

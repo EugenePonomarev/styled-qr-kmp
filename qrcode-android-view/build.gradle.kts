@@ -46,4 +46,6 @@ publishing {
 
 dependencies {
     api(project(":qrcode-core"))
+
+    testImplementation(kotlin("test-junit"))
 }
