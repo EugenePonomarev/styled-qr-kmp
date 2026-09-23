@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.2.9 — Themes, web logos and rendering improvements
+
+- Add seven shared visual themes: Aurora, Fintech, Minimal, Neon,
+  Wedding, Coffee, and Cyber.
+- Export the theme catalog and themed SVG generation to JavaScript.
+- Add themed and custom SVG generation with embedded logos.
+- Keep error correction H as the default for web generation.
+- Apply theme defaults to logo size, padding, and background.
+- Add QR matrix decoding with UTF-8 ECI and Reed–Solomon correction.
+- Correct the medium-level QR block layout and expand conformance tests.
+- Align Android raster modules to whole pixels.
+- Make function-pattern styling consistent across renderers and Android XML.
+- Add automatic npm publishing from release tags.
+
 ## 0.2.8 — Correct npm package publication
 
 - Package `styled-qr-kmp-web` as a complete publishable ES module.

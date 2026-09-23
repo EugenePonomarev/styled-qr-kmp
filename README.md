@@ -27,17 +27,17 @@ Then choose the smallest module that provides the UI you need:
 ```kotlin
 dependencies {
     // Android XML layouts and imperative View code:
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.2.8")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.2.9")
 
     // Or Jetpack Compose (also brings the Android View adapter):
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.2.8")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.2.9")
 
     // Encoder, SVG renderer, and Android Bitmap renderer only:
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-core:0.2.8")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-core:0.2.9")
 }
 ```
 
-Use the Git tag shown in GitHub Releases in place of `0.2.8`. JitPack builds a public tag on the
+Use the Git tag shown in GitHub Releases in place of `0.2.9`. JitPack builds a public tag on the
 first request; its status page is linked from the repository's README badge after the first release.
 
 ### Native iOS
@@ -50,17 +50,19 @@ For CocoaPods without a private token, reference the standalone podspec at the p
 
 ```ruby
 pod "StyledQrKmp",
-    :podspec => "https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/0.2.8/StyledQrKmp.podspec"
+    :podspec => "https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/0.2.9/StyledQrKmp.podspec"
 ```
 
 The standalone podspec downloads the matching XCFramework from that GitHub Release. Do not use
 `:git` here: it checks out the Kotlin source repository and cannot obtain the separately published
 framework archive.
 
-Run `pod deintegrate && pod install --repo-update`, then open the generated `.xcworkspace` file —
-not the app's `.xcodeproj` file.
+Run `pod install`, then open the generated `.xcworkspace` file.
 
-The first version supports:
+To update an existing installation, change the podspec URL to the desired
+release tag and run `pod update StyledQrKmp`.
+
+Features include:
 
 - QR versions 1–40 and error-correction levels L, M, Q, and H;
 - UTF-8 text and URLs through Byte mode with UTF-8 ECI;
@@ -73,8 +75,9 @@ The first version supports:
 
 ## UI components
 
-The shared `qrcode-core` module remains independent of UI frameworks. Choose the platform layer
-that matches the host application:
+The common Kotlin encoding and styling code is independent of platform UI
+frameworks. The `qrcode-core` module also provides native Android and iOS
+renderers. Choose the platform layer that matches the host application:
 
 | Platform | Module / API | Use it in |
 | --- | --- | --- |
@@ -90,7 +93,7 @@ Add the Android View module, then create `StyledQrView` exactly as any other And
 
 ```kotlin
 dependencies {
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.2.8")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.2.9")
 }
 
 val qrView = StyledQrView(context).apply {
@@ -124,7 +127,8 @@ drawable resource. Its logo area is still validated by the shared renderer.
     app:qrFunctionPatternStyle="matchDataModules" />
 ```
 
-The attributes shown above are the complete public XML contract of `StyledQrView`.
+This example shows a subset of the supported XML attributes.
+See `qrcode-android-view/src/main/res/values/attrs.xml` for the complete list.
 
 `app:qrFunctionPatternStyle` is optional. When omitted, it defaults to `matchDataModules`,
 matching the shared `QrStyle` default. Explicit `preserveAll` and
@@ -138,7 +142,7 @@ imperative code.
 
 ```kotlin
 dependencies {
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.2.8")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.2.9")
 }
 
 StyledQrCode(
@@ -211,6 +215,46 @@ dark modules. Finder patterns remain composed eyes in the selected visual shape.
 Use `preserve-all` to keep non-finder structural modules square, or
 `preserve-finders-and-alignment` to keep alignment patterns square while timing, format,
 and version modules follow the selected shape.
+
+## Built-in themes
+
+Seven themes are available on all rendering platforms:
+Aurora, Fintech, Minimal, Neon, Wedding, Coffee, and Cyber.
+
+```kotlin
+val style = QrThemes.Fintech.createStyle()
+
+val styleWithLogo = QrThemes.Fintech.createStyle(
+    logo = QrThemes.Fintech.createLogoOptions(),
+)
+```
+
+Web applications can select a theme directly:
+
+```typescript
+import {
+  getStyledQrThemeIds,
+  generateThemedQrSvg,
+  generateThemedQrSvgWithLogo,
+} from "styled-qr-kmp-web";
+
+const themes = getStyledQrThemeIds();
+const svg = generateThemedQrSvg("https://example.com", "fintech");
+
+// logoDataUri contains a complete base64 PNG, JPEG, or WebP data URI.
+const svgWithLogo = generateThemedQrSvgWithLogo(
+  "https://example.com",
+  "fintech",
+  logoDataUri,
+);
+```
+
+Error correction defaults to H. Pass an optional final argument to
+generateThemedQrSvg or generateThemedQrSvgWithLogo to select another level.
+
+For a custom style with a logo, use generateStyledQrSvgWithLogo.
+All logo placements use the shared layout validation and may be rejected
+when they overlap mandatory QR patterns or exceed the correction budget.
 
 ## Quick start
 
@@ -324,15 +368,26 @@ Compose UI solely to expose a Compose API.
 
 ## Release a new version
 
-1. Update `VERSION_NAME` only in `gradle.properties`.
-2. Run `./gradlew updateVersionedDocs`; it generates `README.md` and `StyledQrKmp.podspec`.
-3. Update the human-written release notes in `CHANGELOG.md`, commit the generated files, and create a matching Git tag, for example `0.2.8`.
-4. Push the `main` branch and the tag.
+1. Set `VERSION_NAME` in `gradle.properties`.
+2. Run `./gradlew updateVersionedDocs` to regenerate `README.md`
+   and `StyledQrKmp.podspec`.
+3. Update `CHANGELOG.md` and include the source changes, templates,
+   and generated documentation in a pull request.
+4. Merge after the `Verify` workflow succeeds, then wait for verification
+   of the resulting `main` commit.
+5. Create and push a matching tag, such as `0.2.9`,
+   from that verified commit. The tag must not have a `v` prefix.
 
-```bash
-git push origin main
-git push origin 0.2.8
-```
+Pushing the tag starts `.github/workflows/release.yml`:
 
-GitHub Actions verifies the Gradle artifacts and, for a tag, publishes a GitHub Release containing
-the native iOS XCFramework. JitPack publishes the Android/JVM modules from the same public tag.
+- `native-ios` builds the XCFramework, checks the Swift API, creates
+  the GitHub Release, and validates the published CocoaPods artifact.
+- After `native-ios` succeeds, `npm-web` tests and packages the Web adapter
+  and publishes `styled-qr-kmp-web` to npm.
+
+Automatic npm publication requires a Trusted Publisher configured for
+`EugenePonomarev/styled-qr-kmp`, workflow `release.yml`,
+with direct `npm publish` allowed.
+
+JitPack builds the Android/JVM artifacts from the same public tag
+when that version is first requested.
