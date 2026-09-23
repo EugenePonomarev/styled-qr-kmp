@@ -19,5 +19,8 @@ func verifyStyledQrKmpSwiftApi() {
             scale: 0.0
         )
         _ = themedImage
+
+        let options = theme.createLogoOptions()
+        _ = theme.createStyle(logo: options)
     }
 }
