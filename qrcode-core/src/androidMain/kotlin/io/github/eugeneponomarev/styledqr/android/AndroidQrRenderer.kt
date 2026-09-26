@@ -2,11 +2,14 @@ package io.github.eugeneponomarev.styledqr.android
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
+import android.graphics.Shader
 import io.github.eugeneponomarev.styledqr.core.QrCode
 import io.github.eugeneponomarev.styledqr.render.QrColor
+import io.github.eugeneponomarev.styledqr.render.QrLinearGradient
 import io.github.eugeneponomarev.styledqr.render.QrLogoBackgroundShape
 import io.github.eugeneponomarev.styledqr.render.QrLogoLayout
 import io.github.eugeneponomarev.styledqr.render.QrLogoOptions
@@ -39,6 +42,9 @@ public fun QrCode.toBitmap(
     val modulePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = style.foreground.toArgb()
         this.style = Paint.Style.FILL
+        style.foregroundGradient?.let { gradient ->
+            shader = gradient.toAndroidShader(size, style.quietZoneModules, moduleSize, offset)
+        }
     }
     val finderBackgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = style.background.toArgb()
@@ -98,6 +104,21 @@ public fun QrCode.toBitmap(
 
     return bitmap
 }
+
+private fun QrLinearGradient.toAndroidShader(
+    qrSizeModules: Int,
+    quietZoneModules: Int,
+    moduleSizePx: Float,
+    offsetPx: Float,
+): LinearGradient = LinearGradient(
+    offsetPx + (quietZoneModules + start.x * qrSizeModules).toFloat() * moduleSizePx,
+    offsetPx + (quietZoneModules + start.y * qrSizeModules).toFloat() * moduleSizePx,
+    offsetPx + (quietZoneModules + end.x * qrSizeModules).toFloat() * moduleSizePx,
+    offsetPx + (quietZoneModules + end.y * qrSizeModules).toFloat() * moduleSizePx,
+    startColor.toArgb(),
+    endColor.toArgb(),
+    Shader.TileMode.CLAMP,
+)
 
 private fun Canvas.drawFinderPatterns(
     qrCode: QrCode,

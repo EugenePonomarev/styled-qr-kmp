@@ -4,6 +4,7 @@ package io.github.eugeneponomarev.styledqr.ios
 
 import io.github.eugeneponomarev.styledqr.core.QrCode
 import io.github.eugeneponomarev.styledqr.render.QrColor
+import io.github.eugeneponomarev.styledqr.render.QrLinearGradient
 import io.github.eugeneponomarev.styledqr.render.QrLogoBackgroundShape
 import io.github.eugeneponomarev.styledqr.render.QrLogoLayout
 import io.github.eugeneponomarev.styledqr.render.QrLogoOptions
@@ -14,15 +15,29 @@ import io.github.eugeneponomarev.styledqr.render.finderPatternTopLefts
 import io.github.eugeneponomarev.styledqr.render.isFinderPatternCore
 import io.github.eugeneponomarev.styledqr.render.resolvedFinderPatternShape
 import io.github.eugeneponomarev.styledqr.render.shouldPreserveAsSquare
+import kotlinx.cinterop.cValuesOf
+import platform.CoreGraphics.CGColorSpaceCreateWithName
+import platform.CoreGraphics.kCGColorSpaceSRGB
+import platform.CoreGraphics.CGColorSpaceRelease
+import platform.CoreGraphics.CGContextAddPath
+import platform.CoreGraphics.CGContextDrawLinearGradient
+import platform.CoreGraphics.CGContextEOClip
+import platform.CoreGraphics.CGContextRestoreGState
+import platform.CoreGraphics.CGContextSaveGState
+import platform.CoreGraphics.CGGradientCreateWithColorComponents
+import platform.CoreGraphics.CGGradientRelease
 import platform.CoreGraphics.CGPointMake
 import platform.CoreGraphics.CGRectMake
 import platform.CoreGraphics.CGSizeMake
+import platform.CoreGraphics.kCGGradientDrawsAfterEndLocation
+import platform.CoreGraphics.kCGGradientDrawsBeforeStartLocation
 import platform.UIKit.UIBezierPath
 import platform.UIKit.UIColor
-import platform.UIKit.UIImage
 import platform.UIKit.UIGraphicsBeginImageContextWithOptions
 import platform.UIKit.UIGraphicsEndImageContext
+import platform.UIKit.UIGraphicsGetCurrentContext
 import platform.UIKit.UIGraphicsGetImageFromCurrentImageContext
+import platform.UIKit.UIImage
 
 /** Renders a [QrCode] to a native iOS [UIImage] using UIKit. */
 public fun QrCode.toUIImage(
@@ -44,7 +59,9 @@ public fun QrCode.toUIImage(
         style.background.toUiColor().setFill()
         UIBezierPath.bezierPathWithRect(CGRectMake(0.0, 0.0, sizePoints, sizePoints)).fill()
 
-        style.foreground.toUiColor().setFill()
+        val gradient = style.foregroundGradient
+        val foregroundPath = gradient?.let { UIBezierPath.bezierPath() }
+        if (gradient == null) style.foreground.toUiColor().setFill()
         for (row in 0 until size) {
             for (column in 0 until size) {
                 if (
@@ -60,23 +77,32 @@ public fun QrCode.toUIImage(
                     style.moduleShape
                 }
                 val moduleScale = if (preserveAsSquare) 1.0 else style.moduleScale
-                drawModulePath(
+                val modulePath = drawModulePath(
                     left = (column + style.quietZoneModules) * moduleSize,
                     top = (row + style.quietZoneModules) * moduleSize,
                     moduleSize = moduleSize,
                     scale = moduleScale,
                     shape = shape,
                     roundedRadiusFraction = style.roundedModuleRadiusFraction,
-                ).fill()
+                )
+                if (foregroundPath == null) modulePath.fill() else foregroundPath.appendPath(modulePath)
             }
         }
 
-        drawFinderPatterns(
-            qrCode = this,
-            moduleSize = moduleSize,
-            quietZoneModules = style.quietZoneModules,
-            style = style,
-        )
+        if (gradient == null) {
+            drawFinderPatterns(
+                qrCode = this,
+                moduleSize = moduleSize,
+                quietZoneModules = style.quietZoneModules,
+                style = style,
+            )
+        } else {
+            // Even-odd clipping cuts the 5×5 middle ring out of the 7×7 outer layer,
+            // then restores the 3×3 centre. The already painted background shows in the hole.
+            val path = requireNotNull(foregroundPath)
+            appendGradientFinderPatterns(this, moduleSize, style, path)
+            drawForegroundGradient(path, gradient, size, style.quietZoneModules, moduleSize)
+        }
 
         if (logo != null) {
             drawLogo(
@@ -93,6 +119,116 @@ public fun QrCode.toUIImage(
         }
     } finally {
         UIGraphicsEndImageContext()
+    }
+}
+
+private fun appendGradientFinderPatterns(
+    qrCode: QrCode,
+    moduleSize: Double,
+    style: QrStyle,
+    path: UIBezierPath,
+) {
+    val shape = style.resolvedFinderPatternShape()
+    qrCode.finderPatternTopLefts().forEach { (row, column) ->
+        val left = (column + style.quietZoneModules) * moduleSize
+        val top = (row + style.quietZoneModules) * moduleSize
+        path.appendPath(drawFinderLayer(left, top, moduleSize * 7.0, shape, style.roundedModuleRadiusFraction))
+        path.appendPath(
+            drawFinderLayer(
+                left + moduleSize,
+                top + moduleSize,
+                moduleSize * 5.0,
+                shape,
+                style.roundedModuleRadiusFraction,
+            ),
+        )
+        path.appendPath(
+            drawFinderLayer(
+                left + moduleSize * 2.0,
+                top + moduleSize * 2.0,
+                moduleSize * 3.0,
+                shape,
+                style.roundedModuleRadiusFraction,
+            ),
+        )
+    }
+}
+
+private fun drawForegroundGradient(
+    path: UIBezierPath,
+    gradient: QrLinearGradient,
+    qrSizeModules: Int,
+    quietZoneModules: Int,
+    moduleSize: Double,
+) {
+    val context = requireNotNull(
+        UIGraphicsGetCurrentContext(),
+    ) {
+        "Unable to get the QR graphics context"
+    }
+
+    val colorSpace = requireNotNull(
+        CGColorSpaceCreateWithName(kCGColorSpaceSRGB),
+    ) {
+        "Unable to create sRGB color space"
+    }
+
+    try {
+        val colors = cValuesOf(
+            gradient.startColor.red / 255.0,
+            gradient.startColor.green / 255.0,
+            gradient.startColor.blue / 255.0,
+            1.0,
+            gradient.endColor.red / 255.0,
+            gradient.endColor.green / 255.0,
+            gradient.endColor.blue / 255.0,
+            1.0,
+        )
+
+        val cgGradient = requireNotNull(
+            CGGradientCreateWithColorComponents(
+                colorSpace,
+                colors,
+                null,
+                2uL,
+            ),
+        ) {
+            "Unable to create QR foreground gradient"
+        }
+
+        try {
+            CGContextSaveGState(context)
+
+            try {
+                CGContextAddPath(context, path.CGPath)
+                CGContextEOClip(context)
+
+                CGContextDrawLinearGradient(
+                    context,
+                    cgGradient,
+                    CGPointMake(
+                        (quietZoneModules + gradient.start.x * qrSizeModules) *
+                                moduleSize,
+                        (quietZoneModules + gradient.start.y * qrSizeModules) *
+                                moduleSize,
+                    ),
+                    CGPointMake(
+                        (quietZoneModules + gradient.end.x * qrSizeModules) *
+                                moduleSize,
+                        (quietZoneModules + gradient.end.y * qrSizeModules) *
+                                moduleSize,
+                    ),
+                    kCGGradientDrawsBeforeStartLocation or
+                            kCGGradientDrawsAfterEndLocation,
+                )
+            } finally {
+                CGContextRestoreGState(context)
+            }
+        } finally {
+            CGGradientRelease(cgGradient)
+        }
+    } finally {
+        CGColorSpaceRelease(colorSpace)
     }
 }
 

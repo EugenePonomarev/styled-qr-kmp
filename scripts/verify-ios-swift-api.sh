@@ -22,6 +22,8 @@ header_path="$framework_path/Headers/StyledQrKmp.h"
 test -f "$header_path"
 
 grep -Fq 'swift_name("StyledQrImageRenderer")' "$header_path"
+grep -Fq 'swift_name("QrGradientPoint")' "$header_path"
+grep -Fq 'swift_name("QrLinearGradient")' "$header_path"
 if grep -Fq 'swift_name("StyledQrView")' "$header_path"; then
     echo "StyledQrView must not be exported to Swift; use StyledQrImageRenderer instead." >&2
     exit 1

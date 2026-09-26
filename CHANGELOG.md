@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — Safe linear gradients
+
+- Add an opaque, contrast-validated foreground gradient to the shared `QrStyle`.
+- Use one QR-wide gradient across dark data modules and finder layers in SVG,
+  Android Bitmap, and iOS UIImage; keep existing solid styles unchanged.
+- Export `generateStyledQrSvgWithLinearGradient` for Web, with optional safe logo.
+
 ## 0.2.9 — Themes, web logos and rendering improvements
 
 - Add seven shared visual themes: Aurora, Fintech, Minimal, Neon,

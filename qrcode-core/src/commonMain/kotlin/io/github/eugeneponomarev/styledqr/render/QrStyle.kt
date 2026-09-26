@@ -137,6 +137,8 @@ public data class QrStyle(
      */
     val finderPatternShape: QrFinderPatternShape = QrFinderPatternShape.MatchModuleShape,
     val logo: QrLogoOptions? = null,
+    /** Overrides [foreground] for dark QR modules and finder layers when present. */
+    val foregroundGradient: QrLinearGradient? = null,
 ) {
     init {
         require(quietZoneModules >= 0) { "quietZoneModules must not be negative" }
@@ -144,6 +146,7 @@ public data class QrStyle(
         require(roundedModuleRadiusFraction in 0.0..0.5) {
             "roundedModuleRadiusFraction must be in 0.0..0.5"
         }
+        foregroundGradient?.validateAgainst(background)
     }
 }
 
