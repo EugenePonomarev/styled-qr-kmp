@@ -258,7 +258,7 @@ when they overlap mandatory QR patterns or exceed the correction budget.
 
 ## Safe linear gradients
 
-This API is planned for version 0.3.0 and is available from the source branch
+This API is planned for version 0.3.0 and is available from source
 until that release is published.
 
 `QrStyle.foregroundGradient` fills dark modules and both dark finder layers with one
