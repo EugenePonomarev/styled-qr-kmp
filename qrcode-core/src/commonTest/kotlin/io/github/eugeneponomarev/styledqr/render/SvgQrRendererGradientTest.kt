@@ -114,27 +114,21 @@ class SvgQrRendererGradientTest {
         assertEquals(
             3,
             Regex(
-                "width=\"7.0\" " +
-                        "height=\"7.0\" " +
-                        "fill=\"url\\(#qr-foreground\\)\"",
+                """width="7(?:\.0)?" height="7(?:\.0)?" fill="url\(#qr-foreground\)"""",
             ).findAll(svg).count(),
         )
 
         assertEquals(
             3,
             Regex(
-                "width=\"3.0\" " +
-                        "height=\"3.0\" " +
-                        "fill=\"url\\(#qr-foreground\\)\"",
+                """width="3(?:\.0)?" height="3(?:\.0)?" fill="url\(#qr-foreground\)"""",
             ).findAll(svg).count(),
         )
 
         assertEquals(
             3,
             Regex(
-                "width=\"5.0\" " +
-                        "height=\"5.0\" " +
-                        "fill=\"#FFFFFF\"",
+                """width="5(?:\.0)?" height="5(?:\.0)?" fill="#FFFFFF"""",
             ).findAll(svg).count(),
         )
 
