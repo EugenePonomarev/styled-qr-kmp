@@ -133,7 +133,7 @@ class QrLinearGradientTest {
         }
 
         assertTrue(
-            weak.message.orEmpty().contains("progress 0.0"),
+            weak.message.orEmpty().contains("Unsafe gradient at progress 0"),
         )
         assertTrue(
             weak.message.orEmpty().contains("contrast"),
