@@ -5,6 +5,8 @@ import io.github.eugeneponomarev.styledqr.core.QrErrorCorrectionLevel
 import io.github.eugeneponomarev.styledqr.render.QrColor
 import io.github.eugeneponomarev.styledqr.render.QrFinderPatternShape
 import io.github.eugeneponomarev.styledqr.render.QrFunctionPatternStyle
+import io.github.eugeneponomarev.styledqr.render.QrGradientPoint
+import io.github.eugeneponomarev.styledqr.render.QrLinearGradient
 import io.github.eugeneponomarev.styledqr.render.QrLogoOptions
 import io.github.eugeneponomarev.styledqr.render.QrModuleShape
 import io.github.eugeneponomarev.styledqr.render.QrStyle
@@ -39,6 +41,51 @@ public fun generateStyledQrSvg(
             functionPatternStyle = functionPatternStyle.toQrFunctionPatternStyle(),
             finderPatternShape = QrFinderPatternShape.MatchModuleShape,
         ),
+    )
+}
+
+/** Generates a custom SVG with a validated global foreground gradient and optional logo. */
+@OptIn(ExperimentalJsExport::class)
+@JsExport
+public fun generateStyledQrSvgWithLinearGradient(
+    content: String,
+    startColor: String,
+    endColor: String,
+    startX: Double = 0.0,
+    startY: Double = 0.0,
+    endX: Double = 1.0,
+    endY: Double = 1.0,
+    background: String = "#FFFFFF",
+    moduleShape: String = "square",
+    moduleScale: Double = 1.0,
+    functionPatternStyle: String = "match-data-modules",
+    errorCorrection: String = "H",
+    logoDataUri: String = "",
+): String {
+    require(content.isNotBlank()) { "content must not be blank" }
+
+    val backgroundColor = QrColor.fromHex(background)
+    val logo = logoDataUri.takeIf { it.isNotEmpty() }?.let(::validatedWebLogoDataUri)
+    return QrCodeGenerator.encodeText(
+        text = content,
+        errorCorrection = errorCorrection.toQrErrorCorrectionLevel(),
+    ).toSvg(
+        style = QrStyle(
+            background = backgroundColor,
+            quietZoneModules = 4,
+            moduleShape = moduleShape.toQrModuleShape(),
+            moduleScale = moduleScale,
+            functionPatternStyle = functionPatternStyle.toQrFunctionPatternStyle(),
+            finderPatternShape = QrFinderPatternShape.MatchModuleShape,
+            logo = logo?.let { QrLogoOptions(background = backgroundColor) },
+            foregroundGradient = QrLinearGradient(
+                startColor = QrColor.fromHex(startColor),
+                endColor = QrColor.fromHex(endColor),
+                start = QrGradientPoint(startX, startY),
+                end = QrGradientPoint(endX, endY),
+            ),
+        ),
+        logoDataUri = logo,
     )
 }
 

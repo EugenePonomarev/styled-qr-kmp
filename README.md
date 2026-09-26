@@ -256,6 +256,56 @@ For a custom style with a logo, use generateStyledQrSvgWithLogo.
 All logo placements use the shared layout validation and may be rejected
 when they overlap mandatory QR patterns or exceed the correction budget.
 
+## Safe linear gradients
+
+This API is planned for version 0.3.0 and is available from the source branch
+until that release is published.
+
+`QrStyle.foregroundGradient` fills dark modules and both dark finder layers with one
+global gradient. `foreground` remains the solid fallback when the gradient is absent.
+Coordinates range from `(0, 0)` at the top left of the QR matrix to `(1, 1)` at
+the bottom right, excluding the quiet zone. The background, quiet zone, finder
+middle rings, and logo background remain solid.
+
+```kotlin
+val qrCode = QrCodeGenerator.encodeText("https://example.com")
+val style = QrStyle(
+    background = QrColor.White,
+    moduleShape = QrModuleShape.RoundedSquare,
+    moduleScale = 0.90,
+    foregroundGradient = QrLinearGradient(
+        startColor = QrColor.fromHex("#075985"),
+        endColor = QrColor.fromHex("#6D28D9"),
+        start = QrGradientPoint(0.0, 0.0),
+        end = QrGradientPoint(1.0, 1.0),
+    ),
+)
+val svg = qrCode.toSvg(style)
+// On Android: qrCode.toBitmap(sizePx = 512, style = style)
+// On iOS: qrCode.toUIImage(sizePoints = 240.0, style = style)
+```
+
+Web consumers can use the separate export without changing existing calls to
+`generateStyledQrSvg`:
+
+```ts
+import { generateStyledQrSvgWithLinearGradient } from "styled-qr-kmp-web";
+
+const svg = generateStyledQrSvgWithLinearGradient(
+  "https://example.com",
+  "#075985",
+  "#6D28D9",
+);
+```
+
+Optional Web arguments after the two colours are `startX`, `startY`, `endX`,
+`endY`, `background`, `moduleShape`, `moduleScale`, `functionPatternStyle`,
+`errorCorrection`, and `logoDataUri` (a base64 PNG, JPEG, or WebP data URI).
+The colours and background must be opaque. Construction rejects gradients
+with insufficient contrast (below 4.5:1 at any of 65 sampled points) or a
+foreground that is not darker than its background. Logo placement retains
+its existing safety checks; scan the final image on target devices before release.
+
 ## Quick start
 
 ```kotlin

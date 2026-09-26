@@ -15,7 +15,7 @@ public object SvgQrRenderer {
     ): String {
         val quietZone = style.quietZoneModules
         val canvasSize = qrCode.size + quietZone * 2
-        val foreground = style.foreground.toCss()
+        val foreground = if (style.foregroundGradient == null) style.foreground.toCss() else "url(#qr-foreground)"
         val logoOptions = style.logo?.takeIf { !logoDataUri.isNullOrBlank() }
         val logoLayout = logoOptions?.let(qrCode::calculateLogoLayout)
 
@@ -26,6 +26,17 @@ public object SvgQrRenderer {
             append(' ')
             append(canvasSize)
             append("\" role=\"img\" aria-label=\"QR code\">")
+            style.foregroundGradient?.let { gradient ->
+                val startX = quietZone + gradient.start.x * qrCode.size
+                val startY = quietZone + gradient.start.y * qrCode.size
+                val endX = quietZone + gradient.end.x * qrCode.size
+                val endY = quietZone + gradient.end.y * qrCode.size
+                append("<defs><linearGradient id=\"qr-foreground\" gradientUnits=\"userSpaceOnUse\"")
+                append(" x1=\"$startX\" y1=\"$startY\" x2=\"$endX\" y2=\"$endY\">")
+                append("<stop offset=\"0%\" stop-color=\"${gradient.startColor.toCss()}\"/>")
+                append("<stop offset=\"100%\" stop-color=\"${gradient.endColor.toCss()}\"/>")
+                append("</linearGradient></defs>")
+            }
             append("<rect width=\"")
             append(canvasSize)
             append("\" height=\"")

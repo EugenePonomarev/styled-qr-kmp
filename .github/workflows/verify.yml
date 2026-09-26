@@ -43,6 +43,7 @@ jobs:
           ./gradlew --no-daemon
           :qrcode-core:jvmTest
           :qrcode-core:assembleDebug
+          :qrcode-core:testDebugUnitTest
           :qrcode-android-view:assembleDebug
           :qrcode-compose:assembleDebug
           :qrcode-web:jsBrowserTest
