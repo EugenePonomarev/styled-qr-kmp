@@ -9,6 +9,7 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 class SvgQrRendererGradientTest {
@@ -31,7 +32,7 @@ class SvgQrRendererGradientTest {
         )
         assertFalse(
             defaultSvg.contains(
-                "url(#qr-foreground)",
+                "qr-foreground-",
             ),
         )
 
@@ -53,7 +54,7 @@ class SvgQrRendererGradientTest {
             )
             assertFalse(
                 svg.contains(
-                    "url(#qr-foreground)",
+                    "qr-foreground-",
                 ),
             )
         }
@@ -67,6 +68,7 @@ class SvgQrRendererGradientTest {
         )
 
         val svg = code.toSvg(style)
+        val gradientId = gradientIdFrom(svg)
 
         val quietZone =
             style.quietZoneModules.toDouble()
@@ -108,20 +110,22 @@ class SvgQrRendererGradientTest {
 
         assertContains(
             svg,
-            "fill=\"url(#qr-foreground)\"",
+            "fill=\"url(#$gradientId)\"",
         )
+
+        val escapedGradientId = Regex.escape(gradientId)
 
         assertEquals(
             3,
             Regex(
-                """width="7(?:\.0)?" height="7(?:\.0)?" fill="url\(#qr-foreground\)"""",
+                """width="7(?:\.0)?" height="7(?:\.0)?" fill="url\(#$escapedGradientId\)"""",
             ).findAll(svg).count(),
         )
 
         assertEquals(
             3,
             Regex(
-                """width="3(?:\.0)?" height="3(?:\.0)?" fill="url\(#qr-foreground\)"""",
+                """width="3(?:\.0)?" height="3(?:\.0)?" fill="url\(#$escapedGradientId\)"""",
             ).findAll(svg).count(),
         )
 
@@ -171,6 +175,8 @@ class SvgQrRendererGradientTest {
 
         val svg = code.toSvg(style)
 
+        val gradientId = gradientIdFrom(svg)
+
         val quietZone =
             style.quietZoneModules.toDouble()
 
@@ -192,7 +198,7 @@ class SvgQrRendererGradientTest {
 
         assertContains(
             svg,
-            "fill=\"url(#qr-foreground)\"",
+            "fill=\"url(#$gradientId)\"",
         )
 
         assertEquals(
@@ -226,6 +232,8 @@ class SvgQrRendererGradientTest {
                 "data:image/png;base64,AA==",
         )
 
+        val gradientId = gradientIdFrom(svg)
+
         val after = withLogo.copyModules()
 
         assertContains(
@@ -241,7 +249,7 @@ class SvgQrRendererGradientTest {
 
         assertTrue(
             svg.contains(
-                "url(#qr-foreground)",
+                "url(#$gradientId)",
             ),
         )
 
@@ -273,5 +281,58 @@ class SvgQrRendererGradientTest {
                     "data:image/png;base64,AA==",
             )
         }
+    }
+
+    @Test
+    fun differentGradientsUseDifferentDeterministicIds() {
+        val firstStyle = QrStyle(
+            foregroundGradient = gradient,
+        )
+
+        val secondStyle = QrStyle(
+            foregroundGradient = QrLinearGradient(
+                startColor = QrColor.fromHex("#0C4A6E"),
+                endColor = QrColor.fromHex("#4C1D95"),
+            ),
+        )
+
+        val firstSvg = code.toSvg(firstStyle)
+        val repeatedFirstSvg = code.toSvg(firstStyle)
+        val secondSvg = code.toSvg(secondStyle)
+
+        val firstId = gradientIdFrom(firstSvg)
+        val repeatedFirstId = gradientIdFrom(repeatedFirstSvg)
+        val secondId = gradientIdFrom(secondSvg)
+
+        assertEquals(
+            firstId,
+            repeatedFirstId,
+        )
+
+        assertNotEquals(
+            firstId,
+            secondId,
+        )
+
+        assertContains(
+            firstSvg,
+            "url(#$firstId)",
+        )
+
+        assertContains(
+            secondSvg,
+            "url(#$secondId)",
+        )
+    }
+
+    private fun gradientIdFrom(svg: String): String {
+        val match = requireNotNull(
+            Regex("""<linearGradient id="([^"]+)"""")
+                .find(svg),
+        ) {
+            "SVG does not contain a linear gradient definition"
+        }
+
+        return match.groupValues[1]
     }
 }

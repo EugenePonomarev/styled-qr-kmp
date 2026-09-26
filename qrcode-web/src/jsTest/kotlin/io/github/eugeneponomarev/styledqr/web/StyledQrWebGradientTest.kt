@@ -200,7 +200,7 @@ class StyledQrWebGradientTest {
 
         assertContains(
             actual,
-            "url(#qr-foreground)",
+            "<linearGradient id=\"qr-foreground-",
         )
     }
 
@@ -236,7 +236,7 @@ class StyledQrWebGradientTest {
 
         assertFalse(
             legacy.contains(
-                "url(#qr-foreground)",
+                "qr-foreground-",
             ),
         )
     }

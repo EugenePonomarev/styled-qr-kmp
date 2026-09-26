@@ -50,7 +50,6 @@ kotlin {
         }
 
         androidUnitTest.dependencies {
-            implementation(kotlin("test-junit"))
             implementation("org.robolectric:robolectric:4.16.1")
         }
     }
@@ -61,7 +60,6 @@ android {
     compileSdk = 36
 
     testOptions {
-        unitTests.isIncludeAndroidResources = true
         unitTests.all {
             it.jvmArgs(
                 "--add-opens=java.base/java.lang=ALL-UNNAMED",
