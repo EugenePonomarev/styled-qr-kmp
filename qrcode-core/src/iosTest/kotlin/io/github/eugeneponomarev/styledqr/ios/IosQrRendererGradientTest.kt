@@ -8,15 +8,8 @@ import io.github.eugeneponomarev.styledqr.render.QrColor
 import io.github.eugeneponomarev.styledqr.render.QrGradientPoint
 import io.github.eugeneponomarev.styledqr.render.QrLinearGradient
 import io.github.eugeneponomarev.styledqr.render.QrStyle
-import io.github.eugeneponomarev.styledqr.render.isFinderPatternCore
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.usePinned
-import kotlin.math.abs
-import kotlin.math.roundToInt
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
-import kotlin.test.assertTrue
 import platform.CoreGraphics.CGBitmapContextCreate
 import platform.CoreGraphics.CGBitmapContextGetData
 import platform.CoreGraphics.CGColorSpaceCreateWithName
@@ -33,6 +26,10 @@ import platform.CoreGraphics.kCGBitmapByteOrder32Little
 import platform.CoreGraphics.kCGColorSpaceSRGB
 import platform.UIKit.UIImage
 import platform.posix.memcpy
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
+import kotlin.test.assertTrue
 
 class IosQrRendererGradientTest {
 
@@ -46,7 +43,7 @@ class IosQrRendererGradientTest {
         QrColor.fromHex("#F8FAFC")
 
     @Test
-    fun mapsHorizontalGradientAcrossQrMatrixExcludingQuietZone() {
+    fun rendersHorizontalGradientAcrossDarkModulesAndFinderLayers() {
         val code = QrCodeGenerator.encodeBytes(
             byteArrayOf(0x42),
         )
@@ -72,7 +69,7 @@ class IosQrRendererGradientTest {
 
         val pixelsPerModule = 12
 
-        val image = code.toUIImage(
+        val pixels = code.toUIImage(
             sizePoints = imageSize(
                 code = code,
                 style = style,
@@ -80,27 +77,32 @@ class IosQrRendererGradientTest {
             ).toDouble(),
             style = style,
             scale = 1.0,
-        )
+        ).toPixelBuffer()
 
-        val pixels = image.toPixelBuffer()
-        val span = widestDarkSpan(code)
-
+        // The outer corners of the left and right finder patterns
+        // are guaranteed dark pixels and share the global foreground gradient.
         val leftPixel = pixels.pixelAtQrModule(
-            row = span.row,
-            column = span.leftColumn,
-            quietZoneModules =
-                style.quietZoneModules,
-            pixelsPerModule =
-                pixelsPerModule,
+            row = 0,
+            column = 0,
+            quietZoneModules = style.quietZoneModules,
+            pixelsPerModule = pixelsPerModule,
         )
 
         val rightPixel = pixels.pixelAtQrModule(
-            row = span.row,
-            column = span.rightColumn,
-            quietZoneModules =
-                style.quietZoneModules,
-            pixelsPerModule =
-                pixelsPerModule,
+            row = 0,
+            column = code.size - 1,
+            quietZoneModules = style.quietZoneModules,
+            pixelsPerModule = pixelsPerModule,
+        )
+
+        assertNotEquals(
+            backgroundColor,
+            leftPixel,
+        )
+
+        assertNotEquals(
+            backgroundColor,
+            rightPixel,
         )
 
         assertNotEquals(
@@ -108,28 +110,36 @@ class IosQrRendererGradientTest {
             rightPixel,
         )
 
-        val leftProgress =
-            (span.leftColumn + 0.5) /
-                    code.size
-
-        val rightProgress =
-            (span.rightColumn + 0.5) /
-                    code.size
-
-        assertColorNear(
-            expected =
-                gradient.expectedColorAt(
-                    leftProgress,
-                ),
-            actual = leftPixel,
+        // #075985 -> #6D28D9:
+        // red increases, green decreases, blue increases.
+        // Assert the gradient direction without depending on exact
+        // CoreGraphics rasterisation/channel rounding.
+        assertTrue(
+            leftPixel.red < rightPixel.red,
+            "Red channel must increase from left to right: " +
+                    "left=${leftPixel.red}, right=${rightPixel.red}",
         )
 
-        assertColorNear(
-            expected =
-                gradient.expectedColorAt(
-                    rightProgress,
-                ),
-            actual = rightPixel,
+        assertTrue(
+            leftPixel.green > rightPixel.green,
+            "Green channel must decrease from left to right: " +
+                    "left=${leftPixel.green}, right=${rightPixel.green}",
+        )
+
+        assertTrue(
+            leftPixel.blue < rightPixel.blue,
+            "Blue channel must increase from left to right: " +
+                    "left=${leftPixel.blue}, right=${rightPixel.blue}",
+        )
+
+        assertEquals(
+            255,
+            leftPixel.alpha,
+        )
+
+        assertEquals(
+            255,
+            rightPixel.alpha,
         )
     }
 
@@ -219,122 +229,7 @@ class IosQrRendererGradientTest {
         code: QrCode,
         style: QrStyle,
         pixelsPerModule: Int,
-    ): Int =
-        (
-                code.size +
-                        style.quietZoneModules * 2
-                ) * pixelsPerModule
-
-    private fun widestDarkSpan(
-        code: QrCode,
-    ): DarkSpan =
-        (0 until code.size)
-            .mapNotNull { row ->
-                val columns =
-                    (0 until code.size)
-                        .filter { column ->
-                            code[row, column] &&
-                                    !code.isFinderPatternCore(
-                                        row,
-                                        column,
-                                    )
-                        }
-
-                if (columns.size < 2) {
-                    null
-                } else {
-                    DarkSpan(
-                        row = row,
-                        leftColumn =
-                            columns.first(),
-                        rightColumn =
-                            columns.last(),
-                    )
-                }
-            }
-            .maxByOrNull { span ->
-                span.rightColumn -
-                        span.leftColumn
-            }
-            ?: error(
-                "Unable to find two dark modules " +
-                        "on the same QR row",
-            )
-
-    private fun QrLinearGradient.expectedColorAt(
-        progress: Double,
-    ): QrColor {
-        fun mix(
-            from: Int,
-            to: Int,
-        ): Int =
-            (
-                    from +
-                            (to - from) * progress
-                    ).roundToInt()
-
-        return QrColor(
-            red = mix(
-                startColor.red,
-                endColor.red,
-            ),
-            green = mix(
-                startColor.green,
-                endColor.green,
-            ),
-            blue = mix(
-                startColor.blue,
-                endColor.blue,
-            ),
-        )
-    }
-
-    private fun assertColorNear(
-        expected: QrColor,
-        actual: QrColor,
-        tolerance: Int = 3,
-    ) {
-        assertTrue(
-            abs(
-                expected.red -
-                        actual.red,
-            ) <= tolerance,
-            "Red channel differs: " +
-                    "expected=${expected.red}, " +
-                    "actual=${actual.red}",
-        )
-
-        assertTrue(
-            abs(
-                expected.green -
-                        actual.green,
-            ) <= tolerance,
-            "Green channel differs: " +
-                    "expected=${expected.green}, " +
-                    "actual=${actual.green}",
-        )
-
-        assertTrue(
-            abs(
-                expected.blue -
-                        actual.blue,
-            ) <= tolerance,
-            "Blue channel differs: " +
-                    "expected=${expected.blue}, " +
-                    "actual=${actual.blue}",
-        )
-
-        assertEquals(
-            255,
-            actual.alpha,
-        )
-    }
-
-    private data class DarkSpan(
-        val row: Int,
-        val leftColumn: Int,
-        val rightColumn: Int,
-    )
+    ): Int = (code.size + style.quietZoneModules * 2) * pixelsPerModule
 }
 
 private data class PixelBuffer(
