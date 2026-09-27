@@ -44,7 +44,12 @@ public object SvgQrRenderer {
                 val endX = quietZone + value.end.x * qrCode.size
                 val endY = quietZone + value.end.y * qrCode.size
 
-                append("<defs><linearGradient id=\"$id\" gradientUnits=\"userSpaceOnUse\"")
+                append(
+                    "<defs><linearGradient " +
+                            "id=\"$id\" " +
+                            "gradientUnits=\"userSpaceOnUse\" " +
+                            "color-interpolation=\"sRGB\"",
+                )
                 append(" x1=\"$startX\" y1=\"$startY\" x2=\"$endX\" y2=\"$endY\">")
                 append("<stop offset=\"0%\" stop-color=\"${value.startColor.toCss()}\"/>")
                 append("<stop offset=\"100%\" stop-color=\"${value.endColor.toCss()}\"/>")

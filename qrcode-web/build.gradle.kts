@@ -108,5 +108,12 @@ tasks.register("verifyJsNpmPackage") {
             "npm TypeScript declarations do not export " +
                     "generateStyledQrSvgWithLinearGradient"
         }
+
+        check(
+            "StyledQrLinearGradientOptions" in declarations,
+        ) {
+            "npm TypeScript declarations do not export " +
+                    "StyledQrLinearGradientOptions"
+        }
     }
 }

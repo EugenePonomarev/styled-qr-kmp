@@ -2,10 +2,33 @@
 
 ## Unreleased — Safe linear gradients
 
-- Add an opaque, contrast-validated foreground gradient to the shared `QrStyle`.
-- Use one QR-wide gradient across dark data modules and finder layers in SVG,
-  Android Bitmap, and iOS UIImage; keep existing solid styles unchanged.
-- Export `generateStyledQrSvgWithLinearGradient` for Web, with optional safe logo.
+### Added
+
+- Add an opaque, contrast-validated foreground gradient to `QrStyle`.
+- Use one QR-wide gradient across dark data modules and finder layers
+  in SVG, Android Bitmap, and iOS UIImage.
+- Export `generateStyledQrSvgWithLinearGradient` for Web.
+- Add Android XML attributes for foreground gradients.
+- Add `QrTheme.createGradientStyle` without changing existing theme output.
+- Export `StyledQrLinearGradientOptions` for the Web gradient API.
+- Add pixel-level iOS gradient renderer tests.
+
+### Changed
+
+- Use deterministic SVG gradient identifiers to prevent different inline QR
+  gradients from colliding in the same document.
+- Explicitly render SVG gradients using sRGB colour interpolation.
+- Keep 65-point contrast validation because 8-bit channel quantisation can
+  produce an intermediate colour with lower contrast than both endpoints.
+
+### Compatibility
+
+- Kotlin callers remain source-compatible because
+  `QrStyle.foregroundGradient` defaults to `null`.
+- Swift callers that construct `QrStyle` directly must now provide
+  the additional `foregroundGradient` initializer argument, usually
+  `nil`. `StyledQrImageRenderer` callers that do not construct
+  `QrStyle` directly are unaffected.
 
 ## 0.2.9 — Themes, web logos and rendering improvements
 

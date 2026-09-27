@@ -27,17 +27,24 @@ class StyledQrWebGradientTest {
 
     @Test
     fun webExportMatchesCommonSvgForCustomGradient() {
+
+        val options =
+            StyledQrLinearGradientOptions(
+                startColor = start,
+                endColor = end,
+            ).apply {
+                startX = 0.0
+                startY = 1.0
+                endX = 1.0
+                endY = 0.0
+                moduleShape = "circle"
+                moduleScale = 0.9
+            }
+
         val actual =
             generateStyledQrSvgWithLinearGradient(
                 content = text,
-                startColor = start,
-                endColor = end,
-                startX = 0.0,
-                startY = 1.0,
-                endX = 1.0,
-                endY = 0.0,
-                moduleShape = "circle",
-                moduleScale = 0.9,
+                options = options,
             )
 
         val expected =
@@ -80,73 +87,98 @@ class StyledQrWebGradientTest {
 
     @Test
     fun invalidGradientValuesFailWithoutSolidFallback() {
+
+        val options =
+            StyledQrLinearGradientOptions(
+                startColor = start,
+                endColor = end,
+            )
+
         assertFailsWith<IllegalArgumentException> {
             generateStyledQrSvgWithLinearGradient(
                 content = " ",
-                startColor = start,
-                endColor = end,
+                options = options,
             )
         }
 
         assertFailsWith<IllegalArgumentException> {
             generateStyledQrSvgWithLinearGradient(
                 content = text,
-                startColor = "#GG0000",
-                endColor = end,
+                options = StyledQrLinearGradientOptions(
+                    startColor = "#GG0000",
+                    endColor = end,
+                )
             )
         }
 
         assertFailsWith<IllegalArgumentException> {
             generateStyledQrSvgWithLinearGradient(
                 content = text,
-                startColor = start,
-                endColor = end,
-                startX = 2.0,
+                options = StyledQrLinearGradientOptions(
+                    startColor = start,
+                    endColor = end,
+                ).apply {
+                    startX = 2.0
+                },
             )
         }
 
         assertFailsWith<IllegalArgumentException> {
             generateStyledQrSvgWithLinearGradient(
                 content = text,
-                startColor = start,
-                endColor = end,
-                endX = 0.0,
-                endY = 0.0,
+                options = StyledQrLinearGradientOptions(
+                    startColor = start,
+                    endColor = end,
+                ).apply {
+                    endX = 0.0
+                    endY = 0.0
+                },
             )
         }
 
         assertFailsWith<IllegalArgumentException> {
             generateStyledQrSvgWithLinearGradient(
                 content = text,
-                startColor = "#DDDDDD",
-                endColor = end,
+                options = StyledQrLinearGradientOptions(
+                    startColor = "#DDDDDD",
+                    endColor = end,
+                ),
             )
         }
 
         assertFailsWith<IllegalArgumentException> {
             generateStyledQrSvgWithLinearGradient(
                 content = text,
-                startColor = start,
-                endColor = end,
-                moduleShape = "triangle",
+                options = StyledQrLinearGradientOptions(
+                    startColor = start,
+                    endColor = end,
+                ).apply {
+                    moduleShape = "triangle"
+                },
             )
         }
 
         assertFailsWith<IllegalArgumentException> {
             generateStyledQrSvgWithLinearGradient(
                 content = text,
-                startColor = start,
-                endColor = end,
-                logoDataUri = "broken",
+                options = StyledQrLinearGradientOptions(
+                    startColor = start,
+                    endColor = end,
+                ).apply {
+                    logoDataUri = "broken"
+                },
             )
         }
 
         assertFailsWith<IllegalArgumentException> {
             generateStyledQrSvgWithLinearGradient(
                 content = text,
-                startColor = start,
-                endColor = end,
-                logoDataUri = " ",
+                options = StyledQrLinearGradientOptions(
+                    startColor = start,
+                    endColor = end,
+                ).apply {
+                    logoDataUri = " "
+                },
             )
         }
     }
@@ -159,9 +191,12 @@ class StyledQrWebGradientTest {
         val actual =
             generateStyledQrSvgWithLinearGradient(
                 content = text,
-                startColor = start,
-                endColor = end,
-                logoDataUri = logo,
+                options = StyledQrLinearGradientOptions(
+                    startColor = start,
+                    endColor = end,
+                ).apply {
+                    logoDataUri = logo
+                },
             )
 
         val expected =
@@ -209,8 +244,10 @@ class StyledQrWebGradientTest {
         val svg =
             generateStyledQrSvgWithLinearGradient(
                 content = text,
-                startColor = start,
-                endColor = end,
+                options = StyledQrLinearGradientOptions(
+                    startColor = start,
+                    endColor = end,
+                ),
             )
 
         assertFalse(
