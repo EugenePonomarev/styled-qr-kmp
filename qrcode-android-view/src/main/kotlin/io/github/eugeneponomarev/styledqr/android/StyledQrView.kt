@@ -12,6 +12,8 @@ import io.github.eugeneponomarev.styledqr.core.QrCodeGenerator
 import io.github.eugeneponomarev.styledqr.core.QrErrorCorrectionLevel
 import io.github.eugeneponomarev.styledqr.render.QrColor
 import io.github.eugeneponomarev.styledqr.render.QrFunctionPatternStyle
+import io.github.eugeneponomarev.styledqr.render.QrGradientPoint
+import io.github.eugeneponomarev.styledqr.render.QrLinearGradient
 import io.github.eugeneponomarev.styledqr.render.QrLogoOptions
 import io.github.eugeneponomarev.styledqr.render.QrModuleShape
 import io.github.eugeneponomarev.styledqr.render.QrStyle
@@ -183,6 +185,54 @@ public class StyledQrView @JvmOverloads constructor(
             } else {
                 defaultStyle.background
             }
+
+            val hasGradientStart = attributes.hasValue(
+                R.styleable.StyledQrView_qrGradientStartColor,
+            )
+
+            val hasGradientEnd = attributes.hasValue(
+                R.styleable.StyledQrView_qrGradientEndColor,
+            )
+
+            require(hasGradientStart == hasGradientEnd) {
+                "qrGradientStartColor and qrGradientEndColor must be specified together"
+            }
+
+            val foregroundGradient = if (hasGradientStart && hasGradientEnd) {
+                QrLinearGradient(
+                    startColor = attributes.getColor(
+                        R.styleable.StyledQrView_qrGradientStartColor,
+                        Color.BLACK,
+                    ).toQrColor(),
+                    endColor = attributes.getColor(
+                        R.styleable.StyledQrView_qrGradientEndColor,
+                        Color.BLACK,
+                    ).toQrColor(),
+                    start = QrGradientPoint(
+                        x = attributes.getFloat(
+                            R.styleable.StyledQrView_qrGradientStartX,
+                            0f,
+                        ).toDouble(),
+                        y = attributes.getFloat(
+                            R.styleable.StyledQrView_qrGradientStartY,
+                            0f,
+                        ).toDouble(),
+                    ),
+                    end = QrGradientPoint(
+                        x = attributes.getFloat(
+                            R.styleable.StyledQrView_qrGradientEndX,
+                            1f,
+                        ).toDouble(),
+                        y = attributes.getFloat(
+                            R.styleable.StyledQrView_qrGradientEndY,
+                            1f,
+                        ).toDouble(),
+                    ),
+                )
+            } else {
+                null
+            }
+
             val logoResId = attributes.getResourceId(R.styleable.StyledQrView_qrLogo, 0)
             val logoOptions = if (logoResId == 0) {
                 null
@@ -207,7 +257,10 @@ public class StyledQrView @JvmOverloads constructor(
                     defaultStyle.quietZoneModules,
                 ),
                 moduleShape = moduleShapeFrom(
-                    attributes.getInt(R.styleable.StyledQrView_qrModuleShape, MODULE_SHAPE_SQUARE),
+                    attributes.getInt(
+                        R.styleable.StyledQrView_qrModuleShape,
+                        MODULE_SHAPE_SQUARE,
+                    ),
                 ),
                 moduleScale = attributes.getFloat(
                     R.styleable.StyledQrView_qrModuleScale,
@@ -218,7 +271,11 @@ public class StyledQrView @JvmOverloads constructor(
                     defaultStyle.roundedModuleRadiusFraction.toFloat(),
                 ).toDouble(),
                 functionPatternStyle = functionPatternStyleFrom(
-                    if (attributes.hasValue(R.styleable.StyledQrView_qrFunctionPatternStyle)) {
+                    if (
+                        attributes.hasValue(
+                            R.styleable.StyledQrView_qrFunctionPatternStyle,
+                        )
+                    ) {
                         attributes.getInt(
                             R.styleable.StyledQrView_qrFunctionPatternStyle,
                             FUNCTION_PATTERN_PRESERVE_ALL,
@@ -228,6 +285,7 @@ public class StyledQrView @JvmOverloads constructor(
                     },
                 ),
                 logo = logoOptions,
+                foregroundGradient = foregroundGradient,
             )
             logo = logoResId.takeIf { it != 0 }
                 ?.let(context::getDrawable)

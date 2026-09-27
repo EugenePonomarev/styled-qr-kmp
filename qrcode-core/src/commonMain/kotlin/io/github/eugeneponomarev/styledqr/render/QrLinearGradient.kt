@@ -5,6 +5,9 @@ import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
+private const val GRADIENT_VALIDATION_STEPS = 64
+private const val MIN_GRADIENT_CONTRAST_RATIO = 4.5
+
 /** Position in the QR matrix, excluding its quiet zone. Both coordinates are in 0.0..1.0. */
 public data class QrGradientPoint(
     val x: Double,
@@ -39,14 +42,16 @@ internal fun QrLinearGradient.validateAgainst(background: QrColor) {
     }
 
     val backgroundLuminance = background.relativeLuminance()
-    for (sample in 0..64) {
-        val progress = sample / 64.0
+    for (sample in 0..GRADIENT_VALIDATION_STEPS) {
+        val progress = sample / GRADIENT_VALIDATION_STEPS.toDouble()
         val color = colorAt(progress)
         val luminance = color.relativeLuminance()
         val contrast = color.contrastRatioAgainst(background)
-        require(luminance < backgroundLuminance && contrast >= 4.5) {
-            "Unsafe gradient at progress $progress: contrast $contrast:1 against background " +
-                "(minimum 4.5:1; foreground must be darker)"
+        require(luminance < backgroundLuminance && contrast >= MIN_GRADIENT_CONTRAST_RATIO ) {
+            "Unsafe gradient at progress $progress: " +
+                    "contrast $contrast:1 against background " +
+                    "(minimum $MIN_GRADIENT_CONTRAST_RATIO:1; " +
+                    "foreground must be darker)"
         }
     }
 }

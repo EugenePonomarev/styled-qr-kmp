@@ -239,4 +239,57 @@ class QrLinearGradientTest {
             style.foregroundGradient,
         )
     }
+
+    @Test
+    fun rejectsRoundedIntermediateBelowContrastThreshold() {
+        val background = QrColor.White
+
+        val start = QrColor(
+            red = 217,
+            green = 45,
+            blue = 116,
+        )
+
+        val end = QrColor(
+            red = 214,
+            green = 67,
+            blue = 10,
+        )
+
+        assertTrue(
+            start.contrastRatioAgainst(background) >= 4.5,
+        )
+
+        assertTrue(
+            end.contrastRatioAgainst(background) >= 4.5,
+        )
+
+        val gradient = QrLinearGradient(
+            startColor = start,
+            endColor = end,
+        )
+
+        val intermediate =
+            gradient.colorAt(63.0 / 64.0)
+
+        assertEquals(
+            QrColor(
+                red = 214,
+                green = 67,
+                blue = 12,
+            ),
+            intermediate,
+        )
+
+        assertTrue(
+            intermediate.contrastRatioAgainst(background) < 4.5,
+        )
+
+        assertFailsWith<IllegalArgumentException> {
+            QrStyle(
+                background = background,
+                foregroundGradient = gradient,
+            )
+        }
+    }
 }

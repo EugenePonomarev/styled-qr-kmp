@@ -89,8 +89,17 @@ class SvgQrRendererGradientTest {
 
         assertContains(
             svg,
-            "gradientUnits=\"userSpaceOnUse\" " +
-                    "x1=\"$quietZone\" " +
+            "gradientUnits=\"userSpaceOnUse\"",
+        )
+
+        assertContains(
+            svg,
+            "color-interpolation=\"sRGB\"",
+        )
+
+        assertContains(
+            svg,
+            "x1=\"$quietZone\" " +
                     "y1=\"$quietZone\" " +
                     "x2=\"$matrixEnd\" " +
                     "y2=\"$matrixEnd\"",

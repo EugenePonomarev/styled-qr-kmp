@@ -70,6 +70,7 @@ Features include:
 - standard Reed–Solomon error correction;
 - QR matrix decoding for Byte-mode payloads and ECI, with Reed–Solomon error correction;
 - common SVG output with colours, circles, rounded modules, diamonds, quiet zone, and a validated central logo;
+- safe QR-wide foreground linear gradients with shared validation;
 - Android `Bitmap` output using only Android's `Canvas` API;
 - iOS `UIImage` output using UIKit/CoreGraphics.
 
@@ -127,12 +128,38 @@ drawable resource. Its logo area is still validated by the shared renderer.
     app:qrFunctionPatternStyle="matchDataModules" />
 ```
 
+A safe foreground gradient can also be configured directly from XML:
+
+```xml
+<io.github.eugeneponomarev.styledqr.android.StyledQrView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="240dp"
+    android:layout_height="240dp"
+    app:qrContent="https://example.com"
+    app:qrGradientStartColor="#075985"
+    app:qrGradientEndColor="#6D28D9"
+    app:qrGradientStartX="0.0"
+    app:qrGradientStartY="0.0"
+    app:qrGradientEndX="1.0"
+    app:qrGradientEndY="1.0" />
+```
+
+Both gradient colours must be provided together. The coordinate attributes are
+optional and default to the full diagonal from `(0, 0)` to `(1, 1)`.
+The same safety validation as the shared `QrStyle` API applies during inflation.
+
 This example shows a subset of the supported XML attributes.
 See `qrcode-android-view/src/main/res/values/attrs.xml` for the complete list.
 
 `app:qrFunctionPatternStyle` is optional. When omitted, it defaults to `matchDataModules`,
 matching the shared `QrStyle` default. Explicit `preserveAll` and
 `preserveFindersAndAlignment` values keep their existing meanings.
+
+`QrStyle` validates its configuration eagerly. Invalid gradient coordinates,
+alpha values, or contrast throw `IllegalArgumentException` when the style is
+constructed. These construction-time errors occur before rendering and therefore
+are not reported through renderer properties such as `StyledQrView.lastRenderError`.
 
 ### Jetpack Compose
 
@@ -229,6 +256,16 @@ val styleWithLogo = QrThemes.Fintech.createStyle(
 )
 ```
 
+A built-in theme can also be used as the base for a custom safe gradient:
+```kotlin
+val gradientStyle = QrThemes.Fintech.createGradientStyle(
+    gradient = QrLinearGradient(
+        startColor = QrColor.fromHex("#075985"),
+        endColor = QrColor.fromHex("#6D28D9"),
+    ),
+)
+```
+
 Web applications can select a theme directly:
 
 ```typescript
@@ -250,25 +287,26 @@ const svgWithLogo = generateThemedQrSvgWithLogo(
 ```
 
 Error correction defaults to H. Pass an optional final argument to
-generateThemedQrSvg or generateThemedQrSvgWithLogo to select another level.
+`generateThemedQrSvg` or `generateThemedQrSvgWithLogo` to select another level.
 
-For a custom style with a logo, use generateStyledQrSvgWithLogo.
+For a custom style with a logo, use `generateStyledQrSvgWithLogo`.
 All logo placements use the shared layout validation and may be rejected
 when they overlap mandatory QR patterns or exceed the correction budget.
 
 ## Safe linear gradients
 
-This API is planned for version 0.3.0 and is available from source
-until that release is published.
+Safe Linear Gradients are introduced in version 0.3.0.
 
 `QrStyle.foregroundGradient` fills dark modules and both dark finder layers with one
 global gradient. `foreground` remains the solid fallback when the gradient is absent.
+
 Coordinates range from `(0, 0)` at the top left of the QR matrix to `(1, 1)` at
 the bottom right, excluding the quiet zone. The background, quiet zone, finder
 middle rings, and logo background remain solid.
 
 ```kotlin
 val qrCode = QrCodeGenerator.encodeText("https://example.com")
+
 val style = QrStyle(
     background = QrColor.White,
     moduleShape = QrModuleShape.RoundedSquare,
@@ -280,31 +318,80 @@ val style = QrStyle(
         end = QrGradientPoint(1.0, 1.0),
     ),
 )
+
 val svg = qrCode.toSvg(style)
-// On Android: qrCode.toBitmap(sizePx = 512, style = style)
-// On iOS: qrCode.toUIImage(sizePoints = 240.0, style = style)
+
+// Android:
+// qrCode.toBitmap(sizePx = 512, style = style)
+
+// iOS:
+// qrCode.toUIImage(sizePoints = 240.0, style = style)
 ```
+
+Safe gradients currently use a conservative dark-on-light policy: every gradient
+colour must remain darker than the background. Light-on-dark and inverse-polarity
+QR gradients are intentionally rejected in version 0.3.0.
+
+Version 0.3.0 uses a fixed conservative minimum contrast ratio of `4.5:1` for
+Safe Linear Gradients. This is a library safety policy, not a claim that
+ISO/IEC 18004 defines QR contrast using WCAG ratios.
+
+Gradient validation samples the same 8-bit sRGB interpolation used by the shared
+rendering contract. Intermediate samples are intentionally retained because RGB
+channel quantisation can produce a rounded intermediate colour with slightly lower
+contrast than either endpoint.
+
+Gradient colours and the background must be fully opaque.
+
+`QrStyle` validates these rules eagerly. Invalid coordinates, alpha values, or
+contrast throw `IllegalArgumentException` while the style is being constructed,
+before rendering begins.
 
 Web consumers can use the separate export without changing existing calls to
 `generateStyledQrSvg`:
 
 ```ts
-import { generateStyledQrSvgWithLinearGradient } from "styled-qr-kmp-web";
+import {
+  StyledQrLinearGradientOptions,
+  generateStyledQrSvgWithLinearGradient,
+} from "styled-qr-kmp-web";
 
-const svg = generateStyledQrSvgWithLinearGradient(
-  "https://example.com",
+const options = new StyledQrLinearGradientOptions(
   "#075985",
   "#6D28D9",
 );
+
+options.startX = 0.0;
+options.startY = 0.0;
+options.endX = 1.0;
+options.endY = 1.0;
+options.background = "#FFFFFF";
+options.moduleShape = "rounded-square";
+options.moduleScale = 0.90;
+options.errorCorrection = "H";
+
+const svg = generateStyledQrSvgWithLinearGradient(
+  "https://example.com",
+  options,
+);
 ```
 
-Optional Web arguments after the two colours are `startX`, `startY`, `endX`,
-`endY`, `background`, `moduleShape`, `moduleScale`, `functionPatternStyle`,
-`errorCorrection`, and `logoDataUri` (a base64 PNG, JPEG, or WebP data URI).
-The colours and background must be opaque. Construction rejects gradients
-with insufficient contrast (below 4.5:1 at any of 65 sampled points) or a
-foreground that is not darker than its background. Logo placement retains
-its existing safety checks; scan the final image on target devices before release.
+StyledQrLinearGradientOptions requires the start and end colours. Other
+properties are mutable options with safe defaults: startX, startY, endX,
+endY, background, moduleShape, moduleScale, functionPatternStyle,
+errorCorrection, and logoDataUri.
+
+Logo placement retains its existing safety checks. Scan the final image on target
+devices before release.
+
+### Swift compatibility
+
+Kotlin/Native exports `QrStyle` as a Swift initializer containing its constructor
+properties. Version 0.3.0 adds `foregroundGradient`, so Swift code that constructs
+`QrStyle` directly must pass either a `QrLinearGradient` or `nil` for that argument.
+
+Kotlin callers remain source-compatible because `foregroundGradient` defaults to
+`null`.
 
 ## Quick start
 
@@ -360,7 +447,8 @@ Use `copyBytes()` when the payload is binary or does not declare UTF-8 through E
 
 ## Logo safety and design rules
 
-The QR matrix always remains a square grid. The library changes how each dark module is rendered, not where modules are located. For reliable scanning:
+The QR matrix always remains a square grid. The library changes how each dark
+module is rendered, not where modules are located. For reliable scanning:
 
 - use `QrFunctionPatternStyle.PreserveAll` for the most conservative output;
 - use `QrFunctionPatternStyle.MatchDataModules` for a fully styled output;
@@ -378,27 +466,40 @@ a safety margin. If the requested logo cannot fit, rendering throws an `IllegalA
 instead of silently producing an unreliable image.
 
 ```kotlin
-val layout = qrCode.calculateLogoLayout(QrLogoOptions(sizeFraction = 0.16))
-println("Logo reserve: ${layout.sizeModules}×${layout.sizeModules} modules")
+val layout = qrCode.calculateLogoLayout(
+    QrLogoOptions(
+        sizeFraction = 0.16,
+    ),
+)
+
+println(
+    "Logo reserve: " +
+        "${layout.sizeModules}×${layout.sizeModules} modules",
+)
 ```
 
 The three large finder patterns are not rendered as seven-by-seven grids of dots. They are
 composed from an outer 7-module shape, a 5-module background ring, and a 3-module centre. This
 creates proper circular, rounded, square, or diamond QR "eyes" instead of square frames made of
-individual circles. The shared `QrStyle` default and the Web API default use
-`MatchDataModules`, producing a fully styled result. Use `PreserveAll` when non-finder
-structural modules should remain square, and configure `finderPatternShape` separately
-when using the shared Kotlin API:
+individual circles.
+
+The shared `QrStyle` default and the Web API default use `MatchDataModules`, producing a fully
+styled result. Use `PreserveAll` when non-finder structural modules should remain square, and
+configure `finderPatternShape` separately when using the shared Kotlin API:
 
 ```kotlin
 QrStyle(
     moduleShape = QrModuleShape.Circle,
-    functionPatternStyle = QrFunctionPatternStyle.MatchDataModules,
-    finderPatternShape = QrFinderPatternShape.MatchModuleShape,
+    functionPatternStyle =
+        QrFunctionPatternStyle.MatchDataModules,
+    finderPatternShape =
+        QrFinderPatternShape.MatchModuleShape,
 )
 ```
 
-The current encoder intentionally starts with UTF-8 Byte mode. It creates fully valid QR codes, but does not yet optimise a mixed numeric/alphanumeric payload into the smallest possible version. That optimisation can be added in a later iteration without changing the public rendering API.
+The current encoder intentionally starts with UTF-8 Byte mode. It creates fully valid QR codes,
+but does not yet optimise a mixed numeric/alphanumeric payload into the smallest possible version.
+That optimisation can be added in a later iteration without changing the public rendering API.
 
 ## Build
 
@@ -411,7 +512,7 @@ Use JDK 17 and Gradle 8.13. The repository includes the Gradle Wrapper:
 ./gradlew :qrcode-compose:assembleDebug
 ```
 
-The QR encoder, QR matrix decoder, SVG renderer, Android View, and UIKit view have no
+The QR encoder, QR matrix decoder, SVG renderer, Android View, and UIKit renderer have no
 third-party QR-generation or QR-decoding dependency. Gradle and the Kotlin
 Multiplatform/Android plugins are build tools; the optional `qrcode-compose` module adds AndroidX
 Compose UI solely to expose a Compose API.

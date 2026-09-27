@@ -103,6 +103,19 @@ jobs:
       - name: Make Gradle Wrapper executable
         run: chmod +x gradlew
 
+      - name: Run iOS renderer tests
+        run: |
+          if [ "$(uname -m)" = "arm64" ]; then
+            IOS_TEST_TASK="iosSimulatorArm64Test"
+          else
+            IOS_TEST_TASK="iosX64Test"
+          fi
+          ./gradlew \
+            --no-daemon \
+            --no-configuration-cache \
+            ":qrcode-core:${IOS_TEST_TASK}" \
+            --stacktrace
+
       - name: Build iOS XCFramework
         run: >-
           ./gradlew --no-daemon --no-configuration-cache
