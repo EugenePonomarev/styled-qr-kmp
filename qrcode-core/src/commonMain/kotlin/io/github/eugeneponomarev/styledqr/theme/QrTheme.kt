@@ -1,5 +1,6 @@
 package io.github.eugeneponomarev.styledqr.theme
 
+import io.github.eugeneponomarev.styledqr.render.QrLinearGradient
 import io.github.eugeneponomarev.styledqr.render.QrLogoBackgroundShape
 import io.github.eugeneponomarev.styledqr.render.QrLogoOptions
 import io.github.eugeneponomarev.styledqr.render.QrStyle
@@ -44,4 +45,15 @@ public class QrTheme internal constructor(
         backgroundShape = QrLogoBackgroundShape.RoundedSquare,
         cornerRadiusFraction = 0.18,
     )
+
+    public fun createGradientStyle(
+        gradient: QrLinearGradient,
+        logo: QrLogoOptions? = null,
+    ): QrStyle =
+        createStyle(
+            logo = logo,
+        ).copy(
+            foregroundGradient =
+                gradient,
+        )
 }

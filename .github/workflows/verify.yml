@@ -36,20 +36,42 @@ jobs:
       - name: Verify generated documentation
         run: ./gradlew --no-daemon checkVersionedDocs
 
-      - name: Run Android, JVM, and Web checks
+      - name: Run Android and JVM checks
         env:
           JITPACK: "true"
         run: >-
           ./gradlew --no-daemon
           :qrcode-core:jvmTest
           :qrcode-core:assembleDebug
+          :qrcode-core:testDebugUnitTest
           :qrcode-android-view:assembleDebug
           :qrcode-compose:assembleDebug
+          :qrcode-android-view:testDebugUnitTest
+          --stacktrace
+
+      - name: Run core JS browser tests
+        env:
+          JITPACK: "true"
+        run: >-
+          ./gradlew --no-daemon
+          :qrcode-core:jsBrowserTest
+          --stacktrace
+
+      - name: Run Web JS browser tests
+        env:
+          JITPACK: "true"
+        run: >-
+          ./gradlew --no-daemon
           :qrcode-web:jsBrowserTest
+          --stacktrace
+
+      - name: Verify Web npm package
+        env:
+          JITPACK: "true"
+        run: >-
+          ./gradlew --no-daemon
           :qrcode-web:verifyJsNpmPackage
           :qrcode-web:packJsPackage
-          :qrcode-core:jsBrowserTest
-          :qrcode-android-view:testDebugUnitTest
           --stacktrace
 
       - name: Verify Maven publications used by JitPack
@@ -80,6 +102,19 @@ jobs:
 
       - name: Make Gradle Wrapper executable
         run: chmod +x gradlew
+
+      - name: Run iOS renderer tests
+        run: |
+          if [ "$(uname -m)" = "arm64" ]; then
+            IOS_TEST_TASK="iosSimulatorArm64Test"
+          else
+            IOS_TEST_TASK="iosX64Test"
+          fi
+          ./gradlew \
+            --no-daemon \
+            --no-configuration-cache \
+            ":qrcode-core:${IOS_TEST_TASK}" \
+            --stacktrace
 
       - name: Build iOS XCFramework
         run: >-

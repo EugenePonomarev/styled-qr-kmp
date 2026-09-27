@@ -5,6 +5,8 @@ import io.github.eugeneponomarev.styledqr.core.QrErrorCorrectionLevel
 import io.github.eugeneponomarev.styledqr.render.QrColor
 import io.github.eugeneponomarev.styledqr.render.QrFinderPatternShape
 import io.github.eugeneponomarev.styledqr.render.QrFunctionPatternStyle
+import io.github.eugeneponomarev.styledqr.render.QrGradientPoint
+import io.github.eugeneponomarev.styledqr.render.QrLinearGradient
 import io.github.eugeneponomarev.styledqr.render.QrLogoOptions
 import io.github.eugeneponomarev.styledqr.render.QrModuleShape
 import io.github.eugeneponomarev.styledqr.render.QrStyle
@@ -39,6 +41,79 @@ public fun generateStyledQrSvg(
             functionPatternStyle = functionPatternStyle.toQrFunctionPatternStyle(),
             finderPatternShape = QrFinderPatternShape.MatchModuleShape,
         ),
+    )
+}
+
+/** Generates a custom SVG with a validated global foreground gradient and optional logo. */
+@OptIn(ExperimentalJsExport::class)
+@JsExport
+public fun generateStyledQrSvgWithLinearGradient(
+    content: String,
+    options: StyledQrLinearGradientOptions,
+): String {
+    require(content.isNotBlank()) {
+        "content must not be blank"
+    }
+
+    val backgroundColor =
+        QrColor.fromHex(
+            options.background,
+        )
+
+    val logo =
+        options.logoDataUri
+            .takeIf { it.isNotEmpty() }
+            ?.let(::validatedWebLogoDataUri)
+
+    return QrCodeGenerator.encodeText(
+        text = content,
+        errorCorrection =
+            options.errorCorrection
+                .toQrErrorCorrectionLevel(),
+    ).toSvg(
+        style = QrStyle(
+            background = backgroundColor,
+            quietZoneModules = 4,
+            moduleShape =
+                options.moduleShape
+                    .toQrModuleShape(),
+            moduleScale =
+                options.moduleScale,
+            functionPatternStyle =
+                options.functionPatternStyle
+                    .toQrFunctionPatternStyle(),
+            finderPatternShape =
+                QrFinderPatternShape
+                    .MatchModuleShape,
+            logo = logo?.let {
+                QrLogoOptions(
+                    background =
+                        backgroundColor,
+                )
+            },
+            foregroundGradient =
+                QrLinearGradient(
+                    startColor =
+                        QrColor.fromHex(
+                            options.startColor,
+                        ),
+                    endColor =
+                        QrColor.fromHex(
+                            options.endColor,
+                        ),
+                    start =
+                        QrGradientPoint(
+                            options.startX,
+                            options.startY,
+                        ),
+                    end =
+                        QrGradientPoint(
+                            options.endX,
+                            options.endY,
+                        ),
+                ),
+        ),
+        logoDataUri = logo,
     )
 }
 
@@ -193,3 +268,32 @@ private fun validatedWebLogoDataUri(value: String): String {
 private val WEB_LOGO_DATA_URI: Regex = Regex(
     "data:image/(png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}",
 )
+
+@OptIn(ExperimentalJsExport::class)
+@JsExport
+public class StyledQrLinearGradientOptions(
+    public val startColor: String,
+    public val endColor: String,
+) {
+    public var startX: Double = 0.0
+    public var startY: Double = 0.0
+    public var endX: Double = 1.0
+    public var endY: Double = 1.0
+
+    public var background: String = "#FFFFFF"
+
+    public var moduleShape: String =
+        "square"
+
+    public var moduleScale: Double =
+        1.0
+
+    public var functionPatternStyle: String =
+        "match-data-modules"
+
+    public var errorCorrection: String =
+        "H"
+
+    public var logoDataUri: String =
+        ""
+}

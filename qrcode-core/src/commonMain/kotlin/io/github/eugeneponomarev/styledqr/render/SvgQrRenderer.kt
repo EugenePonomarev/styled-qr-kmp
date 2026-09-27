@@ -15,7 +15,17 @@ public object SvgQrRenderer {
     ): String {
         val quietZone = style.quietZoneModules
         val canvasSize = qrCode.size + quietZone * 2
-        val foreground = style.foreground.toCss()
+
+        val gradient = style.foregroundGradient
+        val gradientId = gradient?.svgGradientId(
+            qrSize = qrCode.size,
+            quietZoneModules = quietZone,
+        )
+
+        val foreground = gradientId?.let { id ->
+            "url(#$id)"
+        } ?: style.foreground.toCss()
+
         val logoOptions = style.logo?.takeIf { !logoDataUri.isNullOrBlank() }
         val logoLayout = logoOptions?.let(qrCode::calculateLogoLayout)
 
@@ -26,6 +36,25 @@ public object SvgQrRenderer {
             append(' ')
             append(canvasSize)
             append("\" role=\"img\" aria-label=\"QR code\">")
+            gradient?.let { value ->
+                val id = requireNotNull(gradientId)
+
+                val startX = quietZone + value.start.x * qrCode.size
+                val startY = quietZone + value.start.y * qrCode.size
+                val endX = quietZone + value.end.x * qrCode.size
+                val endY = quietZone + value.end.y * qrCode.size
+
+                append(
+                    "<defs><linearGradient " +
+                            "id=\"$id\" " +
+                            "gradientUnits=\"userSpaceOnUse\" " +
+                            "color-interpolation=\"sRGB\"",
+                )
+                append(" x1=\"$startX\" y1=\"$startY\" x2=\"$endX\" y2=\"$endY\">")
+                append("<stop offset=\"0%\" stop-color=\"${value.startColor.toCss()}\"/>")
+                append("<stop offset=\"100%\" stop-color=\"${value.endColor.toCss()}\"/>")
+                append("</linearGradient></defs>")
+            }
             append("<rect width=\"")
             append(canvasSize)
             append("\" height=\"")
@@ -38,8 +67,8 @@ public object SvgQrRenderer {
                 for (column in 0 until qrCode.size) {
                     if (
                         !qrCode[row, column] ||
-                            qrCode.isFinderPatternCore(row, column) ||
-                            logoLayout?.contains(row, column) == true
+                        qrCode.isFinderPatternCore(row, column) ||
+                        logoLayout?.contains(row, column) == true
                     ) continue
 
                     val preserveAsSquare = qrCode.shouldPreserveAsSquare(row, column, style)
@@ -119,6 +148,7 @@ public object SvgQrRenderer {
                 val radius = width * roundedRadiusFraction
                 append("<rect x=\"$left\" y=\"$top\" width=\"$width\" height=\"$width\" rx=\"$radius\" fill=\"$fill\"/>")
             }
+
             QrModuleShape.Circle -> append("<circle cx=\"$centreX\" cy=\"$centreY\" r=\"${width / 2.0}\" fill=\"$fill\"/>")
             QrModuleShape.Diamond -> {
                 val half = width / 2.0
@@ -182,6 +212,7 @@ public object SvgQrRenderer {
                 val radius = size * roundedRadiusFraction
                 append("<rect x=\"$left\" y=\"$top\" width=\"$size\" height=\"$size\" rx=\"$radius\" fill=\"$fill\"/>")
             }
+
             QrModuleShape.Circle -> append("<circle cx=\"$centreX\" cy=\"$centreY\" r=\"${size / 2.0}\" fill=\"$fill\"/>")
             QrModuleShape.Diamond -> {
                 val half = size / 2.0
@@ -208,6 +239,7 @@ public object SvgQrRenderer {
                 val radius = boxSize * options.cornerRadiusFraction
                 append("<rect x=\"$left\" y=\"$top\" width=\"$boxSize\" height=\"$boxSize\" rx=\"$radius\" fill=\"${options.background.toCss()}\"/>")
             }
+
             QrLogoBackgroundShape.Circle -> {
                 append("<circle cx=\"${left + boxSize / 2.0}\" cy=\"${top + boxSize / 2.0}\" r=\"${boxSize / 2.0}\" fill=\"${options.background.toCss()}\"/>")
             }
@@ -231,6 +263,40 @@ public object SvgQrRenderer {
             .replace("\"", "&quot;")
             .replace("<", "&lt;")
             .replace(">", "&gt;")
+
+    private fun QrLinearGradient.svgGradientId(
+        qrSize: Int,
+        quietZoneModules: Int,
+    ): String = buildString {
+        append("qr-foreground")
+        append('-')
+        append(qrSize)
+        append('-')
+        append(quietZoneModules)
+
+        append('-')
+        append(startColor.red)
+        append('-')
+        append(startColor.green)
+        append('-')
+        append(startColor.blue)
+
+        append('-')
+        append(endColor.red)
+        append('-')
+        append(endColor.green)
+        append('-')
+        append(endColor.blue)
+
+        append('-')
+        append(start.x.toBits())
+        append('-')
+        append(start.y.toBits())
+        append('-')
+        append(end.x.toBits())
+        append('-')
+        append(end.y.toBits())
+    }
 }
 
 /** Convenience extension for common Kotlin, Android, and iOS code. */

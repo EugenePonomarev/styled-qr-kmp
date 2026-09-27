@@ -94,5 +94,26 @@ tasks.register("verifyJsNpmPackage") {
         check(missingFiles.isEmpty()) {
             "npm package is missing: ${missingFiles.joinToString()}"
         }
+
+        val declarationsFile =
+            packageDirectory.resolve(
+                "styled-qr-kmp-qrcode-web.d.mts",
+            )
+
+        val declarations = declarationsFile.readText()
+
+        check(
+            "generateStyledQrSvgWithLinearGradient" in declarations,
+        ) {
+            "npm TypeScript declarations do not export " +
+                    "generateStyledQrSvgWithLinearGradient"
+        }
+
+        check(
+            "StyledQrLinearGradientOptions" in declarations,
+        ) {
+            "npm TypeScript declarations do not export " +
+                    "StyledQrLinearGradientOptions"
+        }
     }
 }
