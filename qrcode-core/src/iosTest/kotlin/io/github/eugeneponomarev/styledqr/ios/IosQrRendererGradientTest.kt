@@ -79,57 +79,68 @@ class IosQrRendererGradientTest {
             scale = 1.0,
         ).toPixelBuffer()
 
-        // The outer corners of the left and right finder patterns
-        // are guaranteed dark pixels and share the global foreground gradient.
-        val leftPixel = pixels.pixelAtQrModule(
-            row = 0,
-            column = 0,
-            quietZoneModules = style.quietZoneModules,
-            pixelsPerModule = pixelsPerModule,
-        )
+        val leftPixel =
+            pixels.foregroundPixelAtQrColumn(
+                column = 0,
+                quietZoneModules =
+                    style.quietZoneModules,
+                pixelsPerModule =
+                    pixelsPerModule,
+                background =
+                    backgroundColor,
+            )
 
-        val rightPixel = pixels.pixelAtQrModule(
-            row = 0,
-            column = code.size - 1,
-            quietZoneModules = style.quietZoneModules,
-            pixelsPerModule = pixelsPerModule,
-        )
+        val rightPixel =
+            pixels.foregroundPixelAtQrColumn(
+                column = code.size - 1,
+                quietZoneModules =
+                    style.quietZoneModules,
+                pixelsPerModule =
+                    pixelsPerModule,
+                background =
+                    backgroundColor,
+            )
 
         assertNotEquals(
             backgroundColor,
             leftPixel,
+            "Left finder column must contain gradient foreground",
         )
 
         assertNotEquals(
             backgroundColor,
             rightPixel,
+            "Right finder column must contain gradient foreground",
         )
 
         assertNotEquals(
             leftPixel,
             rightPixel,
+            "A horizontal gradient must produce different colours " +
+                    "at opposite QR edges",
         )
 
         // #075985 -> #6D28D9:
         // red increases, green decreases, blue increases.
-        // Assert the gradient direction without depending on exact
-        // CoreGraphics rasterisation/channel rounding.
         assertTrue(
             leftPixel.red < rightPixel.red,
             "Red channel must increase from left to right: " +
-                    "left=${leftPixel.red}, right=${rightPixel.red}",
+                    "left=${leftPixel.red}, " +
+                    "right=${rightPixel.red}",
         )
 
         assertTrue(
             leftPixel.green > rightPixel.green,
             "Green channel must decrease from left to right: " +
-                    "left=${leftPixel.green}, right=${rightPixel.green}",
+                    "left=${leftPixel.green}, " +
+                    "right=${rightPixel.green}",
         )
 
         assertTrue(
             leftPixel.blue < rightPixel.blue,
             "Blue channel must increase from left to right: " +
-                    "left=${leftPixel.blue}, right=${rightPixel.blue}",
+                    "left=${leftPixel.blue}, " +
+                    "right=${rightPixel.blue}",
         )
 
         assertEquals(
@@ -281,6 +292,34 @@ private data class PixelBuffer(
                     pixelsPerModule / 2
 
         return pixelAt(x, y)
+    }
+
+    fun foregroundPixelAtQrColumn(
+        column: Int,
+        quietZoneModules: Int,
+        pixelsPerModule: Int,
+        background: QrColor,
+    ): QrColor {
+        val x =
+            (column + quietZoneModules) *
+                    pixelsPerModule +
+                    pixelsPerModule / 2
+
+        return (0 until height)
+            .asSequence()
+            .map { y ->
+                pixelAt(
+                    x = x,
+                    y = y,
+                )
+            }
+            .firstOrNull { pixel ->
+                pixel != background
+            }
+            ?: error(
+                "No foreground pixel found " +
+                        "at QR column $column",
+            )
     }
 
     private companion object {
