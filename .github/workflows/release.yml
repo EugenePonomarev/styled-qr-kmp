@@ -3,12 +3,22 @@ name: Create release
 on:
   push:
     tags: ["*"]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Existing release tag to publish to npm"
+        required: true
+        type: string
 
 permissions:
   contents: write
 
+env:
+  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
+
 jobs:
   native-ios:
+    if: github.event_name == 'push'
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v7.0.1
@@ -23,8 +33,6 @@ jobs:
           cache-provider: basic
 
       - name: Verify release versions
-        env:
-          RELEASE_TAG: ${{ github.ref_name }}
         run: |
           gradle_version="$(awk -F= '/^VERSION_NAME=/{print $2}' gradle.properties)"
           test "$RELEASE_TAG" = "$gradle_version"
@@ -36,8 +44,6 @@ jobs:
         run: ./gradlew --no-daemon checkVersionedDocs
 
       - name: Validate standalone CocoaPods specification
-        env:
-          RELEASE_TAG: ${{ github.ref_name }}
         run: |
           podspec_url="https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/${RELEASE_TAG}/StyledQrKmp.podspec"
           curl --fail --location --silent --show-error "$podspec_url" --output /tmp/StyledQrKmp.podspec
@@ -63,10 +69,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: >-
-          gh release create "${GITHUB_REF_NAME}"
+          gh release create "${RELEASE_TAG}"
           StyledQrKmp.xcframework.zip
           StyledQrKmp.xcframework.sha256
-          --title "Styled QR KMP ${GITHUB_REF_NAME}"
+          --title "Styled QR KMP ${RELEASE_TAG}"
           --generate-notes
 
       - name: Validate the published CocoaPods artifact
@@ -77,6 +83,7 @@ jobs:
 
   npm-web:
     needs: native-ios
+    if: ${{ always() && (github.event_name == 'workflow_dispatch' || needs.native-ios.result == 'success') }}
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -84,25 +91,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7.0.1
+        with:
+          ref: refs/tags/${{ env.RELEASE_TAG }}
 
       - uses: actions/setup-java@v6.0.1
         with:
           distribution: temurin
           java-version: "17"
 
-      - uses: actions/setup-node@v7.0.0
-        with:
-          node-version: "24"
-          registry-url: "https://registry.npmjs.org"
-          package-manager-cache: false
-
       - uses: gradle/actions/setup-gradle@v6.3.0
         with:
           cache-provider: basic
 
       - name: Verify release versions
-        env:
-          RELEASE_TAG: ${{ github.ref_name }}
         run: |
           gradle_version="$(awk -F= '/^VERSION_NAME=/{print $2}' gradle.properties)"
           test "$RELEASE_TAG" = "$gradle_version"
@@ -117,6 +118,12 @@ jobs:
           :qrcode-web:verifyJsNpmPackage
           :qrcode-web:packJsPackage
           --stacktrace
+
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
 
       - name: Use an npm CLI that supports trusted publishing
         run: npm install --global npm@11
