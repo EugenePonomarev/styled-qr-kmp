@@ -336,10 +336,11 @@ Version 0.3.0 uses a fixed conservative minimum contrast ratio of `4.5:1` for
 Safe Linear Gradients. This is a library safety policy, not a claim that
 ISO/IEC 18004 defines QR contrast using WCAG ratios.
 
-Gradient validation samples the same 8-bit sRGB interpolation used by the shared
-rendering contract. Intermediate samples are intentionally retained because RGB
-channel quantisation can produce a rounded intermediate colour with slightly lower
-contrast than either endpoint.
+Gradient validation covers every colour reachable by the shared 8-bit sRGB
+interpolation model. A channel-wise upper bound proves simple gradients safe;
+otherwise validation checks every interval where the rounded RGB colour is
+constant and every rounding boundary. Intermediate colours can have lower
+contrast than both endpoints.
 
 Gradient colours and the background must be fully opaque.
 
