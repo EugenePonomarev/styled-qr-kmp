@@ -5,6 +5,9 @@ plugins {
     kotlin("npm-publish") version "3.7.0"
 }
 
+val npmPackageVersion =
+    providers.gradleProperty("VERSION_NAME")
+
 kotlin {
     js {
         browser()
@@ -29,6 +32,8 @@ kotlin {
 }
 
 npmPublish {
+    version.set(npmPackageVersion)
+
     // Kotlin downloads Node with the Windows file layout, not bin/node and bin/npm.
     if (System.getProperty("os.name").startsWith("Windows")) {
         nodeBin.set(nodeHome.file("node.exe"))
@@ -40,6 +45,7 @@ npmPublish {
     packages {
         named("js") {
             packageName.set("styled-qr-kmp-web")
+            version.set(npmPackageVersion)
             main.set("styled-qr-kmp-qrcode-web.mjs")
             types.set("styled-qr-kmp-qrcode-web.d.mts")
 
@@ -48,6 +54,8 @@ npmPublish {
             }
 
             packageJson {
+                version.set(npmPackageVersion)
+
                 description =
                     "JavaScript API for the dependency-free Styled QR KMP generator."
                 license = "MIT"
@@ -75,8 +83,11 @@ tasks.register("verifyJsNpmPackage") {
 
     val jsPackageDirectory = layout.buildDirectory.dir("packages/js")
 
+    val expectedVersion = npmPackageVersion
+
     dependsOn("assembleJsPackage")
     inputs.dir(jsPackageDirectory)
+    inputs.property("version", expectedVersion)
 
     doLast {
         val packageDirectory = jsPackageDirectory.get().asFile
@@ -93,6 +104,25 @@ tasks.register("verifyJsNpmPackage") {
 
         check(missingFiles.isEmpty()) {
             "npm package is missing: ${missingFiles.joinToString()}"
+        }
+
+        val packageJson =
+            packageDirectory
+                .resolve("package.json")
+                .readText()
+
+        val packageVersion =
+            Regex("\"version\"\\s*:\\s*\"([^\"]+)\"")
+                .find(packageJson)
+                ?.groupValues
+                ?.get(1)
+
+        val expectedPackageVersion =
+            expectedVersion.get()
+
+        check(packageVersion == expectedPackageVersion) {
+            "npm package version $packageVersion does not match " +
+                    "VERSION_NAME $expectedPackageVersion"
         }
 
         val declarationsFile =
