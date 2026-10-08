@@ -292,4 +292,69 @@ class QrLinearGradientTest {
             )
         }
     }
+
+    @Test
+    fun rejectsUnsafeColoursBetweenFormerValidationSamples() {
+        val cases = listOf(
+            Triple(QrColor(154, 25, 131), QrColor(16, 138, 17), 0.99561),
+            Triple(QrColor(78, 118, 116), QrColor(11, 135, 100), 0.97070),
+            Triple(QrColor(155, 90, 85), QrColor(102, 124, 107), 0.98535),
+            Triple(QrColor(115, 101, 115), QrColor(89, 126, 117), 0.98022),
+        )
+
+        for ((start, end, unsafeProgress) in cases) {
+            val gradient = QrLinearGradient(start, end)
+            assertTrue((0..64).all { sample ->
+                gradient.colorAt(sample / 64.0).contrastRatioAgainst(QrColor.White) >= 4.5
+            })
+            assertTrue(gradient.colorAt(unsafeProgress).contrastRatioAgainst(QrColor.White) < 4.5)
+
+            assertFailsWith<IllegalArgumentException> {
+                QrStyle(foregroundGradient = gradient)
+            }
+        }
+    }
+
+    @Test
+    fun rejectsUnsafeColourPresentOnlyAtSimultaneousRoundingBoundary() {
+        val gradient = QrLinearGradient(
+            startColor = QrColor(235, 3, 38),
+            endColor = QrColor(238, 0, 38),
+        )
+        val crossing = 5.0 / 6.0
+
+        assertTrue((0..64).all { sample ->
+            gradient.colorAt(sample / 64.0).contrastRatioAgainst(QrColor.White) >= 4.5
+        })
+        assertEquals(QrColor(237, 1, 38), gradient.colorAt(crossing - 1e-9))
+        assertEquals(QrColor(238, 1, 38), gradient.colorAt(crossing))
+        assertEquals(QrColor(238, 0, 38), gradient.colorAt(crossing + 1e-9))
+        assertTrue(gradient.colorAt(crossing).contrastRatioAgainst(QrColor.White) < 4.5)
+
+        assertFailsWith<IllegalArgumentException> {
+            QrStyle(foregroundGradient = gradient)
+        }
+    }
+
+    @Test
+    fun acceptsSafeGradientEvenIfUnreachableRgbCornerIsUnsafe() {
+        val gradient = QrLinearGradient(
+            startColor = QrColor(154, 25, 131),
+            endColor = QrColor(16, 137, 17),
+        )
+        val unreachableCorner = QrColor(154, 137, 131)
+
+        assertTrue(unreachableCorner.contrastRatioAgainst(QrColor.White) < 4.5)
+        assertEquals(gradient, QrStyle(foregroundGradient = gradient).foregroundGradient)
+    }
+
+    @Test
+    fun acceptsGradientProvenSafeByTheCornerBound() {
+        val gradient = QrLinearGradient(
+            startColor = QrColor.Black,
+            endColor = QrColor(20, 40, 60),
+        )
+
+        assertEquals(gradient, QrStyle(foregroundGradient = gradient).foregroundGradient)
+    }
 }

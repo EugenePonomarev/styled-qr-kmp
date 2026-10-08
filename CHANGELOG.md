@@ -18,8 +18,8 @@
 - Use deterministic SVG gradient identifiers to prevent different inline QR
   gradients from colliding in the same document.
 - Explicitly render SVG gradients using sRGB colour interpolation.
-- Keep 65-point contrast validation because 8-bit channel quantisation can
-  produce an intermediate colour with lower contrast than both endpoints.
+- Validate every 8-bit interpolated foreground colour using a channel-wise
+  upper bound and exact rounding boundaries, including simultaneous ties.
 
 ### Compatibility
 
