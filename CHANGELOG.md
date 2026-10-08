@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — Safe linear gradients
+## 0.3.0 — Safe linear gradients
 
 ### Added
 

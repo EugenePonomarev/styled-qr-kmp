@@ -27,17 +27,17 @@ Then choose the smallest module that provides the UI you need:
 ```kotlin
 dependencies {
     // Android XML layouts and imperative View code:
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.2.9")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.3.0")
 
     // Or Jetpack Compose (also brings the Android View adapter):
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.2.9")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.3.0")
 
     // Encoder, SVG renderer, and Android Bitmap renderer only:
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-core:0.2.9")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-core:0.3.0")
 }
 ```
 
-Use the Git tag shown in GitHub Releases in place of `0.2.9`. JitPack builds a public tag on the
+Use the Git tag shown in GitHub Releases in place of `0.3.0`. JitPack builds a public tag on the
 first request; its status page is linked from the repository's README badge after the first release.
 
 ### Native iOS
@@ -50,7 +50,7 @@ For CocoaPods without a private token, reference the standalone podspec at the p
 
 ```ruby
 pod "StyledQrKmp",
-    :podspec => "https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/0.2.9/StyledQrKmp.podspec"
+    :podspec => "https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/0.3.0/StyledQrKmp.podspec"
 ```
 
 The standalone podspec downloads the matching XCFramework from that GitHub Release. Do not use
@@ -94,7 +94,7 @@ Add the Android View module, then create `StyledQrView` exactly as any other And
 
 ```kotlin
 dependencies {
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.2.9")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.3.0")
 }
 
 val qrView = StyledQrView(context).apply {
@@ -169,7 +169,7 @@ imperative code.
 
 ```kotlin
 dependencies {
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.2.9")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.3.0")
 }
 
 StyledQrCode(
@@ -527,7 +527,7 @@ Compose UI solely to expose a Compose API.
    and generated documentation in a pull request.
 4. Merge after the `Verify` workflow succeeds, then wait for verification
    of the resulting `main` commit.
-5. Create and push a matching tag, such as `0.2.9`,
+5. Create and push a matching tag, such as `0.3.0`,
    from that verified commit. The tag must not have a `v` prefix.
 
 Pushing the tag starts `.github/workflows/release.yml`:
