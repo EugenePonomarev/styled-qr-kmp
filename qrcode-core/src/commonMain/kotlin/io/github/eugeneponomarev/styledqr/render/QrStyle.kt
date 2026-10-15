@@ -52,7 +52,7 @@ public enum class QrModuleShape {
 
 /** Shape used to draw each of the three large QR finder patterns as one composed "eye". */
 public enum class QrFinderPatternShape {
-    /** Uses the selected [QrModuleShape]. */
+    /** Uses the selected [QrModuleShape] for the composed finder patterns. */
     MatchModuleShape,
 
     Square,
@@ -84,7 +84,7 @@ public enum class QrFunctionPatternStyle {
     MatchDataModules,
 }
 
-/** Shape used for the solid background placed under a centre logo. */
+/** Shape cleared under a centre logo and used to clip the image after applying its padding. */
 public enum class QrLogoBackgroundShape {
     Square,
     RoundedSquare,

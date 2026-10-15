@@ -7,7 +7,10 @@ import io.github.eugeneponomarev.styledqr.core.QrCodeGenerator
 import io.github.eugeneponomarev.styledqr.render.QrColor
 import io.github.eugeneponomarev.styledqr.render.QrGradientPoint
 import io.github.eugeneponomarev.styledqr.render.QrLinearGradient
+import io.github.eugeneponomarev.styledqr.render.QrLogoBackgroundShape
+import io.github.eugeneponomarev.styledqr.render.QrLogoOptions
 import io.github.eugeneponomarev.styledqr.render.QrStyle
+import io.github.eugeneponomarev.styledqr.render.calculateLogoLayout
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.usePinned
 import platform.CoreGraphics.CGBitmapContextCreate
@@ -22,8 +25,14 @@ import platform.CoreGraphics.CGImageAlphaInfo
 import platform.CoreGraphics.CGImageGetHeight
 import platform.CoreGraphics.CGImageGetWidth
 import platform.CoreGraphics.CGRectMake
+import platform.CoreGraphics.CGSizeMake
 import platform.CoreGraphics.kCGBitmapByteOrder32Little
 import platform.CoreGraphics.kCGColorSpaceSRGB
+import platform.UIKit.UIBezierPath
+import platform.UIKit.UIColor
+import platform.UIKit.UIGraphicsBeginImageContextWithOptions
+import platform.UIKit.UIGraphicsEndImageContext
+import platform.UIKit.UIGraphicsGetImageFromCurrentImageContext
 import platform.UIKit.UIImage
 import platform.posix.memcpy
 import kotlin.test.Test
@@ -234,6 +243,105 @@ class IosQrRendererGradientTest {
                     pixelsPerModule,
             ),
         )
+    }
+
+    @Test
+    fun rectangularLogosAreCentreCroppedAndKeepPadding() {
+        val code = QrCodeGenerator.encodeText("https://eugeneponomarev.com")
+        val ppm = 20
+
+        for ((width, height) in listOf(200 to 100, 100 to 200)) {
+            val logo = createCropTestLogo(width, height)
+
+            for (shape in QrLogoBackgroundShape.entries) {
+                val options = QrLogoOptions(
+                    sizeFraction = 0.16,
+                    paddingFraction = 0.04,
+                    backgroundShape = shape,
+                    cornerRadiusFraction = 0.45,
+                )
+                val style = QrStyle(logo = options)
+                val layout = code.calculateLogoLayout(options)
+
+                val pixels = code.toUIImage(
+                    sizePoints = imageSize(code, style, ppm).toDouble(),
+                    style = style,
+                    scale = 1.0,
+                    logo = logo,
+                ).toPixelBuffer()
+
+                val left =
+                    (4 + layout.leftModule + layout.paddingModules) * ppm
+                val top =
+                    (4 + layout.topModule + layout.paddingModules) * ppm
+                val side = layout.logoSizeModules * ppm
+                val green = QrColor(0, 255, 0)
+                val label = "$width x $height, $shape"
+
+                for (fraction in listOf(0.125, 0.5, 0.875)) {
+                    val point = (side * fraction).toInt()
+
+                    assertEquals(
+                        green,
+                        pixels.pixelAt(left + point, top + side / 2),
+                        label,
+                    )
+                    assertEquals(
+                        green,
+                        pixels.pixelAt(left + side / 2, top + point),
+                        label,
+                    )
+                }
+
+                assertEquals(
+                    QrColor.White,
+                    pixels.pixelAt(left + side / 2, top - ppm / 2),
+                    "Padding: $label",
+                )
+                assertEquals(
+                    if (shape == QrLogoBackgroundShape.Square) {
+                        green
+                    } else {
+                        QrColor.White
+                    },
+                    pixels.pixelAt(left + ppm / 4, top + ppm / 4),
+                    "Image clipping: $label",
+                )
+            }
+        }
+    }
+
+    private fun createCropTestLogo(width: Int, height: Int): UIImage {
+        UIGraphicsBeginImageContextWithOptions(
+            CGSizeMake(width.toDouble(), height.toDouble()),
+            false,
+            1.0,
+        )
+        try {
+            UIColor(
+                red = 1.0, green = 0.0, blue = 0.0, alpha = 1.0,
+            ).setFill()
+            UIBezierPath.bezierPathWithRect(
+                CGRectMake(0.0, 0.0, width.toDouble(), height.toDouble()),
+            ).fill()
+
+            val side = minOf(width, height).toDouble()
+            UIColor(
+                red = 0.0, green = 1.0, blue = 0.0, alpha = 1.0,
+            ).setFill()
+            UIBezierPath.bezierPathWithRect(
+                CGRectMake(
+                    (width - side) / 2.0,
+                    (height - side) / 2.0,
+                    side,
+                    side,
+                ),
+            ).fill()
+
+            return requireNotNull(UIGraphicsGetImageFromCurrentImageContext())
+        } finally {
+            UIGraphicsEndImageContext()
+        }
     }
 
     private fun imageSize(

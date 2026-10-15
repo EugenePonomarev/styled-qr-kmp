@@ -28,6 +28,13 @@ public object SvgQrRenderer {
 
         val logoOptions = style.logo?.takeIf { !logoDataUri.isNullOrBlank() }
         val logoLayout = logoOptions?.let(qrCode::calculateLogoLayout)
+        val logoClipId = if (logoLayout != null) {
+            "qr-logo-${qrCode.size}-$quietZone-${logoLayout.leftModule}-" +
+                "${logoLayout.topModule}-${logoLayout.sizeModules}-${logoLayout.paddingModules}-" +
+                "${logoOptions.backgroundShape.name}-${logoOptions.cornerRadiusFraction.toBits()}"
+        } else {
+            null
+        }
 
         return buildString {
             val squareModulesPath = StringBuilder()
@@ -63,12 +70,25 @@ public object SvgQrRenderer {
             append(style.background.toCss())
             append("\"/>")
 
+            if (logoLayout != null && logoClipId != null) {
+                val logoPath = logoShapePath(
+                    left = quietZone + logoLayout.leftModule.toDouble(),
+                    top = quietZone + logoLayout.topModule.toDouble(),
+                    boxSize = logoLayout.sizeModules.toDouble(),
+                    options = logoOptions,
+                )
+                append("<defs><clipPath id=\"$logoClipId\" clipPathUnits=\"userSpaceOnUse\">")
+                append("<path clip-rule=\"evenodd\" d=\"M 0 0 H $canvasSize V $canvasSize H 0 Z ")
+                append(logoPath)
+                append("\"/></clipPath></defs>")
+                append("<g clip-path=\"url(#$logoClipId)\">")
+            }
+
             for (row in 0 until qrCode.size) {
                 for (column in 0 until qrCode.size) {
                     if (
                         !qrCode[row, column] ||
-                        qrCode.isFinderPatternCore(row, column) ||
-                        logoLayout?.contains(row, column) == true
+                        qrCode.isFinderPatternCore(row, column)
                     ) continue
 
                     val preserveAsSquare = qrCode.shouldPreserveAsSquare(row, column, style)
@@ -114,12 +134,15 @@ public object SvgQrRenderer {
                 background = style.background.toCss(),
             )
 
+            if (logoClipId != null) append("</g>")
+
             if (logoOptions != null && logoLayout != null && !logoDataUri.isNullOrBlank()) {
                 appendLogo(
                     quietZone = quietZone.toDouble(),
                     layout = logoLayout,
                     options = logoOptions,
                     dataUri = logoDataUri,
+                    clipId = requireNotNull(logoClipId),
                 )
             }
 
@@ -221,30 +244,56 @@ public object SvgQrRenderer {
         }
     }
 
+    private fun logoShapePath(
+        left: Double,
+        top: Double,
+        boxSize: Double,
+        options: QrLogoOptions,
+        inset: Double = 0.0,
+    ): String {
+        val x = left + inset
+        val y = top + inset
+        val side = boxSize - inset * 2.0
+        val right = x + side
+        val bottom = y + side
+        if (options.backgroundShape == QrLogoBackgroundShape.Circle) {
+            val radius = side / 2.0
+            return "M ${x + radius} $y " +
+                "a $radius $radius 0 1 1 0 $side " +
+                "a $radius $radius 0 1 1 0 -$side Z"
+        }
+        val radius = if (options.backgroundShape == QrLogoBackgroundShape.RoundedSquare) {
+            (boxSize * options.cornerRadiusFraction - inset).coerceIn(0.0, side / 2.0)
+        } else {
+            0.0
+        }
+        if (radius == 0.0) return "M $x $y H $right V $bottom H $x Z"
+        return "M ${x + radius} $y H ${right - radius} " +
+            "A $radius $radius 0 0 1 $right ${y + radius} V ${bottom - radius} " +
+            "A $radius $radius 0 0 1 ${right - radius} $bottom H ${x + radius} " +
+            "A $radius $radius 0 0 1 $x ${bottom - radius} V ${y + radius} " +
+            "A $radius $radius 0 0 1 ${x + radius} $y Z"
+    }
+
     private fun StringBuilder.appendLogo(
         quietZone: Double,
         layout: QrLogoLayout,
         options: QrLogoOptions,
         dataUri: String,
+        clipId: String,
     ) {
         val boxSize = layout.sizeModules.toDouble()
         val padding = layout.paddingModules.toDouble()
         val logoSize = boxSize - padding * 2.0
         val left = quietZone + layout.leftModule
         val top = quietZone + layout.topModule
+        val backgroundPath = logoShapePath(left, top, boxSize, options)
+        val imagePath = logoShapePath(left, top, boxSize, options, inset = padding)
+        val imageClipId = "$clipId-image"
 
-        when (options.backgroundShape) {
-            QrLogoBackgroundShape.Square -> append("<rect x=\"$left\" y=\"$top\" width=\"$boxSize\" height=\"$boxSize\" fill=\"${options.background.toCss()}\"/>")
-            QrLogoBackgroundShape.RoundedSquare -> {
-                val radius = boxSize * options.cornerRadiusFraction
-                append("<rect x=\"$left\" y=\"$top\" width=\"$boxSize\" height=\"$boxSize\" rx=\"$radius\" fill=\"${options.background.toCss()}\"/>")
-            }
-
-            QrLogoBackgroundShape.Circle -> {
-                append("<circle cx=\"${left + boxSize / 2.0}\" cy=\"${top + boxSize / 2.0}\" r=\"${boxSize / 2.0}\" fill=\"${options.background.toCss()}\"/>")
-            }
-        }
-
+        append("<path d=\"$backgroundPath\" fill=\"${options.background.toCss()}\"/>")
+        append("<defs><clipPath id=\"$imageClipId\" clipPathUnits=\"userSpaceOnUse\">")
+        append("<path d=\"$imagePath\"/></clipPath></defs>")
         append("<image href=\"")
         append(dataUri.escapeXmlAttribute())
         append("\" x=\"")
@@ -255,7 +304,7 @@ public object SvgQrRenderer {
         append(logoSize)
         append("\" height=\"")
         append(logoSize)
-        append("\" preserveAspectRatio=\"xMidYMid meet\"/>")
+        append("\" preserveAspectRatio=\"xMidYMid slice\" clip-path=\"url(#$imageClipId)\"/>")
     }
 
     private fun String.escapeXmlAttribute(): String =

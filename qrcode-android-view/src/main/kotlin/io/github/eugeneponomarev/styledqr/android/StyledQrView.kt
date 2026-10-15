@@ -1,6 +1,7 @@
 package io.github.eugeneponomarev.styledqr.android
 
 import android.content.Context
+import android.content.res.TypedArray
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -113,25 +114,28 @@ public class StyledQrView @JvmOverloads constructor(
     }
 
     override fun onDetachedFromWindow() {
-        recycleCachedBitmap()
+        clearCachedBitmap()
         super.onDetachedFromWindow()
     }
 
     private fun bitmapFor(sidePx: Int): Bitmap? {
         if (cachedSidePx == sidePx) return cachedBitmap
 
-        recycleCachedBitmap()
+        clearCachedBitmap()
         cachedSidePx = sidePx
         lastRenderError = null
 
         return try {
             val code = QrCodeGenerator.encodeText(content, errorCorrection)
             val minimumRenderSize = code.size + qrStyle.quietZoneModules * 2
+
             code.toBitmap(
                 sizePx = maxOf(sidePx, minimumRenderSize),
                 style = qrStyle,
                 logo = logo,
-            ).also { cachedBitmap = it }
+            ).also {
+                cachedBitmap = it
+            }
         } catch (error: IllegalArgumentException) {
             lastRenderError = error.message
             null
@@ -139,16 +143,15 @@ public class StyledQrView @JvmOverloads constructor(
     }
 
     private fun invalidateQrCode() {
-        recycleCachedBitmap()
+        clearCachedBitmap()
         lastRenderError = null
         requestLayout()
         invalidate()
     }
 
-    private fun recycleCachedBitmap() {
-        cachedBitmap?.let { bitmap ->
-            if (!bitmap.isRecycled) bitmap.recycle()
-        }
+    private fun clearCachedBitmap() {
+        // A recorded hardware draw may still reference this bitmap.
+        // Let GC release it after all references are gone.
         cachedBitmap = null
         cachedSidePx = NO_CACHED_SIDE
     }
@@ -209,24 +212,24 @@ public class StyledQrView @JvmOverloads constructor(
                         Color.BLACK,
                     ).toQrColor(),
                     start = QrGradientPoint(
-                        x = attributes.getFloat(
+                        x = attributes.getDoubleOrDefault(
                             R.styleable.StyledQrView_qrGradientStartX,
-                            0f,
-                        ).toDouble(),
-                        y = attributes.getFloat(
+                            0.0,
+                        ),
+                        y = attributes.getDoubleOrDefault(
                             R.styleable.StyledQrView_qrGradientStartY,
-                            0f,
-                        ).toDouble(),
+                            0.0,
+                        ),
                     ),
                     end = QrGradientPoint(
-                        x = attributes.getFloat(
+                        x = attributes.getDoubleOrDefault(
                             R.styleable.StyledQrView_qrGradientEndX,
-                            1f,
-                        ).toDouble(),
-                        y = attributes.getFloat(
+                            1.0,
+                        ),
+                        y = attributes.getDoubleOrDefault(
                             R.styleable.StyledQrView_qrGradientEndY,
-                            1f,
-                        ).toDouble(),
+                            1.0,
+                        ),
                     ),
                 )
             } else {
@@ -238,14 +241,14 @@ public class StyledQrView @JvmOverloads constructor(
                 null
             } else {
                 QrLogoOptions(
-                    sizeFraction = attributes.getFloat(
+                    sizeFraction = attributes.getDoubleOrDefault(
                         R.styleable.StyledQrView_qrLogoSizeFraction,
-                        DEFAULT_LOGO_OPTIONS.sizeFraction.toFloat(),
-                    ).toDouble(),
-                    paddingFraction = attributes.getFloat(
+                        DEFAULT_LOGO_OPTIONS.sizeFraction,
+                    ),
+                    paddingFraction = attributes.getDoubleOrDefault(
                         R.styleable.StyledQrView_qrLogoPaddingFraction,
-                        DEFAULT_LOGO_OPTIONS.paddingFraction.toFloat(),
-                    ).toDouble(),
+                        DEFAULT_LOGO_OPTIONS.paddingFraction,
+                    ),
                 )
             }
 
@@ -262,14 +265,14 @@ public class StyledQrView @JvmOverloads constructor(
                         MODULE_SHAPE_SQUARE,
                     ),
                 ),
-                moduleScale = attributes.getFloat(
+                moduleScale = attributes.getDoubleOrDefault(
                     R.styleable.StyledQrView_qrModuleScale,
-                    defaultStyle.moduleScale.toFloat(),
-                ).toDouble(),
-                roundedModuleRadiusFraction = attributes.getFloat(
+                    defaultStyle.moduleScale,
+                ),
+                roundedModuleRadiusFraction = attributes.getDoubleOrDefault(
                     R.styleable.StyledQrView_qrRoundedModuleRadiusFraction,
-                    defaultStyle.roundedModuleRadiusFraction.toFloat(),
-                ).toDouble(),
+                    defaultStyle.roundedModuleRadiusFraction,
+                ),
                 functionPatternStyle = functionPatternStyleFrom(
                     if (
                         attributes.hasValue(
@@ -331,6 +334,9 @@ internal fun functionPatternStyleFrom(value: Int?): QrFunctionPatternStyle = whe
 }
 
 private fun QrColor.toAndroidColor(): Int = Color.argb(alpha, red, green, blue)
+
+private fun TypedArray.getDoubleOrDefault(index: Int, defaultValue: Double): Double =
+    if (hasValue(index)) getFloat(index, defaultValue.toFloat()).toDouble() else defaultValue
 
 private fun Int.toQrColor(): QrColor = QrColor(
     red = Color.red(this),
