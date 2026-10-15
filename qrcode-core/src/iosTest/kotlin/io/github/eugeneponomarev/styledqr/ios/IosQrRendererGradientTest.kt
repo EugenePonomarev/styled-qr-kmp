@@ -19,8 +19,6 @@ import platform.CoreGraphics.CGColorSpaceCreateWithName
 import platform.CoreGraphics.CGColorSpaceRelease
 import platform.CoreGraphics.CGContextDrawImage
 import platform.CoreGraphics.CGContextRelease
-import platform.CoreGraphics.CGContextScaleCTM
-import platform.CoreGraphics.CGContextTranslateCTM
 import platform.CoreGraphics.CGImageAlphaInfo
 import platform.CoreGraphics.CGImageGetHeight
 import platform.CoreGraphics.CGImageGetWidth
@@ -243,6 +241,53 @@ class IosQrRendererGradientTest {
                     pixelsPerModule,
             ),
         )
+    }
+
+    @Test
+    fun pixelBufferPreservesTopLeftOrigin() {
+        UIGraphicsBeginImageContextWithOptions(
+            CGSizeMake(8.0, 12.0),
+            false,
+            1.0,
+        )
+        try {
+            UIColor(
+                red = 0.0,
+                green = 1.0,
+                blue = 0.0,
+                alpha = 1.0,
+            ).setFill()
+            UIBezierPath.bezierPathWithRect(
+                CGRectMake(0.0, 0.0, 8.0, 12.0),
+            ).fill()
+
+            UIColor(
+                red = 1.0,
+                green = 0.0,
+                blue = 0.0,
+                alpha = 1.0,
+            ).setFill()
+            UIBezierPath.bezierPathWithRect(
+                CGRectMake(0.0, 0.0, 8.0, 4.0),
+            ).fill()
+
+            val pixels = requireNotNull(
+                UIGraphicsGetImageFromCurrentImageContext(),
+            ).toPixelBuffer()
+
+            assertEquals(
+                QrColor(255, 0, 0),
+                pixels.pixelAt(2, 1),
+                "Top rows must remain red",
+            )
+            assertEquals(
+                QrColor(0, 255, 0),
+                pixels.pixelAt(2, 10),
+                "Bottom rows must remain green",
+            )
+        } finally {
+            UIGraphicsEndImageContext()
+        }
     }
 
     @Test
@@ -479,19 +524,7 @@ private fun UIImage.toPixelBuffer(): PixelBuffer {
         }
 
         try {
-            // CGContext and UIKit use opposite Y directions.
-            CGContextTranslateCTM(
-                context,
-                0.0,
-                height.toDouble(),
-            )
-
-            CGContextScaleCTM(
-                context,
-                1.0,
-                -1.0,
-            )
-
+            // Copy CGImage pixels without changing the row order.
             CGContextDrawImage(
                 context,
                 CGRectMake(

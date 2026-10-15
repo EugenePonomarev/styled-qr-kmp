@@ -116,6 +116,23 @@ jobs:
             ":qrcode-core:${IOS_TEST_TASK}" \
             --stacktrace
 
+      - name: Print iOS test failures
+        if: failure()
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+
+          for report in Path("qrcode-core/build/test-results").rglob("TEST-*.xml"):
+              for case in ET.parse(report).iter("testcase"):
+                  for failure in case:
+                      if failure.tag in {"failure", "error"}:
+                          print(f"\nReport: {report}")
+                          print(f"Test: {case.get('classname')}.{case.get('name')}")
+                          print(failure.get("message", ""))
+                          print(failure.text or "")
+          PY
+
       - name: Build iOS XCFramework
         run: >-
           ./gradlew --no-daemon --no-configuration-cache
