@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.3.1 — Encoding and rendering fixes
+
+### Fixed
+
+- Correct QR error-correction codewords per block for affected versions
+  and correction levels.
+- Report oversized payloads as IllegalArgumentException, allowing Android
+  View to display the error and recover after input changes.
+- Preserve shared Double defaults when Android XML attributes are omitted.
+- Match logo clearance and image clipping to the selected background shape.
+- Preserve rectangular logo proportions using centred cropping across renderers.
+- Avoid eagerly recycling cached Android View bitmaps.
+
+### Tests
+
+- Add independent codeword fixtures covering all 40 versions and four
+  error-correction levels.
+- Add regression coverage for overflow recovery, XML defaults, logo clipping,
+  and rectangular logo cropping.
+
 ## 0.3.0 — Safe linear gradients
 
 ### Added

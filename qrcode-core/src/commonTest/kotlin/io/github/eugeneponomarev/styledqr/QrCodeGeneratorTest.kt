@@ -20,6 +20,31 @@ import kotlin.test.assertTrue
 
 class QrCodeGeneratorTest {
     @Test
+    fun payloadOverflowIsAnInputValidationError() {
+        val textError = assertFailsWith<IllegalArgumentException> {
+            QrCodeGenerator.encodeText("x".repeat(10_000), QrErrorCorrectionLevel.H)
+        }
+        val bytesError = assertFailsWith<IllegalArgumentException> {
+            QrCodeGenerator.encodeBytes(ByteArray(10_000), QrErrorCorrectionLevel.H)
+        }
+        assertContains(textError.message.orEmpty(), "1..40 at H")
+        assertContains(bytesError.message.orEmpty(), "1..40 at H")
+    }
+
+    @Test
+    fun payloadOverflowRespectsTheRequestedVersionRange() {
+        val error = assertFailsWith<IllegalArgumentException> {
+            QrCodeGenerator.encodeText(
+                text = "x".repeat(100),
+                errorCorrection = QrErrorCorrectionLevel.H,
+                minVersion = 1,
+                maxVersion = 1,
+            )
+        }
+        assertContains(error.message.orEmpty(), "1..1 at H")
+    }
+
+    @Test
     fun oneBytePayloadProducesVersionOneAtHighCorrection() {
         val code = QrCodeGenerator.encodeBytes(
             bytes = byteArrayOf(0x42),

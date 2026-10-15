@@ -35,6 +35,17 @@ public fun QrCode.toBitmap(
     )
     val moduleSize = rasterLayout.moduleSizePx.toFloat()
     val offset = rasterLayout.offsetPx.toFloat()
+    val logoOptions = if (logo == null) null else style.logo ?: QrLogoOptions()
+    val logoLayout = logoOptions?.let { calculateLogoLayout(it) }
+    val logoBackgroundPath = logoLayout?.let { layout ->
+        createLogoPath(
+            left = offset + (style.quietZoneModules + layout.leftModule) * moduleSize,
+            top = offset + (style.quietZoneModules + layout.topModule) * moduleSize,
+            boxSize = layout.sizeModules * moduleSize,
+            options = requireNotNull(logoOptions),
+        )
+    }
+
     val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
     canvas.drawColor(style.background.toArgb())
@@ -50,46 +61,38 @@ public fun QrCode.toBitmap(
         color = style.background.toArgb()
         this.style = Paint.Style.FILL
     }
-    val logoOptions = if (logo == null) null else style.logo ?: QrLogoOptions()
-    val logoLayout = logoOptions?.let { calculateLogoLayout(it) }
 
-    for (row in 0 until size) {
-        for (column in 0 until size) {
-            if (
-                !this[row, column] ||
-                    isFinderPatternCore(row, column) ||
-                    logoLayout?.contains(row, column) == true
-            ) continue
-
-            val preserveAsSquare = shouldPreserveAsSquare(row, column, style)
-            val shape = if (preserveAsSquare) {
-                QrModuleShape.Square
-            } else {
-                style.moduleShape
+    val foregroundSave = canvas.save()
+    try {
+        logoBackgroundPath?.let { canvas.clipOutPath(it) }
+        for (row in 0 until size) {
+            for (column in 0 until size) {
+                if (!this[row, column] || isFinderPatternCore(row, column)) continue
+                val preserveAsSquare = shouldPreserveAsSquare(row, column, style)
+                canvas.drawModule(
+                    left = offset + (column + style.quietZoneModules) * moduleSize,
+                    top = offset + (row + style.quietZoneModules) * moduleSize,
+                    moduleSize = moduleSize,
+                    scale = if (preserveAsSquare) 1f else style.moduleScale.toFloat(),
+                    shape = if (preserveAsSquare) QrModuleShape.Square else style.moduleShape,
+                    roundedRadiusFraction = style.roundedModuleRadiusFraction.toFloat(),
+                    paint = modulePaint,
+                )
             }
-            val scale = if (preserveAsSquare) 1.0 else style.moduleScale
-            canvas.drawModule(
-                left = offset + (column + style.quietZoneModules) * moduleSize,
-                top = offset + (row + style.quietZoneModules) * moduleSize,
-                moduleSize = moduleSize,
-                scale = scale.toFloat(),
-                shape = shape,
-                roundedRadiusFraction = style.roundedModuleRadiusFraction.toFloat(),
-                paint = modulePaint,
-            )
         }
+        canvas.drawFinderPatterns(
+            qrCode = this,
+            moduleSize = moduleSize,
+            quietZoneModules = style.quietZoneModules,
+            offset = offset,
+            shape = style.resolvedFinderPatternShape(),
+            roundedRadiusFraction = style.roundedModuleRadiusFraction.toFloat(),
+            foregroundPaint = modulePaint,
+            backgroundPaint = finderBackgroundPaint,
+        )
+    } finally {
+        canvas.restoreToCount(foregroundSave)
     }
-
-    canvas.drawFinderPatterns(
-        qrCode = this,
-        moduleSize = moduleSize,
-        quietZoneModules = style.quietZoneModules,
-        offset = offset,
-        shape = style.resolvedFinderPatternShape(),
-        roundedRadiusFraction = style.roundedModuleRadiusFraction.toFloat(),
-        foregroundPaint = modulePaint,
-        backgroundPaint = finderBackgroundPaint,
-    )
 
     if (logo != null) {
         canvas.drawLogo(
@@ -179,7 +182,7 @@ private fun Canvas.drawModule(
     roundedRadiusFraction: Float,
     paint: Paint,
 ) {
-    // Square cells must have hard edges; anti-aliasing can create thin white seams at a non-integer scale.
+    // Square cells must have hard edges; antialiasing can create thin white seams at a noninteger scale.
     paint.isAntiAlias = shape != QrModuleShape.Square
     val inset = moduleSize * (1f - scale) / 2f
     val rect = RectF(
@@ -209,6 +212,27 @@ private fun Canvas.drawModule(
     }
 }
 
+private fun createLogoPath(
+    left: Float,
+    top: Float,
+    boxSize: Float,
+    options: QrLogoOptions,
+    inset: Float = 0f,
+): Path {
+    val rect = RectF(left + inset, top + inset, left + boxSize - inset, top + boxSize - inset)
+    return Path().apply {
+        when (options.backgroundShape) {
+            QrLogoBackgroundShape.Square -> addRect(rect, Path.Direction.CW)
+            QrLogoBackgroundShape.RoundedSquare -> {
+                val radius = (boxSize * options.cornerRadiusFraction.toFloat() - inset)
+                    .coerceIn(0f, rect.width() / 2f)
+                addRoundRect(rect, radius, radius, Path.Direction.CW)
+            }
+            QrLogoBackgroundShape.Circle -> addOval(rect, Path.Direction.CW)
+        }
+    }
+}
+
 private fun Canvas.drawLogo(
     moduleSize: Float,
     quietZoneModules: Int,
@@ -219,36 +243,47 @@ private fun Canvas.drawLogo(
 ) {
     val boxSize = layout.sizeModules * moduleSize
     val padding = layout.paddingModules * moduleSize
-    val logoSize = boxSize - padding * 2f
     val left = offset + (quietZoneModules + layout.leftModule) * moduleSize
     val top = offset + (quietZoneModules + layout.topModule) * moduleSize
-    val backgroundRect = RectF(left, top, left + boxSize, top + boxSize)
     val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = options.background.toArgb()
         style = Paint.Style.FILL
     }
-
-    when (options.backgroundShape) {
-        QrLogoBackgroundShape.Square -> drawRect(backgroundRect, backgroundPaint)
-        QrLogoBackgroundShape.RoundedSquare -> {
-            val radius = boxSize * options.cornerRadiusFraction.toFloat()
-            drawRoundRect(backgroundRect, radius, radius, backgroundPaint)
-        }
-        QrLogoBackgroundShape.Circle -> drawCircle(
-            backgroundRect.centerX(),
-            backgroundRect.centerY(),
-            boxSize / 2f,
-            backgroundPaint,
-        )
-    }
+    drawPath(createLogoPath(left, top, boxSize, options), backgroundPaint)
 
     val logoRect = RectF(
         left + padding,
         top + padding,
-        left + padding + logoSize,
-        top + padding + logoSize,
+        left + boxSize - padding,
+        top + boxSize - padding,
     )
-    drawBitmap(bitmap, null, logoRect, Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG))
+    val imageSave = save()
+    try {
+        clipPath(createLogoPath(left, top, boxSize, options, inset = padding))
+        val imageScale = maxOf(
+            logoRect.width() / bitmap.width,
+            logoRect.height() / bitmap.height,
+        )
+
+        val imageWidth = bitmap.width * imageScale
+        val imageHeight = bitmap.height * imageScale
+
+        val fittedRect = RectF(
+            logoRect.centerX() - imageWidth / 2f,
+            logoRect.centerY() - imageHeight / 2f,
+            logoRect.centerX() + imageWidth / 2f,
+            logoRect.centerY() + imageHeight / 2f,
+        )
+
+        drawBitmap(
+            bitmap,
+            null,
+            fittedRect,
+            Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG),
+        )
+    } finally {
+        restoreToCount(imageSave)
+    }
 }
 
 private fun QrColor.toArgb(): Int =

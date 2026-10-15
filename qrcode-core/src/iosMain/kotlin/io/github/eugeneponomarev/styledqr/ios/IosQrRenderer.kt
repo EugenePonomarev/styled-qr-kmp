@@ -16,6 +16,7 @@ import io.github.eugeneponomarev.styledqr.render.isFinderPatternCore
 import io.github.eugeneponomarev.styledqr.render.resolvedFinderPatternShape
 import io.github.eugeneponomarev.styledqr.render.shouldPreserveAsSquare
 import kotlinx.cinterop.cValuesOf
+import kotlinx.cinterop.useContents
 import platform.CoreGraphics.CGColorSpaceCreateWithName
 import platform.CoreGraphics.kCGColorSpaceSRGB
 import platform.CoreGraphics.CGColorSpaceRelease
@@ -59,49 +60,72 @@ public fun QrCode.toUIImage(
         style.background.toUiColor().setFill()
         UIBezierPath.bezierPathWithRect(CGRectMake(0.0, 0.0, sizePoints, sizePoints)).fill()
 
-        val gradient = style.foregroundGradient
-        val foregroundPath = gradient?.let { UIBezierPath.bezierPath() }
-        if (gradient == null) style.foreground.toUiColor().setFill()
-        for (row in 0 until size) {
-            for (column in 0 until size) {
-                if (
-                    !this[row, column] ||
-                    isFinderPatternCore(row, column) ||
-                    logoLayout?.contains(row, column) == true
-                ) continue
-
-                val preserveAsSquare = shouldPreserveAsSquare(row, column, style)
-                val shape = if (preserveAsSquare) {
-                    QrModuleShape.Square
-                } else {
-                    style.moduleShape
-                }
-                val moduleScale = if (preserveAsSquare) 1.0 else style.moduleScale
-                val modulePath = drawModulePath(
-                    left = (column + style.quietZoneModules) * moduleSize,
-                    top = (row + style.quietZoneModules) * moduleSize,
-                    moduleSize = moduleSize,
-                    scale = moduleScale,
-                    shape = shape,
-                    roundedRadiusFraction = style.roundedModuleRadiusFraction,
-                )
-                if (foregroundPath == null) modulePath.fill() else foregroundPath.appendPath(modulePath)
-            }
+        val context = requireNotNull(UIGraphicsGetCurrentContext()) {
+            "Unable to get the QR graphics context"
         }
+        CGContextSaveGState(context)
+        try {
+            if (logoLayout != null) {
+                val visibleArea = UIBezierPath.bezierPathWithRect(
+                    CGRectMake(0.0, 0.0, sizePoints, sizePoints),
+                )
+                visibleArea.appendPath(
+                    createLogoPath(
+                        left = (style.quietZoneModules + logoLayout.leftModule) * moduleSize,
+                        top = (style.quietZoneModules + logoLayout.topModule) * moduleSize,
+                        boxSize = logoLayout.sizeModules * moduleSize,
+                        options = requireNotNull(logoOptions),
+                    ),
+                )
+                visibleArea.usesEvenOddFillRule = true
+                visibleArea.addClip()
+            }
 
-        if (gradient == null) {
-            drawFinderPatterns(
-                qrCode = this,
-                moduleSize = moduleSize,
-                quietZoneModules = style.quietZoneModules,
-                style = style,
-            )
-        } else {
-            // Even-odd clipping cuts the 5×5 middle ring out of the 7×7 outer layer,
-            // then restores the 3×3 centre. The already painted background shows in the hole.
-            val path = requireNotNull(foregroundPath)
-            appendGradientFinderPatterns(this, moduleSize, style, path)
-            drawForegroundGradient(path, gradient, size, style.quietZoneModules, moduleSize)
+            val gradient = style.foregroundGradient
+            val foregroundPath = gradient?.let { UIBezierPath.bezierPath() }
+            if (gradient == null) style.foreground.toUiColor().setFill()
+            for (row in 0 until size) {
+                for (column in 0 until size) {
+                    if (
+                        !this[row, column] ||
+                        isFinderPatternCore(row, column)
+                    ) continue
+
+                    val preserveAsSquare = shouldPreserveAsSquare(row, column, style)
+                    val shape = if (preserveAsSquare) {
+                        QrModuleShape.Square
+                    } else {
+                        style.moduleShape
+                    }
+                    val moduleScale = if (preserveAsSquare) 1.0 else style.moduleScale
+                    val modulePath = drawModulePath(
+                        left = (column + style.quietZoneModules) * moduleSize,
+                        top = (row + style.quietZoneModules) * moduleSize,
+                        moduleSize = moduleSize,
+                        scale = moduleScale,
+                        shape = shape,
+                        roundedRadiusFraction = style.roundedModuleRadiusFraction,
+                    )
+                    if (foregroundPath == null) modulePath.fill() else foregroundPath.appendPath(modulePath)
+                }
+            }
+
+            if (gradient == null) {
+                drawFinderPatterns(
+                    qrCode = this,
+                    moduleSize = moduleSize,
+                    quietZoneModules = style.quietZoneModules,
+                    style = style,
+                )
+            } else {
+                // Even-odd clipping cuts the 5×5 middle ring out of the 7×7 outer layer,
+                // then restores the 3×3 centre. The already painted background shows in the hole.
+                val path = requireNotNull(foregroundPath)
+                appendGradientFinderPatterns(this, moduleSize, style, path)
+                drawForegroundGradient(path, gradient, size, style.quietZoneModules, moduleSize)
+            }
+        } finally {
+            CGContextRestoreGState(context)
         }
 
         if (logo != null) {
@@ -316,6 +340,25 @@ private fun drawModulePath(
     }
 }
 
+private fun createLogoPath(
+    left: Double,
+    top: Double,
+    boxSize: Double,
+    options: QrLogoOptions,
+    inset: Double = 0.0,
+): UIBezierPath {
+    val side = boxSize - inset * 2.0
+    val rect = CGRectMake(left + inset, top + inset, side, side)
+    return when (options.backgroundShape) {
+        QrLogoBackgroundShape.Square -> UIBezierPath.bezierPathWithRect(rect)
+        QrLogoBackgroundShape.RoundedSquare -> UIBezierPath.bezierPathWithRoundedRect(
+            rect,
+            (boxSize * options.cornerRadiusFraction - inset).coerceIn(0.0, side / 2.0),
+        )
+        QrLogoBackgroundShape.Circle -> UIBezierPath.bezierPathWithOvalInRect(rect)
+    }
+}
+
 private fun drawLogo(
     moduleSize: Double,
     quietZoneModules: Int,
@@ -328,20 +371,54 @@ private fun drawLogo(
     val logoSize = boxSize - padding * 2.0
     val left = (quietZoneModules + layout.leftModule) * moduleSize
     val top = (quietZoneModules + layout.topModule) * moduleSize
-    val backgroundRect = CGRectMake(left, top, boxSize, boxSize)
+
+    val (imageWidth, imageHeight) = logo.size.useContents {
+        width to height
+    }
+    require(
+        imageWidth.isFinite() &&
+                imageHeight.isFinite() &&
+                imageWidth > 0.0 &&
+                imageHeight > 0.0
+    ) {
+        "Logo image must have a finite, positive size"
+    }
+
+    val imageScale = maxOf(
+        logoSize / imageWidth,
+        logoSize / imageHeight,
+    )
+    val fittedWidth = imageWidth * imageScale
+    val fittedHeight = imageHeight * imageScale
 
     options.background.toUiColor().setFill()
-    val backgroundPath = when (options.backgroundShape) {
-        QrLogoBackgroundShape.Square -> UIBezierPath.bezierPathWithRect(backgroundRect)
-        QrLogoBackgroundShape.RoundedSquare -> UIBezierPath.bezierPathWithRoundedRect(
-            backgroundRect,
-            boxSize * options.cornerRadiusFraction,
-        )
-        QrLogoBackgroundShape.Circle -> UIBezierPath.bezierPathWithOvalInRect(backgroundRect)
-    }
-    backgroundPath.fill()
+    createLogoPath(left, top, boxSize, options).fill()
 
-    logo.drawInRect(CGRectMake(left + padding, top + padding, logoSize, logoSize))
+    val context = requireNotNull(UIGraphicsGetCurrentContext()) {
+        "Unable to get the QR graphics context"
+    }
+
+    CGContextSaveGState(context)
+    try {
+        createLogoPath(
+            left,
+            top,
+            boxSize,
+            options,
+            inset = padding,
+        ).addClip()
+
+        logo.drawInRect(
+            CGRectMake(
+                left + padding + (logoSize - fittedWidth) / 2.0,
+                top + padding + (logoSize - fittedHeight) / 2.0,
+                fittedWidth,
+                fittedHeight,
+            ),
+        )
+    } finally {
+        CGContextRestoreGState(context)
+    }
 }
 
 private fun QrColor.toUiColor(): UIColor = UIColor(

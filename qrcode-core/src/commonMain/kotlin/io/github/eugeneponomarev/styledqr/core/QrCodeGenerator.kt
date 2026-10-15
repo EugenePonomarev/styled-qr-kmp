@@ -58,7 +58,7 @@ public object QrCodeGenerator {
             version += 1
         }
 
-        val finalDataUsedBits = checkNotNull(dataUsedBits) {
+        val finalDataUsedBits = requireNotNull(dataUsedBits) {
             "Payload is too long for QR versions $minVersion..$maxVersion at $requestedErrorCorrection level"
         }
 

@@ -6,10 +6,16 @@ import kotlin.math.ceil
 import kotlin.math.roundToInt
 
 /**
- * Integer-aligned area cleared below a centre logo. Coordinates exclude the QR quiet zone.
+ * Module-aligned bounding square validated for a centre logo.
+ * Coordinates are relative to the QR matrix and exclude the quiet zone.
  *
- * [sizeModules] includes logo padding. [logoSizeModules] is the maximum square into which a
- * platform renderer places the image itself.
+ * [sizeModules] includes padding. [logoSizeModules] is the side of the inner
+ * square viewport after padding. Renderers fill this viewport while preserving
+ * the image aspect ratio and cropping excess content around the centre.
+ *
+ * Layout validation covers the complete bounding square. Renderers clear
+ * the selected background shape inside it and clip the image to that shape
+ * inset by [paddingModules].
  */
 public class QrLogoLayout internal constructor(
     public val leftModule: Int,
@@ -25,18 +31,24 @@ public class QrLogoLayout internal constructor(
 }
 
 /**
- * Calculates a centre-logo area that is safe for this exact QR matrix.
+ * Calculates and validates a module-aligned centre-logo layout for this QR matrix.
  *
- * A QR specification has no arbitrary "unused" data region: every non-function module belongs
- * to a codeword. A logo therefore behaves as a known visual overwrite. This function reserves
- * one complete, module-aligned square in the renderer and permits it only when:
+ * A logo visually overwrites encoded modules. This function permits its bounding
+ * square only when:
  *
- * - no finder, timing, alignment, format, or version module is covered; and
- * - the number of affected codewords in every Reed–Solomon block remains below its correction
- *   limit, with one codeword kept as a safety margin.
+ * - it covers no QR function modules; and
+ * - the number of affected codewords in each Reed–Solomon block stays within
+ *   its correction capacity, with one correctable codeword reserved as a margin.
  *
- * It throws [IllegalArgumentException] rather than generating a QR code whose readability cannot
- * be guaranteed by its declared error-correction level.
+ * Every codeword intersecting the bounding square is counted conservatively,
+ * including those touched by padding or corners outside a curved background.
+ * Selecting a curved background does not relax these validation rules.
+ *
+ * This function does not modify the QR matrix. Passing its checks does not
+ * guarantee optical readability under arbitrary rendering or scanning conditions.
+ *
+ * @throws IllegalArgumentException if the bounding square does not fit the matrix,
+ * covers a function module, or cannot fit within the allowed correction budget.
  */
 public fun QrCode.calculateLogoLayout(options: QrLogoOptions): QrLogoLayout {
     val sizeModules = ceil(size * (options.sizeFraction + options.paddingFraction * 2.0)).toInt()
