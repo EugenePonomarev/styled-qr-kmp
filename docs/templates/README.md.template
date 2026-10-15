@@ -466,6 +466,11 @@ pattern, counts affected codewords per Reed–Solomon block, and keeps one corre
 a safety margin. If the requested logo cannot fit, rendering throws an `IllegalArgumentException`
 instead of silently producing an unreliable image.
 
+Logo images preserve their aspect ratio and fill the inner area after padding.
+Excess content is cropped around the centre and clipped to the selected logo
+background shape. Layout validation still covers the complete bounding square,
+including padding and corners outside a curved background.
+
 ```kotlin
 val layout = qrCode.calculateLogoLayout(
     QrLogoOptions(
