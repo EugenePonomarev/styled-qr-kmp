@@ -47,4 +47,20 @@ func verifyStyledQrKmpSwiftApi() {
         foregroundGradient: gradient
     )
     _ = renderer.render(sizePoints: 240.0, scale: 0.0)
+    let options = QrStyleConfiguration()
+    options.moduleShape = .roundedsquare
+
+    let safeResult = renderer.renderWithOptions(
+        content: "https://example.com",
+        options: options,
+        sizePoints: 240.0,
+        errorCorrection: .h,
+        scale: 0.0,
+        logo: nil
+    )
+
+    _ = safeResult.image
+    _ = safeResult.error?.code
+    _ = safeResult.isEmpty
+    _ = renderer.lastRenderErrorCode
 }

@@ -2,9 +2,9 @@
 
 package io.github.eugeneponomarev.styledqr.ios
 
-import io.github.eugeneponomarev.styledqr.core.QrCodeGenerator
 import io.github.eugeneponomarev.styledqr.core.QrErrorCorrectionLevel
 import io.github.eugeneponomarev.styledqr.render.QrColor
+import io.github.eugeneponomarev.styledqr.render.QrRenderErrorCode
 import io.github.eugeneponomarev.styledqr.render.QrStyle
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.useContents
@@ -16,7 +16,6 @@ import platform.UIKit.UIImageView
 import platform.UIKit.UIViewContentMode
 import kotlin.experimental.ExperimentalObjCRefinement
 import kotlin.math.min
-import kotlin.native.HiddenFromObjC
 
 /**
  * UIKit QR-code view for Kotlin-side usage only.
@@ -69,6 +68,10 @@ public class StyledQrView(
     public var lastRenderError: String? = null
         private set
 
+    public var lastRenderErrorCode: QrRenderErrorCode? = null
+        private set
+
+    private val renderer = StyledQrImageRenderer()
     private var renderedSidePoints: Double = Double.NaN
 
     init {
@@ -96,33 +99,22 @@ public class StyledQrView(
     }
 
     private fun renderIfNeeded() {
-        val sidePoints = bounds.useContents { min(size.width, size.height) }
+        val sidePoints = bounds.useContents {
+            min(size.width, size.height)
+        }
         if (sidePoints <= 0.0 || renderedSidePoints == sidePoints) return
 
         renderedSidePoints = sidePoints
-        lastRenderError = null
-        if (content.isBlank()) {
-            image = null
-            return
-        }
-
-        try {
-            val code = QrCodeGenerator.encodeText(content, errorCorrection)
-            val minimumRenderSize = code.size + qrStyle.quietZoneModules * 2
-            image = code.toUIImage(
-                sizePoints = maxOf(sidePoints, minimumRenderSize.toDouble()),
-                style = qrStyle,
-                logo = logo,
-            )
-        } catch (error: IllegalArgumentException) {
-            image = null
-            lastRenderError = error.message
-        }
+        renderer.setQrCode(content, errorCorrection, qrStyle, logo)
+        image = renderer.render(sizePoints = sidePoints)
+        lastRenderError = renderer.lastRenderError
+        lastRenderErrorCode = renderer.lastRenderErrorCode
     }
 
     private fun invalidateQrImage() {
         renderedSidePoints = Double.NaN
         lastRenderError = null
+        lastRenderErrorCode = null
         image = null
         setNeedsLayout()
     }

@@ -24,6 +24,9 @@ test -f "$header_path"
 grep -Fq 'swift_name("StyledQrImageRenderer")' "$header_path"
 grep -Fq 'swift_name("QrGradientPoint")' "$header_path"
 grep -Fq 'swift_name("QrLinearGradient")' "$header_path"
+grep -Fq 'swift_name("QrStyleConfiguration")' "$header_path"
+grep -Fq 'swift_name("QrImageRenderResult")' "$header_path"
+grep -Fq 'swift_name("QrRenderErrorCode")' "$header_path"
 if grep -Fq 'swift_name("StyledQrView")' "$header_path"; then
     echo "StyledQrView must not be exported to Swift; use StyledQrImageRenderer instead." >&2
     exit 1
@@ -50,3 +53,10 @@ xcrun --sdk iphonesimulator swiftc \
     -framework StyledQrKmp \
     -c "$swift_source" \
     -o "$output_dir/StyledQrKmpSmoke.o"
+
+xcrun --sdk iphonesimulator swiftc \
+    -target "$swift_target" \
+    -sdk "$sdk_path" \
+    -F "$simulator_slice" \
+    -framework StyledQrKmp \
+    -typecheck examples/ios/StyledQrCodeView.swift

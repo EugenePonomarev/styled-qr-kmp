@@ -9,12 +9,17 @@ import io.github.eugeneponomarev.styledqr.render.QrLogoBackgroundShape
 import io.github.eugeneponomarev.styledqr.render.QrLogoLayout
 import io.github.eugeneponomarev.styledqr.render.QrLogoOptions
 import io.github.eugeneponomarev.styledqr.render.QrModuleShape
+import io.github.eugeneponomarev.styledqr.render.QrRenderErrorCode
+import io.github.eugeneponomarev.styledqr.render.QrRenderException
 import io.github.eugeneponomarev.styledqr.render.QrStyle
 import io.github.eugeneponomarev.styledqr.render.calculateLogoLayout
 import io.github.eugeneponomarev.styledqr.render.finderPatternTopLefts
 import io.github.eugeneponomarev.styledqr.render.isFinderPatternCore
+import io.github.eugeneponomarev.styledqr.render.qrImageTotalModules
 import io.github.eugeneponomarev.styledqr.render.resolvedFinderPatternShape
 import io.github.eugeneponomarev.styledqr.render.shouldPreserveAsSquare
+import io.github.eugeneponomarev.styledqr.render.validateQrImagePixelSide
+import io.github.eugeneponomarev.styledqr.render.validateQrImageRenderArguments
 import kotlinx.cinterop.cValuesOf
 import kotlinx.cinterop.useContents
 import platform.CoreGraphics.CGColorSpaceCreateWithName
@@ -39,6 +44,7 @@ import platform.UIKit.UIGraphicsEndImageContext
 import platform.UIKit.UIGraphicsGetCurrentContext
 import platform.UIKit.UIGraphicsGetImageFromCurrentImageContext
 import platform.UIKit.UIImage
+import platform.UIKit.UIScreen
 
 /** Renders a [QrCode] to a native iOS [UIImage] using UIKit. */
 public fun QrCode.toUIImage(
@@ -47,14 +53,34 @@ public fun QrCode.toUIImage(
     scale: Double = 0.0,
     logo: UIImage? = null,
 ): UIImage {
-    val totalModules = size + style.quietZoneModules * 2
-    require(sizePoints >= totalModules) {
-        "sizePoints must be at least $totalModules to represent every QR module"
+
+    validateQrImageRenderArguments(sizePoints, scale)
+
+    val totalModules = qrImageTotalModules(size, style.quietZoneModules)
+    if (sizePoints < totalModules) {
+        throw QrRenderException(
+            QrRenderErrorCode.InvalidRenderParameters,
+            "sizePoints must be at least $totalModules to represent every QR module",
+        )
     }
+
+    val effectiveScale = if (scale == 0.0) UIScreen.mainScreen.scale else scale
+    validateQrImagePixelSide(sizePoints, effectiveScale)
 
     val moduleSize = sizePoints / totalModules
     val logoOptions = if (logo == null) null else style.logo ?: QrLogoOptions()
-    val logoLayout = logoOptions?.let { calculateLogoLayout(it) }
+
+    val logoLayout = logoOptions?.let {
+        try {
+            calculateLogoLayout(it)
+        } catch (error: IllegalArgumentException) {
+            throw QrRenderException(
+                QrRenderErrorCode.LogoValidationFailed,
+                error.message ?: "Invalid QR logo placement",
+                error,
+            )
+        }
+    }
     UIGraphicsBeginImageContextWithOptions(CGSizeMake(sizePoints, sizePoints), false, scale)
     try {
         style.background.toUiColor().setFill()
@@ -106,7 +132,9 @@ public fun QrCode.toUIImage(
                         shape = shape,
                         roundedRadiusFraction = style.roundedModuleRadiusFraction,
                     )
-                    if (foregroundPath == null) modulePath.fill() else foregroundPath.appendPath(modulePath)
+                    if (foregroundPath == null) modulePath.fill() else foregroundPath.appendPath(
+                        modulePath
+                    )
                 }
             }
 
@@ -156,7 +184,15 @@ private fun appendGradientFinderPatterns(
     qrCode.finderPatternTopLefts().forEach { (row, column) ->
         val left = (column + style.quietZoneModules) * moduleSize
         val top = (row + style.quietZoneModules) * moduleSize
-        path.appendPath(drawFinderLayer(left, top, moduleSize * 7.0, shape, style.roundedModuleRadiusFraction))
+        path.appendPath(
+            drawFinderLayer(
+                left,
+                top,
+                moduleSize * 7.0,
+                shape,
+                style.roundedModuleRadiusFraction
+            )
+        )
         path.appendPath(
             drawFinderLayer(
                 left + moduleSize,
@@ -268,7 +304,13 @@ private fun drawFinderPatterns(
         val top = (row + quietZoneModules) * moduleSize
 
         style.foreground.toUiColor().setFill()
-        drawFinderLayer(left, top, moduleSize * 7.0, shape, style.roundedModuleRadiusFraction).fill()
+        drawFinderLayer(
+            left,
+            top,
+            moduleSize * 7.0,
+            shape,
+            style.roundedModuleRadiusFraction
+        ).fill()
         style.background.toUiColor().setFill()
         drawFinderLayer(
             left + moduleSize,
@@ -328,6 +370,7 @@ private fun drawModulePath(
             rect,
             width * roundedRadiusFraction,
         )
+
         QrModuleShape.Circle -> UIBezierPath.bezierPathWithOvalInRect(rect)
         QrModuleShape.Diamond -> UIBezierPath.bezierPath().apply {
             val half = width / 2.0
@@ -355,6 +398,7 @@ private fun createLogoPath(
             rect,
             (boxSize * options.cornerRadiusFraction - inset).coerceIn(0.0, side / 2.0),
         )
+
         QrLogoBackgroundShape.Circle -> UIBezierPath.bezierPathWithOvalInRect(rect)
     }
 }
@@ -375,13 +419,17 @@ private fun drawLogo(
     val (imageWidth, imageHeight) = logo.size.useContents {
         width to height
     }
-    require(
-        imageWidth.isFinite() &&
-                imageHeight.isFinite() &&
-                imageWidth > 0.0 &&
-                imageHeight > 0.0
+    if (!(
+            imageWidth.isFinite() &&
+                    imageHeight.isFinite() &&
+                    imageWidth > 0.0 &&
+                    imageHeight > 0.0
+            )
     ) {
-        "Logo image must have a finite, positive size"
+        throw QrRenderException(
+            QrRenderErrorCode.LogoValidationFailed,
+            "Logo image must have a finite, positive size",
+        )
     }
 
     val imageScale = maxOf(
