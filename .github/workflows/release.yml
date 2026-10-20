@@ -58,6 +58,9 @@ jobs:
       - name: Verify the public Swift API
         run: bash scripts/verify-ios-swift-api.sh
 
+      - name: Run the Swift API on an iOS simulator
+        run: bash scripts/test-ios-swift-api.sh
+
       - name: Archive the XCFramework
         run: |
           ditto -c -k --sequesterRsrc --keepParent \
@@ -130,3 +133,12 @@ jobs:
 
       - name: Publish npm package
         run: npm publish ./qrcode-web/build/packages/js --access public
+
+      - name: Upload iOS test reports
+        if: always()
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: ios-release-test-reports
+          path: build/ios-swift-tests/
+          retention-days: 14
+          if-no-files-found: ignore
