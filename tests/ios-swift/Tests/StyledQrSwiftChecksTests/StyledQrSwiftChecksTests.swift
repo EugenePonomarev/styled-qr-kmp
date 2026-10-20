@@ -314,11 +314,14 @@ final class StyledQrSwiftChecksTests: XCTestCase {
 
         let cgImage = try XCTUnwrap(image.cgImage, file: file, line: line)
         let request = VNDetectBarcodesRequest()
-        request.symbologies = [.qr]
 
         #if targetEnvironment(simulator)
-        request.usesCPUOnly = true
+        request.revision = VNDetectBarcodesRequestRevision1
         #endif
+
+        request.symbologies = [.qr]
+
+        print("[Vision] \(label): starting revision=\(request.revision)")
 
         try VNImageRequestHandler(
             cgImage: cgImage,
@@ -330,14 +333,15 @@ final class StyledQrSwiftChecksTests: XCTestCase {
         let payloads = observations.compactMap { $0.payloadStringValue }
 
         print(
-            "[Vision] \(label): " +
+            "[Vision] \(label): revision=\(request.revision), " +
             "\(cgImage.width)x\(cgImage.height), " +
             "observations=\(observations.count), payloads=\(payloads)"
         )
 
         XCTAssertTrue(
             payloads.contains(expectedPayload),
-            "\(label): expected \(expectedPayload), decoded \(payloads), " +
+            "\(label): revision=\(request.revision), " +
+            "expected \(expectedPayload), decoded \(payloads), " +
             "observations=\(observations.count)",
             file: file,
             line: line
