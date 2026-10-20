@@ -84,6 +84,15 @@ jobs:
           --allow-warnings
           --platforms=ios
 
+      - name: Upload iOS test reports
+        if: always()
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: ios-release-test-reports
+          path: build/ios-swift-tests/
+          retention-days: 14
+          if-no-files-found: ignore
+
   npm-web:
     needs: native-ios
     if: ${{ always() && (github.event_name == 'workflow_dispatch' || needs.native-ios.result == 'success') }}
@@ -133,12 +142,3 @@ jobs:
 
       - name: Publish npm package
         run: npm publish ./qrcode-web/build/packages/js --access public
-
-      - name: Upload iOS test reports
-        if: always()
-        uses: actions/upload-artifact@v7.0.2
-        with:
-          name: ios-release-test-reports
-          path: build/ios-swift-tests/
-          retention-days: 14
-          if-no-files-found: ignore

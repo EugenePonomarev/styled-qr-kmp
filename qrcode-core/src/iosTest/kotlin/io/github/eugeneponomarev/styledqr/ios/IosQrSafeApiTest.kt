@@ -4,13 +4,31 @@ package io.github.eugeneponomarev.styledqr.ios
 
 import io.github.eugeneponomarev.styledqr.core.QrCodeGenerator
 import io.github.eugeneponomarev.styledqr.core.QrErrorCorrectionLevel
-import io.github.eugeneponomarev.styledqr.render.*
+import io.github.eugeneponomarev.styledqr.render.QrGradientConfiguration
+import io.github.eugeneponomarev.styledqr.render.QrModuleShape
+import io.github.eugeneponomarev.styledqr.render.QrRenderErrorCode
+import io.github.eugeneponomarev.styledqr.render.QrStyle
+import io.github.eugeneponomarev.styledqr.render.QrStyleConfiguration
 import kotlinx.cinterop.useContents
 import platform.CoreGraphics.CGImageGetWidth
 import platform.CoreGraphics.CGRectMake
 import platform.CoreGraphics.CGSizeMake
-import platform.UIKit.*
-import kotlin.test.*
+import platform.Foundation.isEqualToData
+import platform.UIKit.UIBezierPath
+import platform.UIKit.UIColor
+import platform.UIKit.UIGraphicsBeginImageContextWithOptions
+import platform.UIKit.UIGraphicsEndImageContext
+import platform.UIKit.UIGraphicsGetImageFromCurrentImageContext
+import platform.UIKit.UIImage
+import platform.UIKit.UIImagePNGRepresentation
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertSame
+import kotlin.test.assertTrue
 
 class IosQrSafeApiTest {
     @Test
