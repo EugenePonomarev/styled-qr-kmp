@@ -18,7 +18,7 @@ struct StyledQrCodeView: UIViewRepresentable {
     }
 
     func makeUIView(context: Context) -> StyledQrImageView {
-        StyledQrImageView()
+        StyledQrImageView(frame: .zero)
     }
 
     func updateUIView(_ view: StyledQrImageView, context: Context) {
