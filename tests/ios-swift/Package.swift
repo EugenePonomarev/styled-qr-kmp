@@ -20,7 +20,7 @@ let package = Package(
             dependencies: ["StyledQrKmp"],
             linkerSettings: [
                 .linkedLibrary("c++"),
-                .unsafeFlags(["-ObjC"])
+                .unsafeFlags(["-Xlinker", "-ObjC"])
             ]
         ),
         .testTarget(
