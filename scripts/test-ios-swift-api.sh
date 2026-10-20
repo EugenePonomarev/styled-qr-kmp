@@ -51,6 +51,8 @@ echo "Results: $run_dir"
 
 cd "$package_dir"
 
+test_exit_code=0
+
 xcodebuild \
     -scheme StyledQrSwiftChecks \
     -configuration Debug \
@@ -59,4 +61,16 @@ xcodebuild \
     -derivedDataPath "$repo_root/build/ios-swift-derived-data" \
     -resultBundlePath "$run_dir/SwiftApi.xcresult" \
     CODE_SIGNING_ALLOWED=NO \
-    test 2>&1 | tee "$run_dir/xcodebuild.log"
+    test 2>&1 | tee "$run_dir/xcodebuild.log" || test_exit_code=$?
+
+if [ -d "$run_dir/SwiftApi.xcresult" ]; then
+    mkdir -p "$run_dir/attachments"
+
+    if ! xcrun xcresulttool export attachments \
+        --path "$run_dir/SwiftApi.xcresult" \
+        --output-path "$run_dir/attachments"; then
+        echo "::warning::Could not export XCTest attachments"
+    fi
+fi
+
+exit "$test_exit_code"
