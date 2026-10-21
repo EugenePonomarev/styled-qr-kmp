@@ -8,6 +8,12 @@ plugins {
 
     id("com.android.library") version "8.12.3" apply false
     id("com.android.application") version "8.12.3" apply false
+    id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.18.2"
+}
+
+apiValidation {
+    // Public JavaScript API is verified through generated .d.mts in the Web PR.
+    ignoredProjects.add("qrcode-web")
 }
 
 val libraryGroup = providers

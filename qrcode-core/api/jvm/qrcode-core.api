@@ -1,0 +1,349 @@
+public final class io/github/eugeneponomarev/styledqr/core/QrCode {
+	public final fun copyModules ()[[Z
+	public final fun get (II)Z
+	public final fun getErrorCorrection ()Lio/github/eugeneponomarev/styledqr/core/QrErrorCorrectionLevel;
+	public final fun getSize ()I
+	public final fun getVersion ()I
+	public final fun isFunctionModule (II)Z
+	public final fun isLocatorModule (II)Z
+}
+
+public final class io/github/eugeneponomarev/styledqr/core/QrCodeDecoder {
+	public static final field INSTANCE Lio/github/eugeneponomarev/styledqr/core/QrCodeDecoder;
+	public final fun decode ([[Z)Lio/github/eugeneponomarev/styledqr/core/QrDecodedPayload;
+}
+
+public final class io/github/eugeneponomarev/styledqr/core/QrCodeGenerator {
+	public static final field INSTANCE Lio/github/eugeneponomarev/styledqr/core/QrCodeGenerator;
+	public final fun encodeBytes ([BLio/github/eugeneponomarev/styledqr/core/QrErrorCorrectionLevel;II)Lio/github/eugeneponomarev/styledqr/core/QrCode;
+	public static synthetic fun encodeBytes$default (Lio/github/eugeneponomarev/styledqr/core/QrCodeGenerator;[BLio/github/eugeneponomarev/styledqr/core/QrErrorCorrectionLevel;IIILjava/lang/Object;)Lio/github/eugeneponomarev/styledqr/core/QrCode;
+	public final fun encodeText (Ljava/lang/String;Lio/github/eugeneponomarev/styledqr/core/QrErrorCorrectionLevel;II)Lio/github/eugeneponomarev/styledqr/core/QrCode;
+	public static synthetic fun encodeText$default (Lio/github/eugeneponomarev/styledqr/core/QrCodeGenerator;Ljava/lang/String;Lio/github/eugeneponomarev/styledqr/core/QrErrorCorrectionLevel;IIILjava/lang/Object;)Lio/github/eugeneponomarev/styledqr/core/QrCode;
+}
+
+public final class io/github/eugeneponomarev/styledqr/core/QrDecodeException : java/lang/IllegalArgumentException {
+	public fun <init> (Ljava/lang/String;)V
+}
+
+public final class io/github/eugeneponomarev/styledqr/core/QrDecodedPayload {
+	public static final field UTF8_ECI_ASSIGNMENT I
+	public final fun copyBytes ()[B
+	public final fun getCorrectedErrorCount ()I
+	public final fun getEciAssignment ()Ljava/lang/Integer;
+	public final fun getErrorCorrection ()Lio/github/eugeneponomarev/styledqr/core/QrErrorCorrectionLevel;
+	public final fun getMask ()I
+	public final fun getVersion ()I
+	public final fun utf8TextOrNull ()Ljava/lang/String;
+}
+
+public final class io/github/eugeneponomarev/styledqr/core/QrErrorCorrectionLevel : java/lang/Enum {
+	public static final field H Lio/github/eugeneponomarev/styledqr/core/QrErrorCorrectionLevel;
+	public static final field L Lio/github/eugeneponomarev/styledqr/core/QrErrorCorrectionLevel;
+	public static final field M Lio/github/eugeneponomarev/styledqr/core/QrErrorCorrectionLevel;
+	public static final field Q Lio/github/eugeneponomarev/styledqr/core/QrErrorCorrectionLevel;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/eugeneponomarev/styledqr/core/QrErrorCorrectionLevel;
+	public static fun values ()[Lio/github/eugeneponomarev/styledqr/core/QrErrorCorrectionLevel;
+}
+
+public final class io/github/eugeneponomarev/styledqr/render/QrColor {
+	public static final field Companion Lio/github/eugeneponomarev/styledqr/render/QrColor$Companion;
+	public fun <init> (IIII)V
+	public synthetic fun <init> (IIIIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun component4 ()I
+	public final fun copy (IIII)Lio/github/eugeneponomarev/styledqr/render/QrColor;
+	public static synthetic fun copy$default (Lio/github/eugeneponomarev/styledqr/render/QrColor;IIIIILjava/lang/Object;)Lio/github/eugeneponomarev/styledqr/render/QrColor;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAlpha ()I
+	public final fun getBlue ()I
+	public final fun getGreen ()I
+	public final fun getRed ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/eugeneponomarev/styledqr/render/QrColor$Companion {
+	public final fun fromHex (Ljava/lang/String;)Lio/github/eugeneponomarev/styledqr/render/QrColor;
+	public final fun getBlack ()Lio/github/eugeneponomarev/styledqr/render/QrColor;
+	public final fun getWhite ()Lio/github/eugeneponomarev/styledqr/render/QrColor;
+}
+
+public final class io/github/eugeneponomarev/styledqr/render/QrFinderPatternShape : java/lang/Enum {
+	public static final field Circle Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternShape;
+	public static final field Diamond Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternShape;
+	public static final field MatchModuleShape Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternShape;
+	public static final field RoundedSquare Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternShape;
+	public static final field Square Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternShape;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternShape;
+	public static fun values ()[Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternShape;
+}
+
+public final class io/github/eugeneponomarev/styledqr/render/QrFunctionPatternStyle : java/lang/Enum {
+	public static final field MatchDataModules Lio/github/eugeneponomarev/styledqr/render/QrFunctionPatternStyle;
+	public static final field PreserveAll Lio/github/eugeneponomarev/styledqr/render/QrFunctionPatternStyle;
+	public static final field PreserveFindersAndAlignment Lio/github/eugeneponomarev/styledqr/render/QrFunctionPatternStyle;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/eugeneponomarev/styledqr/render/QrFunctionPatternStyle;
+	public static fun values ()[Lio/github/eugeneponomarev/styledqr/render/QrFunctionPatternStyle;
+}
+
+public final class io/github/eugeneponomarev/styledqr/render/QrGradientConfiguration {
+	public fun <init> ()V
+	public final fun getEndAlpha ()I
+	public final fun getEndColorHex ()Ljava/lang/String;
+	public final fun getEndX ()D
+	public final fun getEndY ()D
+	public final fun getStartAlpha ()I
+	public final fun getStartColorHex ()Ljava/lang/String;
+	public final fun getStartX ()D
+	public final fun getStartY ()D
+	public final fun setEndAlpha (I)V
+	public final fun setEndColorHex (Ljava/lang/String;)V
+	public final fun setEndX (D)V
+	public final fun setEndY (D)V
+	public final fun setStartAlpha (I)V
+	public final fun setStartColorHex (Ljava/lang/String;)V
+	public final fun setStartX (D)V
+	public final fun setStartY (D)V
+}
+
+public final class io/github/eugeneponomarev/styledqr/render/QrGradientPoint {
+	public fun <init> (DD)V
+	public final fun component1 ()D
+	public final fun component2 ()D
+	public final fun copy (DD)Lio/github/eugeneponomarev/styledqr/render/QrGradientPoint;
+	public static synthetic fun copy$default (Lio/github/eugeneponomarev/styledqr/render/QrGradientPoint;DDILjava/lang/Object;)Lio/github/eugeneponomarev/styledqr/render/QrGradientPoint;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getX ()D
+	public final fun getY ()D
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/eugeneponomarev/styledqr/render/QrLinearGradient {
+	public fun <init> (Lio/github/eugeneponomarev/styledqr/render/QrColor;Lio/github/eugeneponomarev/styledqr/render/QrColor;Lio/github/eugeneponomarev/styledqr/render/QrGradientPoint;Lio/github/eugeneponomarev/styledqr/render/QrGradientPoint;)V
+	public synthetic fun <init> (Lio/github/eugeneponomarev/styledqr/render/QrColor;Lio/github/eugeneponomarev/styledqr/render/QrColor;Lio/github/eugeneponomarev/styledqr/render/QrGradientPoint;Lio/github/eugeneponomarev/styledqr/render/QrGradientPoint;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lio/github/eugeneponomarev/styledqr/render/QrColor;
+	public final fun component2 ()Lio/github/eugeneponomarev/styledqr/render/QrColor;
+	public final fun component3 ()Lio/github/eugeneponomarev/styledqr/render/QrGradientPoint;
+	public final fun component4 ()Lio/github/eugeneponomarev/styledqr/render/QrGradientPoint;
+	public final fun copy (Lio/github/eugeneponomarev/styledqr/render/QrColor;Lio/github/eugeneponomarev/styledqr/render/QrColor;Lio/github/eugeneponomarev/styledqr/render/QrGradientPoint;Lio/github/eugeneponomarev/styledqr/render/QrGradientPoint;)Lio/github/eugeneponomarev/styledqr/render/QrLinearGradient;
+	public static synthetic fun copy$default (Lio/github/eugeneponomarev/styledqr/render/QrLinearGradient;Lio/github/eugeneponomarev/styledqr/render/QrColor;Lio/github/eugeneponomarev/styledqr/render/QrColor;Lio/github/eugeneponomarev/styledqr/render/QrGradientPoint;Lio/github/eugeneponomarev/styledqr/render/QrGradientPoint;ILjava/lang/Object;)Lio/github/eugeneponomarev/styledqr/render/QrLinearGradient;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEnd ()Lio/github/eugeneponomarev/styledqr/render/QrGradientPoint;
+	public final fun getEndColor ()Lio/github/eugeneponomarev/styledqr/render/QrColor;
+	public final fun getStart ()Lio/github/eugeneponomarev/styledqr/render/QrGradientPoint;
+	public final fun getStartColor ()Lio/github/eugeneponomarev/styledqr/render/QrColor;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/eugeneponomarev/styledqr/render/QrLogoBackgroundShape : java/lang/Enum {
+	public static final field Circle Lio/github/eugeneponomarev/styledqr/render/QrLogoBackgroundShape;
+	public static final field RoundedSquare Lio/github/eugeneponomarev/styledqr/render/QrLogoBackgroundShape;
+	public static final field Square Lio/github/eugeneponomarev/styledqr/render/QrLogoBackgroundShape;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/eugeneponomarev/styledqr/render/QrLogoBackgroundShape;
+	public static fun values ()[Lio/github/eugeneponomarev/styledqr/render/QrLogoBackgroundShape;
+}
+
+public final class io/github/eugeneponomarev/styledqr/render/QrLogoConfiguration {
+	public fun <init> ()V
+	public final fun getBackgroundAlpha ()I
+	public final fun getBackgroundHex ()Ljava/lang/String;
+	public final fun getBackgroundShape ()Lio/github/eugeneponomarev/styledqr/render/QrLogoBackgroundShape;
+	public final fun getCornerRadiusFraction ()D
+	public final fun getPaddingFraction ()D
+	public final fun getSizeFraction ()D
+	public final fun setBackgroundAlpha (I)V
+	public final fun setBackgroundHex (Ljava/lang/String;)V
+	public final fun setBackgroundShape (Lio/github/eugeneponomarev/styledqr/render/QrLogoBackgroundShape;)V
+	public final fun setCornerRadiusFraction (D)V
+	public final fun setPaddingFraction (D)V
+	public final fun setSizeFraction (D)V
+}
+
+public final class io/github/eugeneponomarev/styledqr/render/QrLogoLayout {
+	public final fun getLeftModule ()I
+	public final fun getLogoSizeModules ()I
+	public final fun getPaddingModules ()I
+	public final fun getSizeModules ()I
+	public final fun getTopModule ()I
+}
+
+public final class io/github/eugeneponomarev/styledqr/render/QrLogoLayoutKt {
+	public static final fun calculateLogoLayout (Lio/github/eugeneponomarev/styledqr/core/QrCode;Lio/github/eugeneponomarev/styledqr/render/QrLogoOptions;)Lio/github/eugeneponomarev/styledqr/render/QrLogoLayout;
+}
+
+public final class io/github/eugeneponomarev/styledqr/render/QrLogoOptions {
+	public fun <init> ()V
+	public fun <init> (DDLio/github/eugeneponomarev/styledqr/render/QrColor;Lio/github/eugeneponomarev/styledqr/render/QrLogoBackgroundShape;D)V
+	public synthetic fun <init> (DDLio/github/eugeneponomarev/styledqr/render/QrColor;Lio/github/eugeneponomarev/styledqr/render/QrLogoBackgroundShape;DILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()D
+	public final fun component2 ()D
+	public final fun component3 ()Lio/github/eugeneponomarev/styledqr/render/QrColor;
+	public final fun component4 ()Lio/github/eugeneponomarev/styledqr/render/QrLogoBackgroundShape;
+	public final fun component5 ()D
+	public final fun copy (DDLio/github/eugeneponomarev/styledqr/render/QrColor;Lio/github/eugeneponomarev/styledqr/render/QrLogoBackgroundShape;D)Lio/github/eugeneponomarev/styledqr/render/QrLogoOptions;
+	public static synthetic fun copy$default (Lio/github/eugeneponomarev/styledqr/render/QrLogoOptions;DDLio/github/eugeneponomarev/styledqr/render/QrColor;Lio/github/eugeneponomarev/styledqr/render/QrLogoBackgroundShape;DILjava/lang/Object;)Lio/github/eugeneponomarev/styledqr/render/QrLogoOptions;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBackground ()Lio/github/eugeneponomarev/styledqr/render/QrColor;
+	public final fun getBackgroundShape ()Lio/github/eugeneponomarev/styledqr/render/QrLogoBackgroundShape;
+	public final fun getCornerRadiusFraction ()D
+	public final fun getPaddingFraction ()D
+	public final fun getSizeFraction ()D
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/eugeneponomarev/styledqr/render/QrModuleShape : java/lang/Enum {
+	public static final field Circle Lio/github/eugeneponomarev/styledqr/render/QrModuleShape;
+	public static final field Diamond Lio/github/eugeneponomarev/styledqr/render/QrModuleShape;
+	public static final field RoundedSquare Lio/github/eugeneponomarev/styledqr/render/QrModuleShape;
+	public static final field Square Lio/github/eugeneponomarev/styledqr/render/QrModuleShape;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/eugeneponomarev/styledqr/render/QrModuleShape;
+	public static fun values ()[Lio/github/eugeneponomarev/styledqr/render/QrModuleShape;
+}
+
+public final class io/github/eugeneponomarev/styledqr/render/QrRenderError {
+	public final fun getCode ()Lio/github/eugeneponomarev/styledqr/render/QrRenderErrorCode;
+	public final fun getMessage ()Ljava/lang/String;
+}
+
+public final class io/github/eugeneponomarev/styledqr/render/QrRenderErrorCode : java/lang/Enum {
+	public static final field InvalidRenderParameters Lio/github/eugeneponomarev/styledqr/render/QrRenderErrorCode;
+	public static final field InvalidStyle Lio/github/eugeneponomarev/styledqr/render/QrRenderErrorCode;
+	public static final field LogoValidationFailed Lio/github/eugeneponomarev/styledqr/render/QrRenderErrorCode;
+	public static final field PayloadTooLong Lio/github/eugeneponomarev/styledqr/render/QrRenderErrorCode;
+	public static final field RenderFailed Lio/github/eugeneponomarev/styledqr/render/QrRenderErrorCode;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/eugeneponomarev/styledqr/render/QrRenderErrorCode;
+	public static fun values ()[Lio/github/eugeneponomarev/styledqr/render/QrRenderErrorCode;
+}
+
+public final class io/github/eugeneponomarev/styledqr/render/QrStyle {
+	public fun <init> ()V
+	public fun <init> (Lio/github/eugeneponomarev/styledqr/render/QrColor;Lio/github/eugeneponomarev/styledqr/render/QrColor;ILio/github/eugeneponomarev/styledqr/render/QrModuleShape;DDZLio/github/eugeneponomarev/styledqr/render/QrFunctionPatternStyle;Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternShape;Lio/github/eugeneponomarev/styledqr/render/QrLogoOptions;Lio/github/eugeneponomarev/styledqr/render/QrLinearGradient;)V
+	public synthetic fun <init> (Lio/github/eugeneponomarev/styledqr/render/QrColor;Lio/github/eugeneponomarev/styledqr/render/QrColor;ILio/github/eugeneponomarev/styledqr/render/QrModuleShape;DDZLio/github/eugeneponomarev/styledqr/render/QrFunctionPatternStyle;Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternShape;Lio/github/eugeneponomarev/styledqr/render/QrLogoOptions;Lio/github/eugeneponomarev/styledqr/render/QrLinearGradient;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lio/github/eugeneponomarev/styledqr/render/QrColor;
+	public final fun component10 ()Lio/github/eugeneponomarev/styledqr/render/QrLogoOptions;
+	public final fun component11 ()Lio/github/eugeneponomarev/styledqr/render/QrLinearGradient;
+	public final fun component2 ()Lio/github/eugeneponomarev/styledqr/render/QrColor;
+	public final fun component3 ()I
+	public final fun component4 ()Lio/github/eugeneponomarev/styledqr/render/QrModuleShape;
+	public final fun component5 ()D
+	public final fun component6 ()D
+	public final fun component7 ()Z
+	public final fun component8 ()Lio/github/eugeneponomarev/styledqr/render/QrFunctionPatternStyle;
+	public final fun component9 ()Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternShape;
+	public final fun copy (Lio/github/eugeneponomarev/styledqr/render/QrColor;Lio/github/eugeneponomarev/styledqr/render/QrColor;ILio/github/eugeneponomarev/styledqr/render/QrModuleShape;DDZLio/github/eugeneponomarev/styledqr/render/QrFunctionPatternStyle;Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternShape;Lio/github/eugeneponomarev/styledqr/render/QrLogoOptions;Lio/github/eugeneponomarev/styledqr/render/QrLinearGradient;)Lio/github/eugeneponomarev/styledqr/render/QrStyle;
+	public static synthetic fun copy$default (Lio/github/eugeneponomarev/styledqr/render/QrStyle;Lio/github/eugeneponomarev/styledqr/render/QrColor;Lio/github/eugeneponomarev/styledqr/render/QrColor;ILio/github/eugeneponomarev/styledqr/render/QrModuleShape;DDZLio/github/eugeneponomarev/styledqr/render/QrFunctionPatternStyle;Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternShape;Lio/github/eugeneponomarev/styledqr/render/QrLogoOptions;Lio/github/eugeneponomarev/styledqr/render/QrLinearGradient;ILjava/lang/Object;)Lio/github/eugeneponomarev/styledqr/render/QrStyle;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBackground ()Lio/github/eugeneponomarev/styledqr/render/QrColor;
+	public final fun getFinderPatternShape ()Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternShape;
+	public final fun getForeground ()Lio/github/eugeneponomarev/styledqr/render/QrColor;
+	public final fun getForegroundGradient ()Lio/github/eugeneponomarev/styledqr/render/QrLinearGradient;
+	public final fun getFunctionPatternStyle ()Lio/github/eugeneponomarev/styledqr/render/QrFunctionPatternStyle;
+	public final fun getLogo ()Lio/github/eugeneponomarev/styledqr/render/QrLogoOptions;
+	public final fun getModuleScale ()D
+	public final fun getModuleShape ()Lio/github/eugeneponomarev/styledqr/render/QrModuleShape;
+	public final fun getPreserveFunctionPatterns ()Z
+	public final fun getQuietZoneModules ()I
+	public final fun getRoundedModuleRadiusFraction ()D
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/eugeneponomarev/styledqr/render/QrStyleBuildResult {
+	public final fun getError ()Lio/github/eugeneponomarev/styledqr/render/QrRenderError;
+	public final fun getStyle ()Lio/github/eugeneponomarev/styledqr/render/QrStyle;
+	public final fun isSuccess ()Z
+}
+
+public final class io/github/eugeneponomarev/styledqr/render/QrStyleConfiguration {
+	public static final field Companion Lio/github/eugeneponomarev/styledqr/render/QrStyleConfiguration$Companion;
+	public fun <init> ()V
+	public final fun build ()Lio/github/eugeneponomarev/styledqr/render/QrStyleBuildResult;
+	public final fun getBackgroundAlpha ()I
+	public final fun getBackgroundHex ()Ljava/lang/String;
+	public final fun getFinderPatternShape ()Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternShape;
+	public final fun getForegroundAlpha ()I
+	public final fun getForegroundGradient ()Lio/github/eugeneponomarev/styledqr/render/QrGradientConfiguration;
+	public final fun getForegroundHex ()Ljava/lang/String;
+	public final fun getFunctionPatternStyle ()Lio/github/eugeneponomarev/styledqr/render/QrFunctionPatternStyle;
+	public final fun getLogo ()Lio/github/eugeneponomarev/styledqr/render/QrLogoConfiguration;
+	public final fun getModuleScale ()D
+	public final fun getModuleShape ()Lio/github/eugeneponomarev/styledqr/render/QrModuleShape;
+	public final fun getPreserveFunctionPatterns ()Z
+	public final fun getQuietZoneModules ()I
+	public final fun getRoundedModuleRadiusFraction ()D
+	public final fun setBackgroundAlpha (I)V
+	public final fun setBackgroundHex (Ljava/lang/String;)V
+	public final fun setFinderPatternShape (Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternShape;)V
+	public final fun setForegroundAlpha (I)V
+	public final fun setForegroundGradient (Lio/github/eugeneponomarev/styledqr/render/QrGradientConfiguration;)V
+	public final fun setForegroundHex (Ljava/lang/String;)V
+	public final fun setFunctionPatternStyle (Lio/github/eugeneponomarev/styledqr/render/QrFunctionPatternStyle;)V
+	public final fun setLogo (Lio/github/eugeneponomarev/styledqr/render/QrLogoConfiguration;)V
+	public final fun setModuleScale (D)V
+	public final fun setModuleShape (Lio/github/eugeneponomarev/styledqr/render/QrModuleShape;)V
+	public final fun setPreserveFunctionPatterns (Z)V
+	public final fun setQuietZoneModules (I)V
+	public final fun setRoundedModuleRadiusFraction (D)V
+}
+
+public final class io/github/eugeneponomarev/styledqr/render/QrStyleConfiguration$Companion {
+	public final fun fromStyle (Lio/github/eugeneponomarev/styledqr/render/QrStyle;)Lio/github/eugeneponomarev/styledqr/render/QrStyleConfiguration;
+}
+
+public final class io/github/eugeneponomarev/styledqr/render/SvgQrRenderer {
+	public static final field INSTANCE Lio/github/eugeneponomarev/styledqr/render/SvgQrRenderer;
+	public final fun render (Lio/github/eugeneponomarev/styledqr/core/QrCode;Lio/github/eugeneponomarev/styledqr/render/QrStyle;Ljava/lang/String;)Ljava/lang/String;
+	public static synthetic fun render$default (Lio/github/eugeneponomarev/styledqr/render/SvgQrRenderer;Lio/github/eugeneponomarev/styledqr/core/QrCode;Lio/github/eugeneponomarev/styledqr/render/QrStyle;Ljava/lang/String;ILjava/lang/Object;)Ljava/lang/String;
+}
+
+public final class io/github/eugeneponomarev/styledqr/render/SvgQrRendererKt {
+	public static final fun toSvg (Lio/github/eugeneponomarev/styledqr/core/QrCode;Lio/github/eugeneponomarev/styledqr/render/QrStyle;Ljava/lang/String;)Ljava/lang/String;
+	public static synthetic fun toSvg$default (Lio/github/eugeneponomarev/styledqr/core/QrCode;Lio/github/eugeneponomarev/styledqr/render/QrStyle;Ljava/lang/String;ILjava/lang/Object;)Ljava/lang/String;
+}
+
+public final class io/github/eugeneponomarev/styledqr/theme/QrTheme {
+	public final fun createGradientStyle (Lio/github/eugeneponomarev/styledqr/render/QrLinearGradient;Lio/github/eugeneponomarev/styledqr/render/QrLogoOptions;)Lio/github/eugeneponomarev/styledqr/render/QrStyle;
+	public static synthetic fun createGradientStyle$default (Lio/github/eugeneponomarev/styledqr/theme/QrTheme;Lio/github/eugeneponomarev/styledqr/render/QrLinearGradient;Lio/github/eugeneponomarev/styledqr/render/QrLogoOptions;ILjava/lang/Object;)Lio/github/eugeneponomarev/styledqr/render/QrStyle;
+	public final fun createLogoOptions ()Lio/github/eugeneponomarev/styledqr/render/QrLogoOptions;
+	public final fun createStyle (Lio/github/eugeneponomarev/styledqr/render/QrLogoOptions;)Lio/github/eugeneponomarev/styledqr/render/QrStyle;
+	public static synthetic fun createStyle$default (Lio/github/eugeneponomarev/styledqr/theme/QrTheme;Lio/github/eugeneponomarev/styledqr/render/QrLogoOptions;ILjava/lang/Object;)Lio/github/eugeneponomarev/styledqr/render/QrStyle;
+	public final fun getId ()Lio/github/eugeneponomarev/styledqr/theme/QrThemeId;
+}
+
+public final class io/github/eugeneponomarev/styledqr/theme/QrThemeId : java/lang/Enum {
+	public static final field AURORA Lio/github/eugeneponomarev/styledqr/theme/QrThemeId;
+	public static final field COFFEE Lio/github/eugeneponomarev/styledqr/theme/QrThemeId;
+	public static final field CYBER Lio/github/eugeneponomarev/styledqr/theme/QrThemeId;
+	public static final field FINTECH Lio/github/eugeneponomarev/styledqr/theme/QrThemeId;
+	public static final field MINIMAL Lio/github/eugeneponomarev/styledqr/theme/QrThemeId;
+	public static final field NEON Lio/github/eugeneponomarev/styledqr/theme/QrThemeId;
+	public static final field WEDDING Lio/github/eugeneponomarev/styledqr/theme/QrThemeId;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/eugeneponomarev/styledqr/theme/QrThemeId;
+	public static fun values ()[Lio/github/eugeneponomarev/styledqr/theme/QrThemeId;
+}
+
+public final class io/github/eugeneponomarev/styledqr/theme/QrThemes {
+	public static final field INSTANCE Lio/github/eugeneponomarev/styledqr/theme/QrThemes;
+	public final fun get (Lio/github/eugeneponomarev/styledqr/theme/QrThemeId;)Lio/github/eugeneponomarev/styledqr/theme/QrTheme;
+	public final fun getAll ()Ljava/util/List;
+	public final fun getAurora ()Lio/github/eugeneponomarev/styledqr/theme/QrTheme;
+	public final fun getCoffee ()Lio/github/eugeneponomarev/styledqr/theme/QrTheme;
+	public final fun getCyber ()Lio/github/eugeneponomarev/styledqr/theme/QrTheme;
+	public final fun getFintech ()Lio/github/eugeneponomarev/styledqr/theme/QrTheme;
+	public final fun getMinimal ()Lio/github/eugeneponomarev/styledqr/theme/QrTheme;
+	public final fun getNeon ()Lio/github/eugeneponomarev/styledqr/theme/QrTheme;
+	public final fun getWedding ()Lio/github/eugeneponomarev/styledqr/theme/QrTheme;
+}
+
