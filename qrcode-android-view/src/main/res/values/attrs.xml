@@ -27,6 +27,25 @@
             <enum name="diamond" value="3" />
         </attr>
 
+        <attr name="qrFinderOuterShape">
+            <enum name="inherit" value="0" />
+            <enum name="square" value="1" />
+            <enum name="roundedSquare" value="2" />
+            <enum name="circle" value="3" />
+            <enum name="diamond" value="4" />
+        </attr>
+
+        <attr name="qrFinderCenterShape">
+            <enum name="inherit" value="0" />
+            <enum name="square" value="1" />
+            <enum name="roundedSquare" value="2" />
+            <enum name="circle" value="3" />
+            <enum name="diamond" value="4" />
+        </attr>
+
+        <attr name="qrFinderOuterColor" format="color" />
+        <attr name="qrFinderCenterColor" format="color" />
+
         <attr name="qrModuleScale" format="float" />
         <attr name="qrRoundedModuleRadiusFraction" format="float" />
         <attr name="qrQuietZoneModules" format="integer" />

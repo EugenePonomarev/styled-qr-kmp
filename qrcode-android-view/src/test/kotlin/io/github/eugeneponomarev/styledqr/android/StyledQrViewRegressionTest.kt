@@ -6,6 +6,9 @@ import android.graphics.Color
 import android.view.View
 import io.github.eugeneponomarev.styledqr.core.QrCodeGenerator
 import io.github.eugeneponomarev.styledqr.core.QrErrorCorrectionLevel
+import io.github.eugeneponomarev.styledqr.render.QrColor
+import io.github.eugeneponomarev.styledqr.render.QrFinderPatternAppearance
+import io.github.eugeneponomarev.styledqr.render.QrFinderPatternLayerShape
 import io.github.eugeneponomarev.styledqr.render.QrLogoOptions
 import io.github.eugeneponomarev.styledqr.render.QrStyle
 import kotlin.test.Test
@@ -81,5 +84,30 @@ class StyledQrViewRegressionTest {
             .build()
         val view = StyledQrView(RuntimeEnvironment.getApplication(), attributes)
         assertEquals(0.31f.toDouble(), view.qrStyle.roundedModuleRadiusFraction)
+    }
+
+    @Test
+    fun xmlFinderAppearanceBuildsTheExpectedSharedStyle() {
+        val attributes = Robolectric.buildAttributeSet()
+            .addAttribute(R.attr.qrFinderOuterShape, "roundedSquare")
+            .addAttribute(R.attr.qrFinderCenterShape, "circle")
+            .addAttribute(R.attr.qrFinderOuterColor, "#123C66")
+            .addAttribute(R.attr.qrFinderCenterColor, "#087E8B")
+            .build()
+
+        val view = StyledQrView(
+            RuntimeEnvironment.getApplication(),
+            attributes,
+        )
+
+        assertEquals(
+            QrFinderPatternAppearance(
+                outerShape = QrFinderPatternLayerShape.RoundedSquare,
+                centerShape = QrFinderPatternLayerShape.Circle,
+                outerColor = QrColor.fromHex("#123C66"),
+                centerColor = QrColor.fromHex("#087E8B"),
+            ),
+            view.qrStyle.finderPatternAppearance,
+        )
     }
 }

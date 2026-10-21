@@ -25,7 +25,21 @@ public class QrStyleConfiguration {
     public var finderPatternShape: QrFinderPatternShape =
         QrFinderPatternShape.MatchModuleShape
 
+    public var finderOuterShape: QrFinderPatternLayerShape =
+        QrFinderPatternLayerShape.Inherit
+
+    public var finderCenterShape: QrFinderPatternLayerShape =
+        QrFinderPatternLayerShape.Inherit
+
+    public var finderOuterColorHex: String? = null
+    public var finderOuterColorAlpha: Int = 255
+
+    public var finderCenterColorHex: String? = null
+    public var finderCenterColorAlpha: Int = 255
+
     public var logo: QrLogoConfiguration? = null
+
+    /** Overrides [foreground] for dark QR modules and finder layers without a solid override. */
     public var foregroundGradient: QrGradientConfiguration? = null
 
     public fun build(): QrStyleBuildResult = try {
@@ -47,6 +61,16 @@ public class QrStyleConfiguration {
                 finderPatternShape = finderPatternShape,
                 logo = logo?.toOptions(),
                 foregroundGradient = foregroundGradient?.toGradient(),
+                finderPatternAppearance = QrFinderPatternAppearance(
+                    outerShape = finderOuterShape,
+                    centerShape = finderCenterShape,
+                    outerColor = finderOuterColorHex?.let { hex ->
+                        configurationColor(hex, finderOuterColorAlpha)
+                    },
+                    centerColor = finderCenterColorHex?.let { hex ->
+                        configurationColor(hex, finderCenterColorAlpha)
+                    },
+                ),
             ),
             error = null,
         )
@@ -74,6 +98,14 @@ public class QrStyleConfiguration {
                 preserveFunctionPatterns = style.preserveFunctionPatterns
                 functionPatternStyle = style.functionPatternStyle
                 finderPatternShape = style.finderPatternShape
+
+                val finderAppearance = style.finderPatternAppearance
+                finderOuterShape = finderAppearance.outerShape
+                finderCenterShape = finderAppearance.centerShape
+                finderOuterColorHex = finderAppearance.outerColor?.rgbHex()
+                finderOuterColorAlpha = finderAppearance.outerColor?.alpha ?: 255
+                finderCenterColorHex = finderAppearance.centerColor?.rgbHex()
+                finderCenterColorAlpha = finderAppearance.centerColor?.alpha ?: 255
 
                 logo = style.logo?.let { original ->
                     QrLogoConfiguration().apply {
