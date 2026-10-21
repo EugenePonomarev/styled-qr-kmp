@@ -149,7 +149,7 @@ public fun generateThemedQrSvg(
 }
 
 /** Required to build an executable JavaScript distribution. */
-public fun main() = Unit
+public fun main(): Unit = Unit
 
 private fun String.toQrErrorCorrectionLevel(): QrErrorCorrectionLevel = when (uppercase()) {
     "L" -> QrErrorCorrectionLevel.L
