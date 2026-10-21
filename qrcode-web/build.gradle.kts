@@ -9,6 +9,8 @@ val npmPackageVersion =
     providers.gradleProperty("VERSION_NAME")
 
 kotlin {
+    explicitApi()
+
     js {
         browser()
         binaries.library()

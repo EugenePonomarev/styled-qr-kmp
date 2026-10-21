@@ -41,6 +41,9 @@ jobs:
           JITPACK: "true"
         run: >-
           ./gradlew --no-daemon
+          :qrcode-core:apiCheck
+          :qrcode-android-view:apiCheck
+          :qrcode-compose:apiCheck
           :qrcode-core:jvmTest
           :qrcode-core:assembleDebug
           :qrcode-core:testDebugUnitTest
