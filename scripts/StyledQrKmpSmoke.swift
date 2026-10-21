@@ -44,7 +44,8 @@ func verifyStyledQrKmpSwiftApi() {
         functionPatternStyle: base.functionPatternStyle,
         finderPatternShape: base.finderPatternShape,
         logo: nil,
-        foregroundGradient: gradient
+        foregroundGradient: gradient,
+        finderPatternAppearance: base.finderPatternAppearance
     )
     _ = renderer.render(sizePoints: 240.0, scale: 0.0)
     let options = QrStyleConfiguration()
