@@ -65,7 +65,7 @@ public enum class QrFinderPatternShape {
  * Controls the shape of dark non-finder function modules.
  *
  * Finder patterns are always rendered as composed 7:5:3 eyes and are controlled separately by
- * [QrStyle.finderPatternShape].
+ * [QrStyle.finderPatternAppearance], which falls back to [QrStyle.finderPatternShape].
  */
 public enum class QrFunctionPatternStyle {
     /**
@@ -137,8 +137,9 @@ public data class QrStyle(
      */
     val finderPatternShape: QrFinderPatternShape = QrFinderPatternShape.MatchModuleShape,
     val logo: QrLogoOptions? = null,
-    /** Overrides [foreground] for dark QR modules and finder layers when present. */
+    /** Overrides [foreground] for dark QR modules and finder layers without a solid override. */
     val foregroundGradient: QrLinearGradient? = null,
+    val finderPatternAppearance: QrFinderPatternAppearance = QrFinderPatternAppearance(),
 ) {
     init {
         require(quietZoneModules >= 0) { "quietZoneModules must not be negative" }
@@ -147,6 +148,7 @@ public data class QrStyle(
             "roundedModuleRadiusFraction must be in 0.0..0.5"
         }
         foregroundGradient?.validateAgainst(background)
+        finderPatternAppearance.validateAgainst(background)
     }
 }
 

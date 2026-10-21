@@ -1,6 +1,7 @@
 public final class io/github/eugeneponomarev/styledqr/android/StyledQrView : android/view/View {
 	public static final field DEFAULT_SIZE_DP I
 	public static final field ERROR_CORRECTION_H I
+	public static final field FINDER_LAYER_SHAPE_INHERIT I
 	public static final field FUNCTION_PATTERN_PRESERVE_ALL I
 	public static final field MODULE_SHAPE_SQUARE I
 	public static final field NO_CACHED_SIDE I

@@ -37,6 +37,12 @@ class QrStyleConfigurationTest {
             preserveFunctionPatterns = true,
             functionPatternStyle = QrFunctionPatternStyle.MatchDataModules,
             finderPatternShape = QrFinderPatternShape.Circle,
+            finderPatternAppearance = QrFinderPatternAppearance(
+                outerShape = QrFinderPatternLayerShape.RoundedSquare,
+                centerShape = QrFinderPatternLayerShape.Diamond,
+                outerColor = QrColor(12, 34, 56),
+                centerColor = QrColor(0, 80, 100),
+            ),
             logo = QrLogoOptions(
                 0.12,
                 0.01,
@@ -191,5 +197,16 @@ class QrStyleConfigurationTest {
         assertNull(recovered.error)
         assertEquals(1.0, first.moduleScale)
         assertEquals(0.8, recovered.style!!.moduleScale)
+    }
+
+    @Test
+    fun invalidFinderOverrideReturnsAnErrorInsteadOfThrowing() {
+        val result = QrStyleConfiguration().apply {
+            finderOuterColorHex = "#000000"
+            finderOuterColorAlpha = 128
+        }.build()
+
+        assertFalse(result.isSuccess)
+        assertEquals(QrRenderErrorCode.InvalidStyle, result.error?.code)
     }
 }

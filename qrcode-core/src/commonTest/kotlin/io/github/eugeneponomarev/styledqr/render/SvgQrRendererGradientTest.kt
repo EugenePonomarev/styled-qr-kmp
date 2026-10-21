@@ -334,6 +334,61 @@ class SvgQrRendererGradientTest {
         )
     }
 
+    @Test
+    fun finderOverridesUseIndependentSolidFillsAndGeometryAboveGlobalGradient() {
+        val outerColor = QrColor.fromHex("#123C66")
+        val centerColor = QrColor.fromHex("#0F4C5C")
+
+        val style = QrStyle(
+            foregroundGradient = gradient,
+            finderPatternAppearance = QrFinderPatternAppearance(
+                outerShape = QrFinderPatternLayerShape.RoundedSquare,
+                centerShape = QrFinderPatternLayerShape.Circle,
+                outerColor = outerColor,
+                centerColor = centerColor,
+            ),
+        )
+
+        val svg = code.toSvg(style)
+        val gradientId = gradientIdFrom(svg)
+
+        assertEquals(
+            3,
+            Regex(
+                """width="7(?:\.0)?" height="7(?:\.0)?" rx="[^"]+" fill="#123C66"""",
+            ).findAll(svg).count(),
+        )
+
+        assertEquals(
+            3,
+            Regex(
+                """width="5(?:\.0)?" height="5(?:\.0)?" rx="[^"]+" fill="#FFFFFF"""",
+            ).findAll(svg).count(),
+        )
+
+        assertEquals(
+            3,
+            Regex(
+                """<circle cx="[^"]+" cy="[^"]+" r="1\.5" fill="#0F4C5C"/>""",
+            ).findAll(svg).count(),
+        )
+
+        // Data modules still use the one QR-wide gradient.
+        assertContains(svg, "fill=\"url(#$gradientId)\"")
+
+        // Finder outer and center layers do not inherit the gradient after override.
+        assertFalse(
+            Regex(
+                """width="7(?:\.0)?" height="7(?:\.0)?" rx="[^"]+" fill="url\(""",
+            ).containsMatchIn(svg),
+        )
+        assertFalse(
+            Regex(
+                """<circle cx="[^"]+" cy="[^"]+" r="1\.5" fill="url\(""",
+            ).containsMatchIn(svg),
+        )
+    }
+
     private fun gradientIdFrom(svg: String): String {
         val match = requireNotNull(
             Regex("""<linearGradient id="([^"]+)"""")

@@ -76,6 +76,36 @@ public final class io/github/eugeneponomarev/styledqr/render/QrColor$Companion {
 	public final fun getWhite ()Lio/github/eugeneponomarev/styledqr/render/QrColor;
 }
 
+public final class io/github/eugeneponomarev/styledqr/render/QrFinderPatternAppearance {
+	public fun <init> ()V
+	public fun <init> (Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternLayerShape;Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternLayerShape;Lio/github/eugeneponomarev/styledqr/render/QrColor;Lio/github/eugeneponomarev/styledqr/render/QrColor;)V
+	public synthetic fun <init> (Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternLayerShape;Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternLayerShape;Lio/github/eugeneponomarev/styledqr/render/QrColor;Lio/github/eugeneponomarev/styledqr/render/QrColor;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternLayerShape;
+	public final fun component2 ()Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternLayerShape;
+	public final fun component3 ()Lio/github/eugeneponomarev/styledqr/render/QrColor;
+	public final fun component4 ()Lio/github/eugeneponomarev/styledqr/render/QrColor;
+	public final fun copy (Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternLayerShape;Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternLayerShape;Lio/github/eugeneponomarev/styledqr/render/QrColor;Lio/github/eugeneponomarev/styledqr/render/QrColor;)Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternAppearance;
+	public static synthetic fun copy$default (Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternAppearance;Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternLayerShape;Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternLayerShape;Lio/github/eugeneponomarev/styledqr/render/QrColor;Lio/github/eugeneponomarev/styledqr/render/QrColor;ILjava/lang/Object;)Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternAppearance;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCenterColor ()Lio/github/eugeneponomarev/styledqr/render/QrColor;
+	public final fun getCenterShape ()Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternLayerShape;
+	public final fun getOuterColor ()Lio/github/eugeneponomarev/styledqr/render/QrColor;
+	public final fun getOuterShape ()Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternLayerShape;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/eugeneponomarev/styledqr/render/QrFinderPatternLayerShape : java/lang/Enum {
+	public static final field Circle Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternLayerShape;
+	public static final field Diamond Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternLayerShape;
+	public static final field Inherit Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternLayerShape;
+	public static final field RoundedSquare Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternLayerShape;
+	public static final field Square Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternLayerShape;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternLayerShape;
+	public static fun values ()[Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternLayerShape;
+}
+
 public final class io/github/eugeneponomarev/styledqr/render/QrFinderPatternShape : java/lang/Enum {
 	public static final field Circle Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternShape;
 	public static final field Diamond Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternShape;
@@ -233,11 +263,12 @@ public final class io/github/eugeneponomarev/styledqr/render/QrRenderErrorCode :
 
 public final class io/github/eugeneponomarev/styledqr/render/QrStyle {
 	public fun <init> ()V
-	public fun <init> (Lio/github/eugeneponomarev/styledqr/render/QrColor;Lio/github/eugeneponomarev/styledqr/render/QrColor;ILio/github/eugeneponomarev/styledqr/render/QrModuleShape;DDZLio/github/eugeneponomarev/styledqr/render/QrFunctionPatternStyle;Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternShape;Lio/github/eugeneponomarev/styledqr/render/QrLogoOptions;Lio/github/eugeneponomarev/styledqr/render/QrLinearGradient;)V
-	public synthetic fun <init> (Lio/github/eugeneponomarev/styledqr/render/QrColor;Lio/github/eugeneponomarev/styledqr/render/QrColor;ILio/github/eugeneponomarev/styledqr/render/QrModuleShape;DDZLio/github/eugeneponomarev/styledqr/render/QrFunctionPatternStyle;Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternShape;Lio/github/eugeneponomarev/styledqr/render/QrLogoOptions;Lio/github/eugeneponomarev/styledqr/render/QrLinearGradient;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lio/github/eugeneponomarev/styledqr/render/QrColor;Lio/github/eugeneponomarev/styledqr/render/QrColor;ILio/github/eugeneponomarev/styledqr/render/QrModuleShape;DDZLio/github/eugeneponomarev/styledqr/render/QrFunctionPatternStyle;Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternShape;Lio/github/eugeneponomarev/styledqr/render/QrLogoOptions;Lio/github/eugeneponomarev/styledqr/render/QrLinearGradient;Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternAppearance;)V
+	public synthetic fun <init> (Lio/github/eugeneponomarev/styledqr/render/QrColor;Lio/github/eugeneponomarev/styledqr/render/QrColor;ILio/github/eugeneponomarev/styledqr/render/QrModuleShape;DDZLio/github/eugeneponomarev/styledqr/render/QrFunctionPatternStyle;Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternShape;Lio/github/eugeneponomarev/styledqr/render/QrLogoOptions;Lio/github/eugeneponomarev/styledqr/render/QrLinearGradient;Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternAppearance;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Lio/github/eugeneponomarev/styledqr/render/QrColor;
 	public final fun component10 ()Lio/github/eugeneponomarev/styledqr/render/QrLogoOptions;
 	public final fun component11 ()Lio/github/eugeneponomarev/styledqr/render/QrLinearGradient;
+	public final fun component12 ()Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternAppearance;
 	public final fun component2 ()Lio/github/eugeneponomarev/styledqr/render/QrColor;
 	public final fun component3 ()I
 	public final fun component4 ()Lio/github/eugeneponomarev/styledqr/render/QrModuleShape;
@@ -246,10 +277,11 @@ public final class io/github/eugeneponomarev/styledqr/render/QrStyle {
 	public final fun component7 ()Z
 	public final fun component8 ()Lio/github/eugeneponomarev/styledqr/render/QrFunctionPatternStyle;
 	public final fun component9 ()Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternShape;
-	public final fun copy (Lio/github/eugeneponomarev/styledqr/render/QrColor;Lio/github/eugeneponomarev/styledqr/render/QrColor;ILio/github/eugeneponomarev/styledqr/render/QrModuleShape;DDZLio/github/eugeneponomarev/styledqr/render/QrFunctionPatternStyle;Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternShape;Lio/github/eugeneponomarev/styledqr/render/QrLogoOptions;Lio/github/eugeneponomarev/styledqr/render/QrLinearGradient;)Lio/github/eugeneponomarev/styledqr/render/QrStyle;
-	public static synthetic fun copy$default (Lio/github/eugeneponomarev/styledqr/render/QrStyle;Lio/github/eugeneponomarev/styledqr/render/QrColor;Lio/github/eugeneponomarev/styledqr/render/QrColor;ILio/github/eugeneponomarev/styledqr/render/QrModuleShape;DDZLio/github/eugeneponomarev/styledqr/render/QrFunctionPatternStyle;Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternShape;Lio/github/eugeneponomarev/styledqr/render/QrLogoOptions;Lio/github/eugeneponomarev/styledqr/render/QrLinearGradient;ILjava/lang/Object;)Lio/github/eugeneponomarev/styledqr/render/QrStyle;
+	public final fun copy (Lio/github/eugeneponomarev/styledqr/render/QrColor;Lio/github/eugeneponomarev/styledqr/render/QrColor;ILio/github/eugeneponomarev/styledqr/render/QrModuleShape;DDZLio/github/eugeneponomarev/styledqr/render/QrFunctionPatternStyle;Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternShape;Lio/github/eugeneponomarev/styledqr/render/QrLogoOptions;Lio/github/eugeneponomarev/styledqr/render/QrLinearGradient;Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternAppearance;)Lio/github/eugeneponomarev/styledqr/render/QrStyle;
+	public static synthetic fun copy$default (Lio/github/eugeneponomarev/styledqr/render/QrStyle;Lio/github/eugeneponomarev/styledqr/render/QrColor;Lio/github/eugeneponomarev/styledqr/render/QrColor;ILio/github/eugeneponomarev/styledqr/render/QrModuleShape;DDZLio/github/eugeneponomarev/styledqr/render/QrFunctionPatternStyle;Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternShape;Lio/github/eugeneponomarev/styledqr/render/QrLogoOptions;Lio/github/eugeneponomarev/styledqr/render/QrLinearGradient;Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternAppearance;ILjava/lang/Object;)Lio/github/eugeneponomarev/styledqr/render/QrStyle;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getBackground ()Lio/github/eugeneponomarev/styledqr/render/QrColor;
+	public final fun getFinderPatternAppearance ()Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternAppearance;
 	public final fun getFinderPatternShape ()Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternShape;
 	public final fun getForeground ()Lio/github/eugeneponomarev/styledqr/render/QrColor;
 	public final fun getForegroundGradient ()Lio/github/eugeneponomarev/styledqr/render/QrLinearGradient;
@@ -276,6 +308,12 @@ public final class io/github/eugeneponomarev/styledqr/render/QrStyleConfiguratio
 	public final fun build ()Lio/github/eugeneponomarev/styledqr/render/QrStyleBuildResult;
 	public final fun getBackgroundAlpha ()I
 	public final fun getBackgroundHex ()Ljava/lang/String;
+	public final fun getFinderCenterColorAlpha ()I
+	public final fun getFinderCenterColorHex ()Ljava/lang/String;
+	public final fun getFinderCenterShape ()Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternLayerShape;
+	public final fun getFinderOuterColorAlpha ()I
+	public final fun getFinderOuterColorHex ()Ljava/lang/String;
+	public final fun getFinderOuterShape ()Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternLayerShape;
 	public final fun getFinderPatternShape ()Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternShape;
 	public final fun getForegroundAlpha ()I
 	public final fun getForegroundGradient ()Lio/github/eugeneponomarev/styledqr/render/QrGradientConfiguration;
@@ -289,6 +327,12 @@ public final class io/github/eugeneponomarev/styledqr/render/QrStyleConfiguratio
 	public final fun getRoundedModuleRadiusFraction ()D
 	public final fun setBackgroundAlpha (I)V
 	public final fun setBackgroundHex (Ljava/lang/String;)V
+	public final fun setFinderCenterColorAlpha (I)V
+	public final fun setFinderCenterColorHex (Ljava/lang/String;)V
+	public final fun setFinderCenterShape (Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternLayerShape;)V
+	public final fun setFinderOuterColorAlpha (I)V
+	public final fun setFinderOuterColorHex (Ljava/lang/String;)V
+	public final fun setFinderOuterShape (Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternLayerShape;)V
 	public final fun setFinderPatternShape (Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternShape;)V
 	public final fun setForegroundAlpha (I)V
 	public final fun setForegroundGradient (Lio/github/eugeneponomarev/styledqr/render/QrGradientConfiguration;)V

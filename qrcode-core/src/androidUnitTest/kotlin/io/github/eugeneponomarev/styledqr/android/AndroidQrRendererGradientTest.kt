@@ -5,6 +5,7 @@ import android.graphics.Color
 import io.github.eugeneponomarev.styledqr.core.QrCode
 import io.github.eugeneponomarev.styledqr.core.QrCodeGenerator
 import io.github.eugeneponomarev.styledqr.render.QrColor
+import io.github.eugeneponomarev.styledqr.render.QrFinderPatternAppearance
 import io.github.eugeneponomarev.styledqr.render.QrGradientPoint
 import io.github.eugeneponomarev.styledqr.render.QrLinearGradient
 import io.github.eugeneponomarev.styledqr.render.QrStyle
@@ -186,6 +187,63 @@ class AndroidQrRendererGradientTest {
             Color.BLACK,
             bitmap.pixelAtQrModule(
                 row = 3,
+                column = 3,
+                quietZoneModules = style.quietZoneModules,
+                pixelsPerModule = pixelsPerModule,
+            ),
+        )
+    }
+
+    @Test
+    fun finderSolidOverridesTakePriorityOverTheGlobalGradient() {
+        val code = QrCodeGenerator.encodeBytes(byteArrayOf(0x42))
+        val outerColor = QrColor.fromHex("#123C66")
+        val centerColor = QrColor.fromHex("#0F4C5C")
+
+        val style = QrStyle(
+            background = backgroundColor,
+            foregroundGradient = QrLinearGradient(
+                startColor = startColor,
+                endColor = endColor,
+            ),
+            finderPatternAppearance = QrFinderPatternAppearance(
+                outerColor = outerColor,
+                centerColor = centerColor,
+            ),
+        )
+
+        val pixelsPerModule = 10
+        val bitmap = code.toBitmap(
+            sizePx = bitmapSize(code, style, pixelsPerModule),
+            style = style,
+        )
+
+        assertEquals(
+            Color.rgb(outerColor.red, outerColor.green, outerColor.blue),
+            bitmap.pixelAtQrModule(
+                row = 0,
+                column = 0,
+                quietZoneModules = style.quietZoneModules,
+                pixelsPerModule = pixelsPerModule,
+            ),
+        )
+        assertEquals(
+            Color.rgb(centerColor.red, centerColor.green, centerColor.blue),
+            bitmap.pixelAtQrModule(
+                row = 3,
+                column = 3,
+                quietZoneModules = style.quietZoneModules,
+                pixelsPerModule = pixelsPerModule,
+            ),
+        )
+        assertEquals(
+            Color.rgb(
+                backgroundColor.red,
+                backgroundColor.green,
+                backgroundColor.blue,
+            ),
+            bitmap.pixelAtQrModule(
+                row = 1,
                 column = 3,
                 quietZoneModules = style.quietZoneModules,
                 pixelsPerModule = pixelsPerModule,
