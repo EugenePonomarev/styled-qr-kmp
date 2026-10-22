@@ -5,6 +5,8 @@ package io.github.eugeneponomarev.styledqr.ios
 import io.github.eugeneponomarev.styledqr.core.QrCode
 import io.github.eugeneponomarev.styledqr.core.QrCodeGenerator
 import io.github.eugeneponomarev.styledqr.render.QrColor
+import io.github.eugeneponomarev.styledqr.render.QrFinderPatternAppearance
+import io.github.eugeneponomarev.styledqr.render.QrFinderPatternLayerShape
 import io.github.eugeneponomarev.styledqr.render.QrGradientPoint
 import io.github.eugeneponomarev.styledqr.render.QrLinearGradient
 import io.github.eugeneponomarev.styledqr.render.QrLogoBackgroundShape
@@ -354,6 +356,85 @@ class IosQrRendererGradientTest {
                 )
             }
         }
+    }
+
+    @Test
+    fun finderOverridesUseIndependentShapesAndSolidColorsOverGradient() {
+        val code = QrCodeGenerator.encodeBytes(
+            byteArrayOf(0x42),
+        )
+        val outerColor = QrColor.fromHex("#123C66")
+        val centerColor = QrColor.fromHex("#087E8B")
+        val pixelsPerModule = 20
+
+        val style = QrStyle(
+            background = backgroundColor,
+            foregroundGradient = QrLinearGradient(
+                startColor = startColor,
+                endColor = endColor,
+            ),
+            finderPatternAppearance = QrFinderPatternAppearance(
+                outerShape = QrFinderPatternLayerShape.RoundedSquare,
+                centerShape = QrFinderPatternLayerShape.Circle,
+                outerColor = outerColor,
+                centerColor = centerColor,
+            ),
+        )
+
+        val pixels = code.toUIImage(
+            sizePoints = imageSize(
+                code = code,
+                style = style,
+                pixelsPerModule = pixelsPerModule,
+            ).toDouble(),
+            style = style,
+            scale = 1.0,
+        ).toPixelBuffer()
+
+        assertEquals(
+            outerColor,
+            pixels.pixelAtQrModule(
+                row = 0,
+                column = 3,
+                quietZoneModules = style.quietZoneModules,
+                pixelsPerModule = pixelsPerModule,
+            ),
+            "Outer finder layer must use its solid override colour",
+        )
+
+        assertEquals(
+            backgroundColor,
+            pixels.pixelAtQrModule(
+                row = 1,
+                column = 3,
+                quietZoneModules = style.quietZoneModules,
+                pixelsPerModule = pixelsPerModule,
+            ),
+            "Middle finder layer must remain the QR background",
+        )
+
+        assertEquals(
+            centerColor,
+            pixels.pixelAtQrModule(
+                row = 3,
+                column = 3,
+                quietZoneModules = style.quietZoneModules,
+                pixelsPerModule = pixelsPerModule,
+            ),
+            "Center finder layer must use its solid override colour",
+        )
+
+        val centerLeft =
+            (style.quietZoneModules + 2) * pixelsPerModule
+
+        assertEquals(
+            backgroundColor,
+            pixels.pixelAt(
+                x = centerLeft + 1,
+                y = centerLeft + 1,
+            ),
+            "Circle center shape must not fill its bounding-box corner",
+        )
     }
 
     private fun createCropTestLogo(width: Int, height: Int): UIImage {

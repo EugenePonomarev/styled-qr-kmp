@@ -4,6 +4,7 @@ package io.github.eugeneponomarev.styledqr.ios
 
 import io.github.eugeneponomarev.styledqr.core.QrCode
 import io.github.eugeneponomarev.styledqr.render.QrColor
+import io.github.eugeneponomarev.styledqr.render.QrFinderPatternLayerPaint
 import io.github.eugeneponomarev.styledqr.render.QrLinearGradient
 import io.github.eugeneponomarev.styledqr.render.QrLogoBackgroundShape
 import io.github.eugeneponomarev.styledqr.render.QrLogoLayout
@@ -12,18 +13,19 @@ import io.github.eugeneponomarev.styledqr.render.QrModuleShape
 import io.github.eugeneponomarev.styledqr.render.QrRenderErrorCode
 import io.github.eugeneponomarev.styledqr.render.QrRenderException
 import io.github.eugeneponomarev.styledqr.render.QrStyle
+import io.github.eugeneponomarev.styledqr.render.ResolvedQrFinderPatternAppearance
+import io.github.eugeneponomarev.styledqr.render.ResolvedQrFinderPatternLayer
 import io.github.eugeneponomarev.styledqr.render.calculateLogoLayout
 import io.github.eugeneponomarev.styledqr.render.finderPatternTopLefts
 import io.github.eugeneponomarev.styledqr.render.isFinderPatternCore
 import io.github.eugeneponomarev.styledqr.render.qrImageTotalModules
-import io.github.eugeneponomarev.styledqr.render.resolvedFinderPatternShape
+import io.github.eugeneponomarev.styledqr.render.resolvedFinderPatternAppearance
 import io.github.eugeneponomarev.styledqr.render.shouldPreserveAsSquare
 import io.github.eugeneponomarev.styledqr.render.validateQrImagePixelSide
 import io.github.eugeneponomarev.styledqr.render.validateQrImageRenderArguments
 import kotlinx.cinterop.cValuesOf
 import kotlinx.cinterop.useContents
 import platform.CoreGraphics.CGColorSpaceCreateWithName
-import platform.CoreGraphics.kCGColorSpaceSRGB
 import platform.CoreGraphics.CGColorSpaceRelease
 import platform.CoreGraphics.CGContextAddPath
 import platform.CoreGraphics.CGContextDrawLinearGradient
@@ -35,6 +37,7 @@ import platform.CoreGraphics.CGGradientRelease
 import platform.CoreGraphics.CGPointMake
 import platform.CoreGraphics.CGRectMake
 import platform.CoreGraphics.CGSizeMake
+import platform.CoreGraphics.kCGColorSpaceSRGB
 import platform.CoreGraphics.kCGGradientDrawsAfterEndLocation
 import platform.CoreGraphics.kCGGradientDrawsBeforeStartLocation
 import platform.UIKit.UIBezierPath
@@ -138,20 +141,25 @@ public fun QrCode.toUIImage(
                 }
             }
 
-            if (gradient == null) {
-                drawFinderPatterns(
-                    qrCode = this,
-                    moduleSize = moduleSize,
+            foregroundPath?.let { path ->
+                drawForegroundGradient(
+                    path = path,
+                    gradient = requireNotNull(gradient),
+                    qrSizeModules = size,
                     quietZoneModules = style.quietZoneModules,
-                    style = style,
+                    moduleSize = moduleSize,
                 )
-            } else {
-                // Even-odd clipping cuts the 5×5 middle ring out of the 7×7 outer layer,
-                // then restores the 3×3 centre. The already painted background shows in the hole.
-                val path = requireNotNull(foregroundPath)
-                appendGradientFinderPatterns(this, moduleSize, style, path)
-                drawForegroundGradient(path, gradient, size, style.quietZoneModules, moduleSize)
             }
+
+            drawFinderPatterns(
+                qrCode = this,
+                moduleSize = moduleSize,
+                quietZoneModules = style.quietZoneModules,
+                appearance = style.resolvedFinderPatternAppearance(),
+                roundedRadiusFraction = style.roundedModuleRadiusFraction,
+                foreground = style.foreground,
+                gradient = gradient,
+            )
         } finally {
             CGContextRestoreGState(context)
         }
@@ -171,46 +179,6 @@ public fun QrCode.toUIImage(
         }
     } finally {
         UIGraphicsEndImageContext()
-    }
-}
-
-private fun appendGradientFinderPatterns(
-    qrCode: QrCode,
-    moduleSize: Double,
-    style: QrStyle,
-    path: UIBezierPath,
-) {
-    val shape = style.resolvedFinderPatternShape()
-    qrCode.finderPatternTopLefts().forEach { (row, column) ->
-        val left = (column + style.quietZoneModules) * moduleSize
-        val top = (row + style.quietZoneModules) * moduleSize
-        path.appendPath(
-            drawFinderLayer(
-                left,
-                top,
-                moduleSize * 7.0,
-                shape,
-                style.roundedModuleRadiusFraction
-            )
-        )
-        path.appendPath(
-            drawFinderLayer(
-                left + moduleSize,
-                top + moduleSize,
-                moduleSize * 5.0,
-                shape,
-                style.roundedModuleRadiusFraction,
-            ),
-        )
-        path.appendPath(
-            drawFinderLayer(
-                left + moduleSize * 2.0,
-                top + moduleSize * 2.0,
-                moduleSize * 3.0,
-                shape,
-                style.roundedModuleRadiusFraction,
-            ),
-        )
     }
 }
 
@@ -296,37 +264,91 @@ private fun drawFinderPatterns(
     qrCode: QrCode,
     moduleSize: Double,
     quietZoneModules: Int,
-    style: QrStyle,
+    appearance: ResolvedQrFinderPatternAppearance,
+    roundedRadiusFraction: Double,
+    foreground: QrColor,
+    gradient: QrLinearGradient?,
 ) {
-    val shape = style.resolvedFinderPatternShape()
-    qrCode.finderPatternTopLefts().forEach { (row, column) ->
-        val left = (column + quietZoneModules) * moduleSize
-        val top = (row + quietZoneModules) * moduleSize
+    drawFinderPatternLayer(
+        qrCode = qrCode,
+        moduleSize = moduleSize,
+        quietZoneModules = quietZoneModules,
+        layer = appearance.outer,
+        offsetModules = 0.0,
+        layerSizeModules = 7.0,
+        roundedRadiusFraction = roundedRadiusFraction,
+        foreground = foreground,
+        gradient = gradient,
+    )
+    drawFinderPatternLayer(
+        qrCode = qrCode,
+        moduleSize = moduleSize,
+        quietZoneModules = quietZoneModules,
+        layer = appearance.middle,
+        offsetModules = 1.0,
+        layerSizeModules = 5.0,
+        roundedRadiusFraction = roundedRadiusFraction,
+        foreground = foreground,
+        gradient = gradient,
+    )
+    drawFinderPatternLayer(
+        qrCode = qrCode,
+        moduleSize = moduleSize,
+        quietZoneModules = quietZoneModules,
+        layer = appearance.center,
+        offsetModules = 2.0,
+        layerSizeModules = 3.0,
+        roundedRadiusFraction = roundedRadiusFraction,
+        foreground = foreground,
+        gradient = gradient,
+    )
+}
 
-        style.foreground.toUiColor().setFill()
-        drawFinderLayer(
-            left,
-            top,
-            moduleSize * 7.0,
-            shape,
-            style.roundedModuleRadiusFraction
-        ).fill()
-        style.background.toUiColor().setFill()
-        drawFinderLayer(
-            left + moduleSize,
-            top + moduleSize,
-            moduleSize * 5.0,
-            shape,
-            style.roundedModuleRadiusFraction,
-        ).fill()
-        style.foreground.toUiColor().setFill()
-        drawFinderLayer(
-            left + moduleSize * 2.0,
-            top + moduleSize * 2.0,
-            moduleSize * 3.0,
-            shape,
-            style.roundedModuleRadiusFraction,
-        ).fill()
+private fun drawFinderPatternLayer(
+    qrCode: QrCode,
+    moduleSize: Double,
+    quietZoneModules: Int,
+    layer: ResolvedQrFinderPatternLayer,
+    offsetModules: Double,
+    layerSizeModules: Double,
+    roundedRadiusFraction: Double,
+    foreground: QrColor,
+    gradient: QrLinearGradient?,
+) {
+    val path = UIBezierPath.bezierPath()
+
+    qrCode.finderPatternTopLefts().forEach { (row, column) ->
+        path.appendPath(
+            drawFinderLayer(
+                left = (column + quietZoneModules + offsetModules) * moduleSize,
+                top = (row + quietZoneModules + offsetModules) * moduleSize,
+                size = layerSizeModules * moduleSize,
+                shape = layer.shape,
+                roundedRadiusFraction = roundedRadiusFraction,
+            ),
+        )
+    }
+
+    when (val paint = layer.paint) {
+        QrFinderPatternLayerPaint.Foreground -> {
+            if (gradient == null) {
+                foreground.toUiColor().setFill()
+                path.fill()
+            } else {
+                drawForegroundGradient(
+                    path = path,
+                    gradient = gradient,
+                    qrSizeModules = qrCode.size,
+                    quietZoneModules = quietZoneModules,
+                    moduleSize = moduleSize,
+                )
+            }
+        }
+
+        is QrFinderPatternLayerPaint.Solid -> {
+            paint.color.toUiColor().setFill()
+            path.fill()
+        }
     }
 }
 
@@ -420,11 +442,11 @@ private fun drawLogo(
         width to height
     }
     if (!(
-            imageWidth.isFinite() &&
-                    imageHeight.isFinite() &&
-                    imageWidth > 0.0 &&
-                    imageHeight > 0.0
-            )
+                imageWidth.isFinite() &&
+                        imageHeight.isFinite() &&
+                        imageWidth > 0.0 &&
+                        imageHeight > 0.0
+                )
     ) {
         throw QrRenderException(
             QrRenderErrorCode.LogoValidationFailed,
