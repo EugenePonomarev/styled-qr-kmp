@@ -153,6 +153,8 @@ tasks.register("verifyJsNpmPackage") {
             "finderCenterShape",
             "finderOuterColor",
             "finderCenterColor",
+            "logoSizeFraction",
+            "logoPaddingFraction",
         ).forEach { field ->
             check(field in declarations) {
                 "npm TypeScript declarations do not export $field"

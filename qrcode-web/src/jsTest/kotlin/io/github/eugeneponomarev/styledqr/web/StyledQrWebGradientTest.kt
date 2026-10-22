@@ -319,4 +319,40 @@ class StyledQrWebGradientTest {
         assertContains(actual, """fill="#087E8B"""")
         assertContains(actual, """fill="url(#qr-foreground-""")
     }
+
+    @Test
+    fun gradientLogoOverridesUseTheCommonLogoLayout() {
+        val logo = "data:image/png;base64,AA=="
+
+        val actual = generateStyledQrSvgWithLinearGradient(
+            content = text,
+            options = StyledQrLinearGradientOptions(
+                startColor = start,
+                endColor = end,
+            ).apply {
+                logoDataUri = logo
+                logoSizeFraction = 0.05
+                logoPaddingFraction = 0.0
+            },
+        )
+
+        val expected = QrCodeGenerator
+            .encodeText(text)
+            .toSvg(
+                style = QrStyle(
+                    logo = QrLogoOptions(
+                        sizeFraction = 0.05,
+                        paddingFraction = 0.0,
+                        background = QrColor.White,
+                    ),
+                    foregroundGradient = QrLinearGradient(
+                        startColor = QrColor.fromHex(start),
+                        endColor = QrColor.fromHex(end),
+                    ),
+                ),
+                logoDataUri = logo,
+            )
+
+        assertEquals(expected, actual)
+    }
 }

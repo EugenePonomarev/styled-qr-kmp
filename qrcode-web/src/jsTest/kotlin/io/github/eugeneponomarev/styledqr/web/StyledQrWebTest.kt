@@ -1,5 +1,12 @@
 package io.github.eugeneponomarev.styledqr.web
 
+import io.github.eugeneponomarev.styledqr.core.QrCodeGenerator
+import io.github.eugeneponomarev.styledqr.render.QrColor
+import io.github.eugeneponomarev.styledqr.render.QrLogoOptions
+import io.github.eugeneponomarev.styledqr.render.QrStyle
+import io.github.eugeneponomarev.styledqr.render.toSvg
+import io.github.eugeneponomarev.styledqr.theme.QrThemeId
+import io.github.eugeneponomarev.styledqr.theme.QrThemes
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -159,5 +166,137 @@ class StyledQrWebTest {
                 """<circle cx="[^"]+" cy="[^"]+" r="1\.5" fill="#087E8B"/>""",
             ).findAll(svg).count(),
         )
+    }
+
+    @Test
+    fun customLogoOverridesUseTheCommonLogoLayout() {
+        val content = "https://eugeneponomarev.com"
+        val logo = "data:image/png;base64,AA=="
+
+        val actual = generateStyledQrSvgWithLogo(
+            content = content,
+            logoDataUri = logo,
+            logoSizeFraction = 0.05,
+            logoPaddingFraction = 0.0,
+        )
+
+        val expected = QrCodeGenerator
+            .encodeText(content)
+            .toSvg(
+                style = QrStyle(
+                    logo = QrLogoOptions(
+                        sizeFraction = 0.05,
+                        paddingFraction = 0.0,
+                        background = QrColor.White,
+                    ),
+                ),
+                logoDataUri = logo,
+            )
+
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun customLogoOverrideKeepsTheDefaultForTheOmittedField() {
+        val content = "https://eugeneponomarev.com"
+        val logo = "data:image/png;base64,AA=="
+
+        val onlySize = generateStyledQrSvgWithLogo(
+            content = content,
+            logoDataUri = logo,
+            logoSizeFraction = 0.05,
+        )
+
+        val expectedOnlySize = QrCodeGenerator
+            .encodeText(content)
+            .toSvg(
+                style = QrStyle(
+                    logo = QrLogoOptions(
+                        sizeFraction = 0.05,
+                        background = QrColor.White,
+                    ),
+                ),
+                logoDataUri = logo,
+            )
+
+        val onlyPadding = generateStyledQrSvgWithLogo(
+            content = content,
+            logoDataUri = logo,
+            logoPaddingFraction = 0.0,
+        )
+
+        val expectedOnlyPadding = QrCodeGenerator
+            .encodeText(content)
+            .toSvg(
+                style = QrStyle(
+                    logo = QrLogoOptions(
+                        paddingFraction = 0.0,
+                        background = QrColor.White,
+                    ),
+                ),
+                logoDataUri = logo,
+            )
+
+        assertEquals(expectedOnlySize, onlySize)
+        assertEquals(expectedOnlyPadding, onlyPadding)
+    }
+
+    @Test
+    fun themedLogoOverridesKeepTheThemeLogoAppearance() {
+        val content = "https://eugeneponomarev.com"
+        val logo = "data:image/png;base64,AA=="
+        val themeId = getStyledQrThemeIds().first()
+        val id = QrThemeId.entries.first {
+            it.name.equals(themeId, ignoreCase = true)
+        }
+        val theme = QrThemes.get(id)
+
+        val actual = generateThemedQrSvgWithLogo(
+            content = content,
+            themeId = themeId,
+            logoDataUri = logo,
+            logoSizeFraction = 0.05,
+            logoPaddingFraction = 0.0,
+        )
+
+        val expected = QrCodeGenerator
+            .encodeText(content)
+            .toSvg(
+                style = theme.createStyle(
+                    logo = theme.createLogoOptions().copy(
+                        sizeFraction = 0.05,
+                        paddingFraction = 0.0,
+                    ),
+                ),
+                logoDataUri = logo,
+            )
+
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun rejectsInvalidWebLogoOverrides() {
+        val content = "https://eugeneponomarev.com"
+        val logo = "data:image/png;base64,AA=="
+
+        for (size in listOf(0.049, 0.251, Double.NaN)) {
+            assertFailsWith<IllegalArgumentException> {
+                generateStyledQrSvgWithLogo(
+                    content = content,
+                    logoDataUri = logo,
+                    logoSizeFraction = size,
+                )
+            }
+        }
+
+        for (padding in listOf(-0.01, 0.121, Double.NaN)) {
+            assertFailsWith<IllegalArgumentException> {
+                generateStyledQrSvgWithLogo(
+                    content = content,
+                    logoDataUri = logo,
+                    logoPaddingFraction = padding,
+                )
+            }
+        }
     }
 }
