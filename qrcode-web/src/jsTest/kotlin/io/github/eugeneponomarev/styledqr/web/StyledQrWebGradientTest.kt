@@ -2,6 +2,8 @@ package io.github.eugeneponomarev.styledqr.web
 
 import io.github.eugeneponomarev.styledqr.core.QrCodeGenerator
 import io.github.eugeneponomarev.styledqr.render.QrColor
+import io.github.eugeneponomarev.styledqr.render.QrFinderPatternAppearance
+import io.github.eugeneponomarev.styledqr.render.QrFinderPatternLayerShape
 import io.github.eugeneponomarev.styledqr.render.QrGradientPoint
 import io.github.eugeneponomarev.styledqr.render.QrLinearGradient
 import io.github.eugeneponomarev.styledqr.render.QrLogoOptions
@@ -276,5 +278,45 @@ class StyledQrWebGradientTest {
                 "qr-foreground-",
             ),
         )
+    }
+
+    @Test
+    fun gradientOptionsApplyFinderOverridesThroughTheSharedResolver() {
+        val options = StyledQrLinearGradientOptions(
+            startColor = start,
+            endColor = end,
+        ).apply {
+            finderOuterShape = "rounded-square"
+            finderCenterShape = "circle"
+            finderOuterColor = "#123C66"
+            finderCenterColor = "#087E8B"
+        }
+
+        val actual = generateStyledQrSvgWithLinearGradient(
+            content = text,
+            options = options,
+        )
+
+        val expected = QrCodeGenerator
+            .encodeText(text)
+            .toSvg(
+                QrStyle(
+                    foregroundGradient = QrLinearGradient(
+                        startColor = QrColor.fromHex(start),
+                        endColor = QrColor.fromHex(end),
+                    ),
+                    finderPatternAppearance = QrFinderPatternAppearance(
+                        outerShape = QrFinderPatternLayerShape.RoundedSquare,
+                        centerShape = QrFinderPatternLayerShape.Circle,
+                        outerColor = QrColor.fromHex("#123C66"),
+                        centerColor = QrColor.fromHex("#087E8B"),
+                    ),
+                ),
+            )
+
+        assertEquals(expected, actual)
+        assertContains(actual, """fill="#123C66"""")
+        assertContains(actual, """fill="#087E8B"""")
+        assertContains(actual, """fill="url(#qr-foreground-""")
     }
 }
