@@ -64,4 +64,22 @@ func verifyStyledQrKmpSwiftApi() {
     _ = safeResult.error?.code
     _ = safeResult.isEmpty
     _ = renderer.lastRenderErrorCode
+
+    let rasterResult = renderer.renderWithRasterOptions(
+        content: "https://example.com",
+        options: options,
+        output: QrRasterRenderOptions(
+            sizePx: 300,
+            sizeMode: .integermodules
+        ),
+        errorCorrection: .h,
+        scale: 3.0,
+        logo: nil,
+        minVersion: 1,
+        maxVersion: 40
+    )
+
+    _ = rasterResult.image
+    _ = rasterResult.error?.code
+    _ = rasterResult.isEmpty
 }

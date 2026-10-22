@@ -59,5 +59,14 @@
         <attr name="qrLogo" format="reference" />
         <attr name="qrLogoSizeFraction" format="float" />
         <attr name="qrLogoPaddingFraction" format="float" />
+        <attr name="qrLogoBackgroundColor" format="color" />
+
+        <attr name="qrLogoBackgroundShape">
+            <enum name="square" value="0" />
+            <enum name="roundedSquare" value="1" />
+            <enum name="circle" value="2" />
+        </attr>
+
+        <attr name="qrLogoCornerRadiusFraction" format="float" />
     </declare-styleable>
 </resources>
