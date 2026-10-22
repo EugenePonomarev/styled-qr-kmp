@@ -147,5 +147,16 @@ tasks.register("verifyJsNpmPackage") {
             "npm TypeScript declarations do not export " +
                     "StyledQrLinearGradientOptions"
         }
+
+        listOf(
+            "finderOuterShape",
+            "finderCenterShape",
+            "finderOuterColor",
+            "finderCenterColor",
+        ).forEach { field ->
+            check(field in declarations) {
+                "npm TypeScript declarations do not export $field"
+            }
+        }
     }
 }
