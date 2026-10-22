@@ -10,6 +10,8 @@ import io.github.eugeneponomarev.styledqr.render.QrLinearGradient
 import io.github.eugeneponomarev.styledqr.render.QrLogoOptions
 import io.github.eugeneponomarev.styledqr.render.QrModuleShape
 import io.github.eugeneponomarev.styledqr.render.QrStyle
+import io.github.eugeneponomarev.styledqr.render.QrFinderPatternAppearance
+import io.github.eugeneponomarev.styledqr.render.QrFinderPatternLayerShape
 import io.github.eugeneponomarev.styledqr.render.toSvg
 import io.github.eugeneponomarev.styledqr.theme.QrThemeId
 import io.github.eugeneponomarev.styledqr.theme.QrThemes
@@ -25,6 +27,10 @@ public fun generateStyledQrSvg(
     moduleShape: String = "square",
     moduleScale: Double = 1.0,
     functionPatternStyle: String = "match-data-modules",
+    finderOuterShape: String = "inherit",
+    finderCenterShape: String = "inherit",
+    finderOuterColor: String? = null,
+    finderCenterColor: String? = null,
 ): String {
     require(content.isNotBlank()) { "content must not be blank" }
 
@@ -40,6 +46,12 @@ public fun generateStyledQrSvg(
             moduleScale = moduleScale,
             functionPatternStyle = functionPatternStyle.toQrFunctionPatternStyle(),
             finderPatternShape = QrFinderPatternShape.MatchModuleShape,
+            finderPatternAppearance = QrFinderPatternAppearance(
+                outerShape = finderOuterShape.toQrFinderPatternLayerShape(),
+                centerShape = finderCenterShape.toQrFinderPatternLayerShape(),
+                outerColor = finderOuterColor.toOptionalQrColor(),
+                centerColor = finderCenterColor.toOptionalQrColor(),
+            ),
         ),
     )
 }
@@ -112,6 +124,12 @@ public fun generateStyledQrSvgWithLinearGradient(
                             options.endY,
                         ),
                 ),
+            finderPatternAppearance = QrFinderPatternAppearance(
+                outerShape = options.finderOuterShape.toQrFinderPatternLayerShape(),
+                centerShape = options.finderCenterShape.toQrFinderPatternLayerShape(),
+                outerColor = options.finderOuterColor.toOptionalQrColor(),
+                centerColor = options.finderCenterColor.toOptionalQrColor(),
+            ),
         ),
         logoDataUri = logo,
     )
@@ -170,6 +188,24 @@ private fun String.toQrModuleShape(): QrModuleShape = when (lowercase()) {
         "moduleShape must be square, rounded-square, circle, or diamond; was '$this'",
     )
 }
+
+private fun String.toQrFinderPatternLayerShape(): QrFinderPatternLayerShape =
+    when (lowercase()) {
+        "inherit" -> QrFinderPatternLayerShape.Inherit
+        "square" -> QrFinderPatternLayerShape.Square
+        "rounded-square", "rounded_square" ->
+            QrFinderPatternLayerShape.RoundedSquare
+
+        "circle" -> QrFinderPatternLayerShape.Circle
+        "diamond" -> QrFinderPatternLayerShape.Diamond
+        else -> throw IllegalArgumentException(
+            "finder layer shape must be inherit, square, rounded-square, " +
+                    "circle, or diamond; was '$this'",
+        )
+    }
+
+private fun String?.toOptionalQrColor(): QrColor? =
+    this?.let { QrColor.fromHex(it) }
 
 private fun String.toQrFunctionPatternStyle(): QrFunctionPatternStyle = when (lowercase()) {
     "preserve-all", "preserve_all", "preserveall" ->
@@ -230,6 +266,10 @@ public fun generateStyledQrSvgWithLogo(
     moduleShape: String = "square",
     moduleScale: Double = 1.0,
     functionPatternStyle: String = "match-data-modules",
+    finderOuterShape: String = "inherit",
+    finderCenterShape: String = "inherit",
+    finderOuterColor: String? = null,
+    finderCenterColor: String? = null,
 ): String {
     require(content.isNotBlank()) { "content must not be blank" }
 
@@ -249,6 +289,12 @@ public fun generateStyledQrSvgWithLogo(
             functionPatternStyle = functionPatternStyle.toQrFunctionPatternStyle(),
             finderPatternShape = QrFinderPatternShape.MatchModuleShape,
             logo = QrLogoOptions(background = backgroundColor),
+            finderPatternAppearance = QrFinderPatternAppearance(
+                outerShape = finderOuterShape.toQrFinderPatternLayerShape(),
+                centerShape = finderCenterShape.toQrFinderPatternLayerShape(),
+                outerColor = finderOuterColor.toOptionalQrColor(),
+                centerColor = finderCenterColor.toOptionalQrColor(),
+            ),
         ),
         logoDataUri = logo,
     )
@@ -282,18 +328,19 @@ public class StyledQrLinearGradientOptions(
 
     public var background: String = "#FFFFFF"
 
-    public var moduleShape: String =
-        "square"
+    public var moduleShape: String = "square"
 
-    public var moduleScale: Double =
-        1.0
+    public var moduleScale: Double = 1.0
 
-    public var functionPatternStyle: String =
-        "match-data-modules"
+    public var functionPatternStyle: String = "match-data-modules"
 
-    public var errorCorrection: String =
-        "H"
+    public var errorCorrection: String = "H"
 
-    public var logoDataUri: String =
-        ""
+    public var logoDataUri: String = ""
+
+    public var finderOuterShape: String = "inherit"
+    public var finderCenterShape: String = "inherit"
+
+    public var finderOuterColor: String? = null
+    public var finderCenterColor: String? = null
 }
