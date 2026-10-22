@@ -564,7 +564,7 @@ class IosQrRendererGradientTest {
                         outerShape = QrFinderPatternLayerShape.RoundedSquare,
                         centerShape = QrFinderPatternLayerShape.Circle,
                         outerColor = QrColor.fromHex("#123C66"),
-                        centerColor = QrColor.fromHex("#087E8B"),
+                        centerColor = QrColor.fromHex("#0F4C5C"),
                     ),
                     logo = QrLogoOptions(
                         sizeFraction = 0.16,
