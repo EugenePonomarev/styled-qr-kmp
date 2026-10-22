@@ -45,6 +45,25 @@ final class StyledQrSwiftChecksTests: XCTestCase {
         XCTAssertNil(valid.error)
         XCTAssertNil(renderer.lastRenderError)
         XCTAssertNil(renderer.lastRenderErrorCode)
+
+        options.finderOuterColorHex = "#123C66"
+        options.finderOuterColorAlpha = 128
+
+        let invalidFinder = render(renderer, options)
+
+        XCTAssertNil(invalidFinder.image)
+        XCTAssertFalse(invalidFinder.isSuccess)
+        XCTAssertEqual(invalidFinder.error?.code, .invalidstyle)
+        XCTAssertEqual(renderer.lastRenderErrorCode, .invalidstyle)
+
+        options.finderOuterColorAlpha = 255
+
+        let recoveredFinder = render(renderer, options)
+
+        XCTAssertNotNil(recoveredFinder.image)
+        XCTAssertTrue(recoveredFinder.isSuccess)
+        XCTAssertNil(recoveredFinder.error)
+        XCTAssertNil(renderer.lastRenderErrorCode)
     }
 
     @MainActor
@@ -188,6 +207,13 @@ final class StyledQrSwiftChecksTests: XCTestCase {
         let options = QrStyleConfiguration()
         options.moduleShape = .roundedsquare
 
+        options.finderOuterShape = .roundedsquare
+        options.finderCenterShape = .circle
+        options.finderOuterColorHex = "#123C66"
+        options.finderOuterColorAlpha = 255
+        options.finderCenterColorHex = "#087E8B"
+        options.finderCenterColorAlpha = 255
+
         let gradient = QrGradientConfiguration()
         gradient.startColorHex = "#075985"
         gradient.endColorHex = "#6D28D9"
@@ -246,7 +272,7 @@ final class StyledQrSwiftChecksTests: XCTestCase {
         try assertVisionReads(
             styledImage,
             expectedPayload: payload,
-            label: "library-gradient"
+            label: "library-gradient-branded-finders"
         )
     }
 
