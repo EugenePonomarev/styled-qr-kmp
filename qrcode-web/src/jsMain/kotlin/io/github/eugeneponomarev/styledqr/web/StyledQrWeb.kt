@@ -99,8 +99,10 @@ public fun generateStyledQrSvgWithLinearGradient(
                     .MatchModuleShape,
             logo = logo?.let {
                 QrLogoOptions(
-                    background =
-                        backgroundColor,
+                    background = backgroundColor,
+                ).withWebOverrides(
+                    logoSizeFraction = options.logoSizeFraction,
+                    logoPaddingFraction = options.logoPaddingFraction,
                 )
             },
             foregroundGradient =
@@ -235,6 +237,8 @@ public fun generateThemedQrSvgWithLogo(
     themeId: String,
     logoDataUri: String,
     errorCorrection: String = "H",
+    logoSizeFraction: Double? = null,
+    logoPaddingFraction: Double? = null,
 ): String {
     require(content.isNotBlank()) { "content must not be blank" }
 
@@ -245,11 +249,16 @@ public fun generateThemedQrSvgWithLogo(
     val theme = QrThemes.get(id)
     val logo = validatedWebLogoDataUri(logoDataUri)
 
+    val logoOptions = theme.createLogoOptions().withWebOverrides(
+        logoSizeFraction = logoSizeFraction,
+        logoPaddingFraction = logoPaddingFraction,
+    )
+
     return QrCodeGenerator.encodeText(
         text = content,
         errorCorrection = errorCorrection.toQrErrorCorrectionLevel(),
     ).toSvg(
-        style = theme.createStyle(logo = theme.createLogoOptions()),
+        style = theme.createStyle(logo = logoOptions),
         logoDataUri = logo,
     )
 }
@@ -270,6 +279,8 @@ public fun generateStyledQrSvgWithLogo(
     finderCenterShape: String = "inherit",
     finderOuterColor: String? = null,
     finderCenterColor: String? = null,
+    logoSizeFraction: Double? = null,
+    logoPaddingFraction: Double? = null,
 ): String {
     require(content.isNotBlank()) { "content must not be blank" }
 
@@ -288,7 +299,12 @@ public fun generateStyledQrSvgWithLogo(
             moduleScale = moduleScale,
             functionPatternStyle = functionPatternStyle.toQrFunctionPatternStyle(),
             finderPatternShape = QrFinderPatternShape.MatchModuleShape,
-            logo = QrLogoOptions(background = backgroundColor),
+            logo = QrLogoOptions(
+                background = backgroundColor,
+            ).withWebOverrides(
+                logoSizeFraction = logoSizeFraction,
+                logoPaddingFraction = logoPaddingFraction,
+            ),
             finderPatternAppearance = QrFinderPatternAppearance(
                 outerShape = finderOuterShape.toQrFinderPatternLayerShape(),
                 centerShape = finderCenterShape.toQrFinderPatternLayerShape(),
@@ -299,6 +315,14 @@ public fun generateStyledQrSvgWithLogo(
         logoDataUri = logo,
     )
 }
+
+private fun QrLogoOptions.withWebOverrides(
+    logoSizeFraction: Double?,
+    logoPaddingFraction: Double?,
+): QrLogoOptions = copy(
+    sizeFraction = logoSizeFraction ?: sizeFraction,
+    paddingFraction = logoPaddingFraction ?: paddingFraction,
+)
 
 private fun validatedWebLogoDataUri(value: String): String {
     val normalized = value.trim()
@@ -337,6 +361,8 @@ public class StyledQrLinearGradientOptions(
     public var errorCorrection: String = "H"
 
     public var logoDataUri: String = ""
+    public var logoSizeFraction: Double? = null
+    public var logoPaddingFraction: Double? = null
 
     public var finderOuterShape: String = "inherit"
     public var finderCenterShape: String = "inherit"
