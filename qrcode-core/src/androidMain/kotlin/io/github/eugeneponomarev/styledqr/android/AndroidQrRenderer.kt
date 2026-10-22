@@ -16,6 +16,9 @@ import io.github.eugeneponomarev.styledqr.render.QrLogoLayout
 import io.github.eugeneponomarev.styledqr.render.QrLogoOptions
 import io.github.eugeneponomarev.styledqr.render.QrModuleShape
 import io.github.eugeneponomarev.styledqr.render.QrStyle
+import io.github.eugeneponomarev.styledqr.render.QrRasterRenderOptions
+import io.github.eugeneponomarev.styledqr.render.calculateQrRasterGeometry
+import io.github.eugeneponomarev.styledqr.render.qrImageTotalModules
 import io.github.eugeneponomarev.styledqr.render.ResolvedQrFinderPatternAppearance
 import io.github.eugeneponomarev.styledqr.render.calculateLogoLayout
 import io.github.eugeneponomarev.styledqr.render.calculateRasterModuleLayout
@@ -24,7 +27,7 @@ import io.github.eugeneponomarev.styledqr.render.isFinderPatternCore
 import io.github.eugeneponomarev.styledqr.render.resolvedFinderPatternAppearance
 import io.github.eugeneponomarev.styledqr.render.shouldPreserveAsSquare
 
-/** Renders a [QrCode] to an Android [Bitmap] using only the Android graphics API. */
+/** Renders a [QrCode] to an Android [Bitmap] using the historical integer grid. */
 public fun QrCode.toBitmap(
     sizePx: Int,
     style: QrStyle = QrStyle(),
@@ -35,8 +38,51 @@ public fun QrCode.toBitmap(
         sizePx = sizePx,
         totalModules = totalModules,
     )
-    val moduleSize = rasterLayout.moduleSizePx.toFloat()
-    val offset = rasterLayout.offsetPx.toFloat()
+
+    return renderBitmap(
+        sizePx = sizePx,
+        style = style,
+        logo = logo,
+        moduleSize = rasterLayout.moduleSizePx.toFloat(),
+        offset = rasterLayout.offsetPx.toFloat(),
+    )
+}
+
+/**
+ * Renders a QR image with explicit physical pixel size and module geometry.
+ *
+ * Output parameters are separate from [style]. Invalid output dimensions throw
+ * an IllegalArgumentException; safe high-level APIs can expose its error category.
+ */
+public fun QrCode.toBitmapWithOptions(
+    options: QrRasterRenderOptions,
+    style: QrStyle = QrStyle(),
+    logo: Bitmap? = null,
+): Bitmap {
+    val geometry = calculateQrRasterGeometry(
+        options = options,
+        totalModules = qrImageTotalModules(
+            matrixSize = size,
+            quietZoneModules = style.quietZoneModules,
+        ),
+    )
+
+    return renderBitmap(
+        sizePx = geometry.sizePx,
+        style = style,
+        logo = logo,
+        moduleSize = geometry.moduleSizePx.toFloat(),
+        offset = geometry.offsetPx.toFloat(),
+    )
+}
+
+private fun QrCode.renderBitmap(
+    sizePx: Int,
+    style: QrStyle,
+    logo: Bitmap?,
+    moduleSize: Float,
+    offset: Float,
+): Bitmap {
     val logoOptions = if (logo == null) null else style.logo ?: QrLogoOptions()
     val logoLayout = logoOptions?.let { calculateLogoLayout(it) }
     val logoBackgroundPath = logoLayout?.let { layout ->

@@ -240,6 +240,21 @@ public final class io/github/eugeneponomarev/styledqr/render/QrModuleShape : jav
 	public static fun values ()[Lio/github/eugeneponomarev/styledqr/render/QrModuleShape;
 }
 
+public final class io/github/eugeneponomarev/styledqr/render/QrRasterRenderOptions {
+	public fun <init> (ILio/github/eugeneponomarev/styledqr/render/QrRasterSizeMode;)V
+	public synthetic fun <init> (ILio/github/eugeneponomarev/styledqr/render/QrRasterSizeMode;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getSizeMode ()Lio/github/eugeneponomarev/styledqr/render/QrRasterSizeMode;
+	public final fun getSizePx ()I
+}
+
+public final class io/github/eugeneponomarev/styledqr/render/QrRasterSizeMode : java/lang/Enum {
+	public static final field Fit Lio/github/eugeneponomarev/styledqr/render/QrRasterSizeMode;
+	public static final field IntegerModules Lio/github/eugeneponomarev/styledqr/render/QrRasterSizeMode;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/eugeneponomarev/styledqr/render/QrRasterSizeMode;
+	public static fun values ()[Lio/github/eugeneponomarev/styledqr/render/QrRasterSizeMode;
+}
+
 public final class io/github/eugeneponomarev/styledqr/render/QrRenderError {
 	public final fun getCode ()Lio/github/eugeneponomarev/styledqr/render/QrRenderErrorCode;
 	public final fun getMessage ()Ljava/lang/String;

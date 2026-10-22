@@ -17,6 +17,7 @@ import io.github.eugeneponomarev.styledqr.render.QrFinderPatternLayerShape
 import io.github.eugeneponomarev.styledqr.render.QrFunctionPatternStyle
 import io.github.eugeneponomarev.styledqr.render.QrGradientPoint
 import io.github.eugeneponomarev.styledqr.render.QrLinearGradient
+import io.github.eugeneponomarev.styledqr.render.QrLogoBackgroundShape
 import io.github.eugeneponomarev.styledqr.render.QrLogoOptions
 import io.github.eugeneponomarev.styledqr.render.QrModuleShape
 import io.github.eugeneponomarev.styledqr.render.QrStyle
@@ -272,6 +273,27 @@ public class StyledQrView @JvmOverloads constructor(
                         R.styleable.StyledQrView_qrLogoPaddingFraction,
                         DEFAULT_LOGO_OPTIONS.paddingFraction,
                     ),
+                    background = attributes.optionalQrColor(
+                        R.styleable.StyledQrView_qrLogoBackgroundColor,
+                    ) ?: DEFAULT_LOGO_OPTIONS.background,
+                    backgroundShape = if (
+                        attributes.hasValue(
+                            R.styleable.StyledQrView_qrLogoBackgroundShape,
+                        )
+                    ) {
+                        logoBackgroundShapeFrom(
+                            attributes.getInt(
+                                R.styleable.StyledQrView_qrLogoBackgroundShape,
+                                0,
+                            ),
+                        )
+                    } else {
+                        DEFAULT_LOGO_OPTIONS.backgroundShape
+                    },
+                    cornerRadiusFraction = attributes.getDoubleOrDefault(
+                        R.styleable.StyledQrView_qrLogoCornerRadiusFraction,
+                        DEFAULT_LOGO_OPTIONS.cornerRadiusFraction,
+                    ),
                 )
             }
 
@@ -323,6 +345,16 @@ public class StyledQrView @JvmOverloads constructor(
     }
 
     private fun defaultSizePx(): Int = (DEFAULT_SIZE_DP * resources.displayMetrics.density).toInt()
+
+    private fun logoBackgroundShapeFrom(value: Int): QrLogoBackgroundShape =
+        when (value) {
+            0 -> QrLogoBackgroundShape.Square
+            1 -> QrLogoBackgroundShape.RoundedSquare
+            2 -> QrLogoBackgroundShape.Circle
+            else -> throw IllegalArgumentException(
+                "Unknown logo background shape: $value",
+            )
+        }
 
     private companion object {
         const val DEFAULT_SIZE_DP: Int = 240

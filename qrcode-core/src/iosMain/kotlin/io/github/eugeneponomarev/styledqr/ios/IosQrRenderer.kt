@@ -10,17 +10,20 @@ import io.github.eugeneponomarev.styledqr.render.QrLogoBackgroundShape
 import io.github.eugeneponomarev.styledqr.render.QrLogoLayout
 import io.github.eugeneponomarev.styledqr.render.QrLogoOptions
 import io.github.eugeneponomarev.styledqr.render.QrModuleShape
+import io.github.eugeneponomarev.styledqr.render.QrRasterRenderOptions
 import io.github.eugeneponomarev.styledqr.render.QrRenderErrorCode
 import io.github.eugeneponomarev.styledqr.render.QrRenderException
 import io.github.eugeneponomarev.styledqr.render.QrStyle
 import io.github.eugeneponomarev.styledqr.render.ResolvedQrFinderPatternAppearance
 import io.github.eugeneponomarev.styledqr.render.ResolvedQrFinderPatternLayer
 import io.github.eugeneponomarev.styledqr.render.calculateLogoLayout
+import io.github.eugeneponomarev.styledqr.render.calculateQrRasterGeometry
 import io.github.eugeneponomarev.styledqr.render.finderPatternTopLefts
 import io.github.eugeneponomarev.styledqr.render.isFinderPatternCore
 import io.github.eugeneponomarev.styledqr.render.qrImageTotalModules
 import io.github.eugeneponomarev.styledqr.render.resolvedFinderPatternAppearance
 import io.github.eugeneponomarev.styledqr.render.shouldPreserveAsSquare
+import io.github.eugeneponomarev.styledqr.render.toPointGeometry
 import io.github.eugeneponomarev.styledqr.render.validateQrImagePixelSide
 import io.github.eugeneponomarev.styledqr.render.validateQrImageRenderArguments
 import kotlinx.cinterop.cValuesOf
@@ -32,6 +35,7 @@ import platform.CoreGraphics.CGContextDrawLinearGradient
 import platform.CoreGraphics.CGContextEOClip
 import platform.CoreGraphics.CGContextRestoreGState
 import platform.CoreGraphics.CGContextSaveGState
+import platform.CoreGraphics.CGContextTranslateCTM
 import platform.CoreGraphics.CGGradientCreateWithColorComponents
 import platform.CoreGraphics.CGGradientRelease
 import platform.CoreGraphics.CGPointMake
@@ -49,14 +53,13 @@ import platform.UIKit.UIGraphicsGetImageFromCurrentImageContext
 import platform.UIKit.UIImage
 import platform.UIKit.UIScreen
 
-/** Renders a [QrCode] to a native iOS [UIImage] using UIKit. */
+/** Renders a [QrCode] using the historical point-based geometry. */
 public fun QrCode.toUIImage(
     sizePoints: Double,
     style: QrStyle = QrStyle(),
     scale: Double = 0.0,
     logo: UIImage? = null,
 ): UIImage {
-
     validateQrImageRenderArguments(sizePoints, scale)
 
     val totalModules = qrImageTotalModules(size, style.quietZoneModules)
@@ -70,7 +73,71 @@ public fun QrCode.toUIImage(
     val effectiveScale = if (scale == 0.0) UIScreen.mainScreen.scale else scale
     validateQrImagePixelSide(sizePoints, effectiveScale)
 
-    val moduleSize = sizePoints / totalModules
+    return renderUIImage(
+        sizePoints = sizePoints,
+        style = style,
+        scale = scale,
+        logo = logo,
+        moduleSize = sizePoints / totalModules,
+        offset = 0.0,
+    )
+}
+
+/**
+ * Renders an image with an explicitly requested physical pixel side.
+ *
+ * Scale controls the UIImage's point size. Zero resolves to the screen scale.
+ * It does not multiply the requested pixel side.
+ */
+public fun QrCode.toUIImageWithOptions(
+    options: QrRasterRenderOptions,
+    style: QrStyle = QrStyle(),
+    scale: Double = 0.0,
+    logo: UIImage? = null,
+): UIImage {
+    validateQrImageRenderArguments(options.sizePx.toDouble(), scale)
+
+    val pixels = calculateQrRasterGeometry(
+        options = options,
+        totalModules = qrImageTotalModules(size, style.quietZoneModules),
+    )
+    val effectiveScale = if (scale == 0.0) UIScreen.mainScreen.scale else scale
+    val points = pixels.toPointGeometry(effectiveScale)
+
+    val image = renderUIImage(
+        sizePoints = points.sizePoints,
+        style = style,
+        scale = effectiveScale,
+        logo = logo,
+        moduleSize = points.moduleSizePoints,
+        offset = points.offsetPoints,
+    )
+
+    val cgImage = image.CGImage
+    if (
+        cgImage == null ||
+        platform.CoreGraphics.CGImageGetWidth(cgImage).toLong() !=
+        options.sizePx.toLong() ||
+        platform.CoreGraphics.CGImageGetHeight(cgImage).toLong() !=
+        options.sizePx.toLong()
+    ) {
+        throw QrRenderException(
+            QrRenderErrorCode.RenderFailed,
+            "UIKit did not produce the requested ${options.sizePx}px image side",
+        )
+    }
+
+    return image
+}
+
+private fun QrCode.renderUIImage(
+    sizePoints: Double,
+    style: QrStyle,
+    scale: Double,
+    logo: UIImage?,
+    moduleSize: Double,
+    offset: Double,
+): UIImage {
     val logoOptions = if (logo == null) null else style.logo ?: QrLogoOptions()
 
     val logoLayout = logoOptions?.let {
@@ -92,6 +159,13 @@ public fun QrCode.toUIImage(
         val context = requireNotNull(UIGraphicsGetCurrentContext()) {
             "Unable to get the QR graphics context"
         }
+
+        // The background has already filled the entire image.
+        // Translate all QR drawing, including gradients and the logo, together.
+        if (offset != 0.0) {
+            CGContextTranslateCTM(context, offset, offset)
+        }
+
         CGContextSaveGState(context)
         try {
             if (logoLayout != null) {
