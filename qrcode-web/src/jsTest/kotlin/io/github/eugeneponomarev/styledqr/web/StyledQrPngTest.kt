@@ -129,6 +129,58 @@ class StyledQrPngTest {
             assertEquals("InvalidRenderParameters", result.error?.code)
         }
 
+    @Test
+    fun exportGeometryErrorsPrecedeLogoErrorsThroughTheSharedSvgPath(): Promise<Unit> {
+        val checks = listOf("integer-modules", "fit").flatMap { mode ->
+            val cases = listOf<Triple<Int, String?, String>>(
+                Triple(28, rectangularLogo, "InvalidRenderParameters"),
+                Triple(300, rectangularLogo, "LogoValidationFailed"),
+                Triple(28, null, "InvalidRenderParameters"),
+                Triple(28, "invalid", "InvalidRenderParameters"),
+            )
+
+            cases.map { (sizePx, uri, expectedCode) ->
+                val options = StyledQrOptions().apply {
+                    errorCorrection = "H"
+                    minVersion = 1
+                    maxVersion = 1
+                    quietZoneModules = 4
+                    logoDataUri = uri
+                }
+
+                renderStyledQrPng(
+                    content = "hi",
+                    output = StyledQrExportOptions(sizePx, mode),
+                    options = options,
+                ).then<Unit> { result ->
+                    assertFalse(result.isSuccess)
+                    assertFalse(result.isEmpty)
+                    assertEquals(null, result.dataUri)
+                    val error = assertNotNull(result.error)
+                    assertEquals(expectedCode, error.code, "$mode, $sizePx px")
+                    assertTrue(error.message.isNotBlank())
+                }
+            }
+        }
+
+        return Promise.all(checks.toTypedArray()).then<Unit> { Unit }
+    }
+
+    @Test
+    fun blankExportStillSkipsMatrixDependentGeometryAndLogoChecks(): Promise<Unit> =
+        renderStyledQrPng(
+            content = " \n\t",
+            output = StyledQrExportOptions(28),
+            options = versionOneOptions().apply {
+                logoDataUri = rectangularLogo
+            },
+        ).then<Unit> { result ->
+            assertTrue(result.isEmpty)
+            assertFalse(result.isSuccess)
+            assertEquals(null, result.dataUri)
+            assertEquals(null, result.error)
+        }
+
     private fun checkFinderBorder(
         sizePx: Int,
         matrixStart: Int,
