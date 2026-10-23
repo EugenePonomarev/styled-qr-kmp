@@ -125,13 +125,29 @@ internal fun renderPreparedStyledQrSvg(
         )
     }
 
-    webSvgStep(QrRenderErrorCode.InvalidRenderParameters) {
-        val totalModules =
-            code.size.toLong() + request.style.quietZoneModules.toLong() * 2L
-
-        require(totalModules in 1..Int.MAX_VALUE.toLong()) {
-            "QR SVG module count is outside the supported integer range"
+    val svgWithoutLogo = if (output != null) {
+        webSvgStep(QrRenderErrorCode.InvalidRenderParameters) {
+            // The common renderer uses qrImageTotalModules and
+            // calculateQrRasterGeometry before considering any logo.
+            // These helpers are internal to qrcode-core; use its public
+            // rendering path instead of duplicating their calculations.
+            SvgQrRenderer.renderWithRasterOptions(
+                qrCode = code,
+                options = output,
+                style = request.style,
+            )
         }
+    } else {
+        // Preserve the unsized SVG validation and its existing diagnostics.
+        webSvgStep(QrRenderErrorCode.InvalidRenderParameters) {
+            val totalModules =
+                code.size.toLong() + request.style.quietZoneModules.toLong() * 2L
+
+            require(totalModules in 1..Int.MAX_VALUE.toLong()) {
+                "QR SVG module count is outside the supported integer range"
+            }
+        }
+        null
     }
 
     val logo = webSvgStep(QrRenderErrorCode.LogoValidationFailed) {
@@ -150,6 +166,8 @@ internal fun renderPreparedStyledQrSvg(
 
     return if (output == null) {
         code.toSvg(request.style, logo)
+    } else if (logo == null) {
+        requireNotNull(svgWithoutLogo)
     } else {
         webSvgStep(QrRenderErrorCode.InvalidRenderParameters) {
             SvgQrRenderer.renderWithRasterOptions(
