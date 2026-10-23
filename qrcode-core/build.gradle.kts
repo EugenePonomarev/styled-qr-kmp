@@ -46,8 +46,12 @@ kotlin {
     }
 
     sourceSets {
-        commonTest.dependencies {
-            implementation(kotlin("test"))
+        commonTest {
+            kotlin.srcDir(rootProject.file("tests/fixtures/kotlin"))
+
+            dependencies {
+                implementation(kotlin("test"))
+            }
         }
 
         androidUnitTest.dependencies {
