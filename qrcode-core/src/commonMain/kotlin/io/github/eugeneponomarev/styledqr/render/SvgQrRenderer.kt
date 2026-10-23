@@ -12,9 +12,48 @@ public object SvgQrRenderer {
         qrCode: QrCode,
         style: QrStyle = QrStyle(),
         logoDataUri: String? = null,
+    ): String = renderSvg(
+        qrCode = qrCode,
+        style = style,
+        logoDataUri = logoDataUri,
+        geometry = null,
+    )
+
+    /**
+     * Renders an SVG with an explicit output side measured in physical pixels.
+     *
+     * The requested geometry applies when rasterizing at that size.
+     * Subsequent CSS scaling can change pixel alignment.
+     */
+    public fun renderWithRasterOptions(
+        qrCode: QrCode,
+        options: QrRasterRenderOptions,
+        style: QrStyle = QrStyle(),
+        logoDataUri: String? = null,
+    ): String {
+        val totalModules = qrImageTotalModules(
+            matrixSize = qrCode.size,
+            quietZoneModules = style.quietZoneModules,
+        )
+        val geometry = calculateQrRasterGeometry(options, totalModules)
+
+        return renderSvg(
+            qrCode = qrCode,
+            style = style,
+            logoDataUri = logoDataUri,
+            geometry = geometry,
+        )
+    }
+
+    private fun renderSvg(
+        qrCode: QrCode,
+        style: QrStyle,
+        logoDataUri: String?,
+        geometry: QrRasterGeometry?,
     ): String {
         val quietZone = style.quietZoneModules
-        val canvasSize = qrCode.size + quietZone * 2
+        val canvasSize = geometry?.totalModules
+            ?: (qrCode.size + quietZone * 2)
 
         val gradient = style.foregroundGradient
         val gradientId = gradient?.svgGradientId(
@@ -40,10 +79,22 @@ public object SvgQrRenderer {
 
         return buildString {
             val squareModulesPath = StringBuilder()
-            append("<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 ")
-            append(canvasSize)
+            val outputSize = geometry?.sizePx ?: canvasSize
+
+            append("<svg xmlns=\"http://www.w3.org/2000/svg\" ")
+
+            if (geometry != null) {
+                append("width=\"")
+                append(outputSize)
+                append("\" height=\"")
+                append(outputSize)
+                append("\" ")
+            }
+
+            append("viewBox=\"0 0 ")
+            append(outputSize)
             append(' ')
-            append(canvasSize)
+            append(outputSize)
             append("\" role=\"img\" aria-label=\"QR code\">")
             gradient?.let { value ->
                 val id = requireNotNull(gradientId)
@@ -65,12 +116,22 @@ public object SvgQrRenderer {
                 append("</linearGradient></defs>")
             }
             append("<rect width=\"")
-            append(canvasSize)
+            append(outputSize)
             append("\" height=\"")
-            append(canvasSize)
+            append(outputSize)
             append("\" fill=\"")
             append(style.background.toCss())
             append("\"/>")
+
+            if (geometry != null) {
+                append("<g transform=\"translate(")
+                append(geometry.offsetPx)
+                append(' ')
+                append(geometry.offsetPx)
+                append(") scale(")
+                append(geometry.moduleSizePx)
+                append(")\">")
+            }
 
             if (logoLayout != null && logoClipId != null) {
                 val logoPath = logoShapePath(
@@ -145,6 +206,10 @@ public object SvgQrRenderer {
                     dataUri = logoDataUri,
                     clipId = requireNotNull(logoClipId),
                 )
+            }
+
+            if (geometry != null) {
+                append("</g>")
             }
 
             append("</svg>")

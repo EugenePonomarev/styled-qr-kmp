@@ -5,6 +5,19 @@ public final class io/github/eugeneponomarev/styledqr/android/AndroidQrRendererK
 	public static synthetic fun toBitmapWithOptions$default (Lio/github/eugeneponomarev/styledqr/core/QrCode;Lio/github/eugeneponomarev/styledqr/render/QrRasterRenderOptions;Lio/github/eugeneponomarev/styledqr/render/QrStyle;Landroid/graphics/Bitmap;ILjava/lang/Object;)Landroid/graphics/Bitmap;
 }
 
+public final class io/github/eugeneponomarev/styledqr/android/QrBitmapRenderResult {
+	public final fun getBitmap ()Landroid/graphics/Bitmap;
+	public final fun getError ()Lio/github/eugeneponomarev/styledqr/render/QrRenderError;
+	public final fun isEmpty ()Z
+	public final fun isSuccess ()Z
+}
+
+public final class io/github/eugeneponomarev/styledqr/android/StyledQrBitmapRenderer {
+	public fun <init> ()V
+	public final fun renderWithOptions (Ljava/lang/String;Lio/github/eugeneponomarev/styledqr/render/QrStyleConfiguration;Lio/github/eugeneponomarev/styledqr/render/QrRasterRenderOptions;Lio/github/eugeneponomarev/styledqr/core/QrErrorCorrectionLevel;Landroid/graphics/Bitmap;II)Lio/github/eugeneponomarev/styledqr/android/QrBitmapRenderResult;
+	public static synthetic fun renderWithOptions$default (Lio/github/eugeneponomarev/styledqr/android/StyledQrBitmapRenderer;Ljava/lang/String;Lio/github/eugeneponomarev/styledqr/render/QrStyleConfiguration;Lio/github/eugeneponomarev/styledqr/render/QrRasterRenderOptions;Lio/github/eugeneponomarev/styledqr/core/QrErrorCorrectionLevel;Landroid/graphics/Bitmap;IIILjava/lang/Object;)Lio/github/eugeneponomarev/styledqr/android/QrBitmapRenderResult;
+}
+
 public final class io/github/eugeneponomarev/styledqr/core/QrCode {
 	public final fun copyModules ()[[Z
 	public final fun get (II)Z
@@ -371,6 +384,8 @@ public final class io/github/eugeneponomarev/styledqr/render/SvgQrRenderer {
 	public static final field INSTANCE Lio/github/eugeneponomarev/styledqr/render/SvgQrRenderer;
 	public final fun render (Lio/github/eugeneponomarev/styledqr/core/QrCode;Lio/github/eugeneponomarev/styledqr/render/QrStyle;Ljava/lang/String;)Ljava/lang/String;
 	public static synthetic fun render$default (Lio/github/eugeneponomarev/styledqr/render/SvgQrRenderer;Lio/github/eugeneponomarev/styledqr/core/QrCode;Lio/github/eugeneponomarev/styledqr/render/QrStyle;Ljava/lang/String;ILjava/lang/Object;)Ljava/lang/String;
+	public final fun renderWithRasterOptions (Lio/github/eugeneponomarev/styledqr/core/QrCode;Lio/github/eugeneponomarev/styledqr/render/QrRasterRenderOptions;Lio/github/eugeneponomarev/styledqr/render/QrStyle;Ljava/lang/String;)Ljava/lang/String;
+	public static synthetic fun renderWithRasterOptions$default (Lio/github/eugeneponomarev/styledqr/render/SvgQrRenderer;Lio/github/eugeneponomarev/styledqr/core/QrCode;Lio/github/eugeneponomarev/styledqr/render/QrRasterRenderOptions;Lio/github/eugeneponomarev/styledqr/render/QrStyle;Ljava/lang/String;ILjava/lang/Object;)Ljava/lang/String;
 }
 
 public final class io/github/eugeneponomarev/styledqr/render/SvgQrRendererKt {

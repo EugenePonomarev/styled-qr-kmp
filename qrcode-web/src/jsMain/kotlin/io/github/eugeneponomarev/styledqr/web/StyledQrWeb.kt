@@ -324,7 +324,7 @@ private fun QrLogoOptions.withWebOverrides(
     paddingFraction = logoPaddingFraction ?: paddingFraction,
 )
 
-private fun validatedWebLogoDataUri(value: String): String {
+internal fun validatedWebLogoDataUri(value: String): String {
     val normalized = value.trim()
     val payloadLength = normalized.length - normalized.indexOf(',') - 1
 
