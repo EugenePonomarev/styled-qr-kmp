@@ -278,6 +278,9 @@ StyledQrCodeView(
 ### Web / npm
 
 The browser adapter is available as an ES module on npm:
+For the unreleased options-based API, theme overrides, safe results and explicit
+PNG/SVG export dimensions, see
+[Consistent output across platforms](#consistent-output-across-platforms).
 
 ```bash
 npm install styled-qr-kmp-web
@@ -365,8 +368,9 @@ when they overlap mandatory QR patterns or exceed the correction budget.
 
 Safe Linear Gradients are introduced in version 0.3.0.
 
-`QrStyle.foregroundGradient` fills dark modules and both dark finder layers with one
-global gradient. `foreground` remains the solid fallback when the gradient is absent.
+`QrStyle.foregroundGradient` fills dark modules and finder layers without an
+explicit solid colour override with one global gradient. `foreground` remains
+the solid fallback when the gradient is absent.
 
 Coordinates range from `(0, 0)` at the top left of the QR matrix to `(1, 1)` at
 the bottom right, excluding the quiet zone. The background, quiet zone, finder
@@ -455,12 +459,14 @@ devices before release.
 
 ### Swift compatibility
 
-Kotlin/Native exports `QrStyle` as a Swift initializer containing its constructor
-properties. Version 0.3.0 adds `foregroundGradient`, so Swift code that constructs
-`QrStyle` directly must pass either a `QrLinearGradient` or `nil` for that argument.
+Kotlin/Native exports the `QrStyle` constructor to Swift. Swift callers
+constructing `QrStyle` directly must supply all arguments in the generated
+initializer, including `foregroundGradient` and `finderPatternAppearance`.
 
-Kotlin callers remain source-compatible because `foregroundGradient` defaults to
-`null`.
+For configurable input, prefer `QrStyleConfiguration` and a safe render method.
+Configuration assignments defer validation until building or rendering.
+
+Kotlin callers can omit these constructor arguments because they have defaults.
 
 ## Quick start
 
@@ -576,16 +582,545 @@ The current encoder intentionally starts with UTF-8 Byte mode. It creates fully 
 but does not yet optimise a mixed numeric/alphanumeric payload into the smallest possible version.
 That optimisation can be added in a later iteration without changing the public rendering API.
 
+## Consistent output across platforms
+
+The options-based APIs in this section are unreleased. Before publication,
+consume artifacts built from this branch, including the locally packed npm
+archive.
+
+The shared `QrStyle`, `QrLogoOptions`, `QrStyleConfiguration`, encoder and
+validation rules define the visual contract. Use the same payload, explicit
+encoding parameters, visual settings and output geometry to request equivalent
+results on Android, iOS and Web.
+
+Bitmap, UIImage and rasterized SVG output can differ in antialiasing.
+Binary equality of platform image files is not part of this contract.
+
+### Defaults and compatibility
+
+Existing entry points retain their signatures, defaults and historical
+behaviour:
+
+- Android's existing bitmap renderer keeps its centred integer module grid.
+- Existing point-based iOS entry points keep their sizing behaviour.
+- Existing Web SVG functions remain available.
+- Historical custom Web logo helpers retain their QR-coloured logo backing.
+
+For the new Web options API, settings are applied in this order:
+
+1. Shared base defaults.
+2. The selected built-in theme.
+3. Explicit overrides.
+
+Create options with the exported classes. An absent nullable override, including
+`null` or `undefined`, retains the inherited value.
+
+When a logo image is supplied:
+
+- Without a theme, logo defaults come from `QrLogoOptions()`.
+- With a theme, defaults come from that theme's `createLogoOptions()`.
+- Explicit logo fields override those defaults.
+
+The base logo defaults are:
+
+| Property | Default |
+| --- | --- |
+| Size fraction | `0.18` |
+| Padding fraction | `0.04` |
+| Background | Opaque white |
+| Background shape | Rounded square |
+| Corner radius fraction | `0.18` |
+
+The logo background is independent of the QR background. This matters on
+coloured QR backgrounds.
+
+Native callers using a theme should pass its logo options explicitly to obtain
+the same themed defaults:
+
+```kotlin
+val theme = QrThemes.Fintech
+val configuration = QrStyleConfiguration.fromStyle(
+    theme.createStyle(logo = theme.createLogoOptions()),
+)
+```
+
+A supplied native logo image without `style.logo` retains the historical
+`QrLogoOptions()` fallback.
+
+### Finder inheritance and overrides
+
+Finder patterns remain composed 7:5:3 eyes.
+
+- `finderPatternShape = MatchModuleShape` uses the selected module shape.
+- An outer or centre layer with shape `Inherit` uses `finderPatternShape`.
+- The centre layer inherits from `finderPatternShape`, independently of an
+  explicit outer-layer shape.
+- The middle layer follows the outer-layer shape and uses the QR background.
+- A missing finder colour uses the foreground gradient, when present, or the
+  solid foreground.
+- An explicit finder colour replaces the gradient for that layer.
+
+`functionPatternStyle` controls non-finder function modules. It does not replace
+the finder-layer settings. An explicit `functionPatternStyle` takes precedence
+over the legacy `preserveFunctionPatterns` shorthand.
+
+Web `finderPatternShape` accepts `match-module-shape`, `square`,
+`rounded-square`, `circle` and `diamond`.
+
+`finderOuterShape` and `finderCenterShape` accept `inherit`, `square`,
+`rounded-square`, `circle` and `diamond`.
+
+To remove an inherited Web setting, use:
+
+```typescript
+options.clearForegroundGradient = true;
+options.clearFinderOuterColor = true;
+options.clearFinderCenterColor = true;
+```
+
+Do not combine a clear flag with a replacement override for the same setting.
+Such conflicting settings return `InvalidStyle` through the safe API.
+
+Leave `logoDataUri` absent to render without a logo image. Themes provide logo
+styling defaults, not image data.
+
+### Colours and validation
+
+Configuration hex colours use six-digit RGB values such as `#123C66`.
+Supply alpha separately through the corresponding alpha property, in `0..255`.
+
+Transparency is supported wherever the shared model permits it. Gradients and
+explicit finder colours require opaque colours and an opaque QR background,
+with the existing dark-on-light and minimum `4.5:1` contrast validation.
+
+Logo size, padding, shape and radius use the shared validation rules. Placement
+also checks mandatory QR patterns and the correction budget of each affected
+Reed–Solomon block.
+
+Mutable configuration objects defer style validation to `build()` or a safe
+render method. Direct `QrStyle` construction retains eager validation.
+
+### Explicit output geometry
+
+Output dimensions are separate from visual styling.
+
+Native renderers accept `QrRasterRenderOptions`; Web export accepts
+`StyledQrExportOptions`.
+
+| Mode | Native value | Web value | Geometry |
+| --- | --- | --- | --- |
+| Integer grid | `IntegerModules` | `integer-modules` | Whole physical pixels per module; centred grid |
+| Fit | `Fit` | `fit` | Fills the output side using fractional module sizes |
+
+New output-options APIs default to the integer grid. Both modes require at
+least one physical pixel per module, including the quiet zone. Insufficient
+dimensions are rejected rather than enlarged.
+
+For version 1, a 21×21 matrix, quiet zone 4 and output side 300 px:
+
+- Total grid: 29×29 modules.
+- Integer mode: 10 px per module.
+- Additional outer offset: 5 px.
+- Matrix origin: 45 px from the top and left.
+
+When the remaining space is odd, the extra pixel goes to the right and bottom.
+
+On iOS, `sizePx` is the physical pixel side. The UIImage side in points is
+`sizePx / effectiveScale`. A scale of `0` selects the screen scale.
+
+| Requested pixels | Scale | UIImage side in points |
+| --- | --- | --- |
+| 300 | 1 | 300 |
+| 300 | 2 | 150 |
+| 300 | 3 | 100 |
+
+Web PNG export creates a Canvas bitmap of exactly the requested dimensions.
+Sized SVG establishes the same geometry when rasterized at that pixel side.
+Subsequent CSS scaling or browser zoom can change pixel alignment.
+
+### Equivalent Android, Swift and TypeScript examples
+
+These examples request the same version-4 matrix and visual settings, with
+410×410 physical output pixels. Supply the same decoded logo image on each
+platform. The logo may be rectangular; renderers preserve its aspect ratio,
+centre-crop it and clip it to the selected shape.
+
+Android:
+
+```kotlin
+fun renderParityQr(
+    logoBitmap: android.graphics.Bitmap,
+): io.github.eugeneponomarev.styledqr.android.QrBitmapRenderResult {
+    val options = QrStyleConfiguration().apply {
+        backgroundHex = "#FFF0CC"
+        quietZoneModules = 4
+        moduleShape = QrModuleShape.RoundedSquare
+        moduleScale = 0.84
+        roundedModuleRadiusFraction = 0.22
+        functionPatternStyle = QrFunctionPatternStyle.MatchDataModules
+
+        finderOuterShape = QrFinderPatternLayerShape.Circle
+        finderCenterShape = QrFinderPatternLayerShape.Diamond
+        finderOuterColorHex = "#123C66"
+        finderCenterColorHex = "#0F4C5C"
+
+        foregroundGradient = QrGradientConfiguration().apply {
+            startColorHex = "#075985"
+            endColorHex = "#6D28D9"
+        }
+
+        logo = QrLogoConfiguration().apply {
+            sizeFraction = 0.18
+            paddingFraction = 0.04
+            backgroundHex = "#DDEEFF"
+            backgroundShape = QrLogoBackgroundShape.RoundedSquare
+            cornerRadiusFraction = 0.22
+        }
+    }
+
+    return StyledQrBitmapRenderer().renderWithOptions(
+        content = "x",
+        options = options,
+        output = QrRasterRenderOptions(
+            sizePx = 410,
+            sizeMode = QrRasterSizeMode.IntegerModules,
+        ),
+        errorCorrection = QrErrorCorrectionLevel.H,
+        logo = logoBitmap,
+        minVersion = 4,
+        maxVersion = 4,
+    )
+}
+```
+
+The renderer and result are in
+`io.github.eugeneponomarev.styledqr.android`, encoding types are in `.core`,
+and style/output types are in `.render`.
+
+Swift:
+
+```swift
+import UIKit
+import StyledQrKmp
+
+@MainActor
+func renderParityQr(logoImage: UIImage) -> QrImageRenderResult {
+    let options = QrStyleConfiguration()
+    options.backgroundHex = "#FFF0CC"
+    options.quietZoneModules = 4
+    options.moduleShape = .roundedsquare
+    options.moduleScale = 0.84
+    options.roundedModuleRadiusFraction = 0.22
+    options.functionPatternStyle = .matchdatamodules
+
+    options.finderOuterShape = .circle
+    options.finderCenterShape = .diamond
+    options.finderOuterColorHex = "#123C66"
+    options.finderCenterColorHex = "#0F4C5C"
+
+    let gradient = QrGradientConfiguration()
+    gradient.startColorHex = "#075985"
+    gradient.endColorHex = "#6D28D9"
+    options.foregroundGradient = gradient
+
+    let logoOptions = QrLogoConfiguration()
+    logoOptions.sizeFraction = 0.18
+    logoOptions.paddingFraction = 0.04
+    logoOptions.backgroundHex = "#DDEEFF"
+    logoOptions.backgroundShape = .roundedsquare
+    logoOptions.cornerRadiusFraction = 0.22
+    options.logo = logoOptions
+
+    return StyledQrImageRenderer().renderWithRasterOptions(
+        content: "x",
+        options: options,
+        output: QrRasterRenderOptions(
+            sizePx: 410,
+            sizeMode: .integermodules
+        ),
+        errorCorrection: .h,
+        scale: 3,
+        logo: logoImage,
+        minVersion: 4,
+        maxVersion: 4
+    )
+}
+```
+
+The Swift example requests 410 physical pixels at scale 3, so its UIImage
+logical side is approximately 136.67 points.
+
+TypeScript, in a browser:
+
+```typescript
+import {
+  StyledQrOptions,
+  StyledQrLogoOptions,
+  StyledQrGradientOptions,
+  StyledQrExportOptions,
+  renderStyledQrPng,
+} from "styled-qr-kmp-web";
+import type { StyledQrPngResult } from "styled-qr-kmp-web";
+
+function renderParityQr(
+  logoDataUri: string,
+): Promise<StyledQrPngResult> {
+  const options = new StyledQrOptions();
+  options.errorCorrection = "H";
+  options.minVersion = 4;
+  options.maxVersion = 4;
+  options.backgroundHex = "#FFF0CC";
+  options.quietZoneModules = 4;
+  options.moduleShape = "rounded-square";
+  options.moduleScale = 0.84;
+  options.roundedModuleRadiusFraction = 0.22;
+  options.functionPatternStyle = "match-data-modules";
+
+  options.finderOuterShape = "circle";
+  options.finderCenterShape = "diamond";
+  options.finderOuterColorHex = "#123C66";
+  options.finderCenterColorHex = "#0F4C5C";
+
+  options.foregroundGradient = new StyledQrGradientOptions(
+    "#075985",
+    "#6D28D9",
+  );
+
+  const logo = new StyledQrLogoOptions();
+  logo.sizeFraction = 0.18;
+  logo.paddingFraction = 0.04;
+  logo.backgroundHex = "#DDEEFF";
+  logo.backgroundShape = "rounded-square";
+  logo.cornerRadiusFraction = 0.22;
+  options.logo = logo;
+  options.logoDataUri = logoDataUri;
+
+  return renderStyledQrPng(
+    "x",
+    new StyledQrExportOptions(410, "integer-modules"),
+    options,
+  );
+}
+```
+
+`logoDataUri` must contain a complete base64 PNG, JPEG or WebP image.
+PNG export decodes the image before rendering.
+
+The gradient configuration in all three examples uses its default diagonal
+from `(0, 0)` to `(1, 1)`.
+
+### Web theme composition and SVG output
+
+Select a shared theme, then override individual settings:
+
+```typescript
+import {
+  StyledQrOptions,
+  StyledQrGradientOptions,
+  StyledQrExportOptions,
+  renderStyledQrSvg,
+  renderStyledQrSvgForExport,
+} from "styled-qr-kmp-web";
+
+const options = new StyledQrOptions();
+options.themeId = "fintech";
+options.foregroundGradient = new StyledQrGradientOptions(
+  "#075985",
+  "#6D28D9",
+);
+options.finderOuterShape = "circle";
+options.finderCenterColorHex = "#0F4C5C";
+
+const scalable = renderStyledQrSvg("https://example.com", options);
+const sized = renderStyledQrSvgForExport(
+  "https://example.com",
+  new StyledQrExportOptions(300, "integer-modules"),
+  options,
+);
+```
+
+Themes are resolved through the shared `QrThemes`; their definitions are not
+duplicated in JavaScript.
+
+### Safe results and error handling
+
+| Platform | Safe entry point | Output property |
+| --- | --- | --- |
+| Android | `StyledQrBitmapRenderer.renderWithOptions` | `bitmap` |
+| iOS | `StyledQrImageRenderer.renderWithRasterOptions` | `image` |
+| Web SVG | `renderStyledQrSvg`, `renderStyledQrSvgForExport` | `svg` |
+| Web PNG | `renderStyledQrPng` | `dataUri` |
+
+Each result distinguishes:
+
+- Success: `isSuccess` is true, with output and no error.
+- Empty: `isEmpty` is true, with no output and no error.
+- Failure: both flags are false, with an error containing `code` and `message`.
+
+Valid blank input, including whitespace, returns an empty result from these
+high-level APIs. Style and independent generation/output parameters are
+validated before the blank-input check. Payload-dependent checks, including
+logo placement and image decoding, are skipped for an empty result.
+
+| Error category | Meaning |
+| --- | --- |
+| `InvalidStyle` | Invalid visual configuration, colour, gradient or contrast |
+| `InvalidRenderParameters` | Invalid dimensions, scale, version bounds or generation options |
+| `PayloadTooLong` | Payload does not fit the allowed versions and correction level |
+| `LogoValidationFailed` | Invalid Web logo data, undecodable PNG-export logo or unsafe placement |
+| `RenderFailed` | Other rendering or backend failure |
+
+Native results expose `QrRenderErrorCode`; Web results expose its entry name
+as a string. Swift imports the enum cases using names such as `.invalidstyle`
+and `.payloadtoolong`.
+
+For example, handle a browser PNG result explicitly:
+
+```typescript
+const result = await renderParityQr(logoDataUri);
+
+if (result.error) {
+  console.error(result.error.code, result.error.message);
+} else if (result.isEmpty) {
+  imageElement.removeAttribute("src");
+} else if (result.dataUri != null) {
+  imageElement.src = result.dataUri;
+}
+```
+
+SVG generation validates logo data-URI syntax and shared placement safety.
+The browser decodes embedded images when displaying the SVG. A successful SVG
+result alone does not confirm that embedded image bytes are decodable.
+
+Successful PNG export requires browser Canvas 2D support. Encoding, matrix
+decoding and SVG generation are also usable from Node.js.
+
+### Web binary encoding, matrices and decoding
+
+Low-level encoding accepts empty payloads. Text encoding adds UTF-8 ECI 26;
+binary encoding adds no implicit character-set declaration.
+
+```typescript
+import {
+  StyledQrEncodingOptions,
+  StyledQrExportOptions,
+  encodeStyledQrText,
+  encodeStyledQrBytes,
+  decodeStyledQrMatrix,
+} from "styled-qr-kmp-web";
+
+const encoding = new StyledQrEncodingOptions();
+encoding.errorCorrection = "H";
+encoding.minVersion = 1;
+encoding.maxVersion = 40;
+
+const textMatrix = encodeStyledQrText("Привет", encoding);
+
+const binaryMatrix = encodeStyledQrBytes(
+  Array.from(new Uint8Array([0, 127, 128, 255])),
+  encoding,
+);
+
+const svg = binaryMatrix.toSvg(
+  new StyledQrExportOptions(300),
+);
+
+const decoded = decodeStyledQrMatrix(textMatrix.copyModules());
+
+console.log(decoded.utf8TextOrNull());
+console.log(decoded.copyBytes());
+console.log(decoded.version, decoded.errorCorrection, decoded.mask);
+console.log(decoded.eciAssignment, decoded.correctedErrorCount);
+```
+
+`binaryMatrix.toSvg(output, options)` renders the existing matrix.
+Only visual settings from `options` apply; `errorCorrection`, `minVersion`
+and `maxVersion` do not re-encode it. Set generation parameters through
+`StyledQrEncodingOptions` when creating the matrix.
+
+Matrices expose `version`, the actual selected `errorCorrection`, `size`,
+`get(row, column)`, `isFunctionModule`, `isLocatorModule` and `copyModules`.
+The encoder may upgrade the requested correction level when capacity allows.
+
+Module arrays are defensive `boolean[][]` copies without a quiet zone.
+Byte arrays use JavaScript `number[]` with integer values in `0..255`;
+convert typed arrays with `Array.from`.
+
+The decoder accepts prepared square matrices of 21, 25, ..., 177 modules.
+It supports the shared Byte/ECI modes and correctable codeword errors.
+Camera detection, photograph processing and perspective correction remain
+outside this API.
+
+`utf8TextOrNull()` returns text only when ECI 26 declares UTF-8.
+Use `copyBytes()` for binary data or other ECI semantics.
+
+Low-level encoding, decoding and matrix rendering methods throw on invalid
+input, following the shared core API. The safe render methods above return
+categorized results.
+
+### Android XML logo backing
+
+The XML adapter also supports an independent logo background, shape and radius:
+
+```xml
+<io.github.eugeneponomarev.styledqr.android.StyledQrView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="240dp"
+    android:layout_height="240dp"
+    app:qrContent="https://eugeneponomarev.com"
+    app:qrErrorCorrection="h"
+    app:qrBackgroundColor="#FFF0CC"
+    app:qrLogo="@drawable/logo"
+    app:qrLogoSizeFraction="0.18"
+    app:qrLogoPaddingFraction="0.04"
+    app:qrLogoBackgroundColor="#DDEEFF"
+    app:qrLogoBackgroundShape="roundedSquare"
+    app:qrLogoCornerRadiusFraction="0.22" />
+```
+
+Background shapes are `square`, `roundedSquare` and `circle`.
+Android XML colour literals use Android's colour syntax, including
+`#AARRGGBB` when alpha is supplied.
+
 ## Build
 
 Use JDK 17 and Gradle 8.13. The repository includes the Gradle Wrapper:
 
 ```bash
-./gradlew :qrcode-core:jvmTest
-./gradlew :qrcode-core:assembleDebug
-./gradlew :qrcode-android-view:assembleDebug
-./gradlew :qrcode-compose:assembleDebug
+./gradlew \
+  :qrcode-core:jvmTest \
+  :qrcode-core:testDebugUnitTest \
+  :qrcode-core:jsBrowserTest \
+  :qrcode-web:jsBrowserTest \
+  :qrcode-android-view:testDebugUnitTest \
+  :qrcode-compose:assembleDebug
+
+./gradlew \
+  :qrcode-core:apiCheck \
+  :qrcode-android-view:apiCheck \
+  :qrcode-compose:apiCheck \
+  :qrcode-web:verifyJsNpmPackage \
+  :qrcode-web:packJsPackage
+npm --prefix tests/web-typescript test
+./gradlew checkVersionedDocs
 ```
+
+The TypeScript consumer installs the packed npm archive into a temporary
+workspace, compiles with strict type checking, and runs API checks against
+the installed package.
+
+Frozen parity fixtures are shared by the core tests, Web tests and TypeScript
+consumer. They cover complete matrices, function and locator markers, and
+encoding/decoding metadata.
+
+Regenerate fixtures with `node scripts/update-qr-parity-fixtures.mjs` only
+when intentionally updating the recorded encoding contract. Build the Web
+package first and review the generated changes. Normal tests and CI do not
+regenerate fixtures.
+
+iOS rendering and Swift interoperability require macOS and Xcode. Run the
+repository's macOS verification job in addition to the checks above.
 
 On macOS with Xcode and an installed iOS simulator, verify the native API with:
 

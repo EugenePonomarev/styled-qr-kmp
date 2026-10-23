@@ -364,6 +364,8 @@ public final class io/github/eugeneponomarev/styledqr/render/SvgQrRenderer {
 	public static final field INSTANCE Lio/github/eugeneponomarev/styledqr/render/SvgQrRenderer;
 	public final fun render (Lio/github/eugeneponomarev/styledqr/core/QrCode;Lio/github/eugeneponomarev/styledqr/render/QrStyle;Ljava/lang/String;)Ljava/lang/String;
 	public static synthetic fun render$default (Lio/github/eugeneponomarev/styledqr/render/SvgQrRenderer;Lio/github/eugeneponomarev/styledqr/core/QrCode;Lio/github/eugeneponomarev/styledqr/render/QrStyle;Ljava/lang/String;ILjava/lang/Object;)Ljava/lang/String;
+	public final fun renderWithRasterOptions (Lio/github/eugeneponomarev/styledqr/core/QrCode;Lio/github/eugeneponomarev/styledqr/render/QrRasterRenderOptions;Lio/github/eugeneponomarev/styledqr/render/QrStyle;Ljava/lang/String;)Ljava/lang/String;
+	public static synthetic fun renderWithRasterOptions$default (Lio/github/eugeneponomarev/styledqr/render/SvgQrRenderer;Lio/github/eugeneponomarev/styledqr/core/QrCode;Lio/github/eugeneponomarev/styledqr/render/QrRasterRenderOptions;Lio/github/eugeneponomarev/styledqr/render/QrStyle;Ljava/lang/String;ILjava/lang/Object;)Ljava/lang/String;
 }
 
 public final class io/github/eugeneponomarev/styledqr/render/SvgQrRendererKt {

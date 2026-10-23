@@ -27,8 +27,12 @@ kotlin {
             implementation(project(":qrcode-core"))
         }
 
-        jsTest.dependencies {
-            implementation(kotlin("test"))
+        jsTest {
+            kotlin.srcDir(rootProject.file("tests/fixtures/kotlin"))
+
+            dependencies {
+                implementation(kotlin("test"))
+            }
         }
     }
 }
