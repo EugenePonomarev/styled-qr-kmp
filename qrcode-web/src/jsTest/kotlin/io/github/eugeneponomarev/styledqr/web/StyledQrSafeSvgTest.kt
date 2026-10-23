@@ -1,6 +1,11 @@
 package io.github.eugeneponomarev.styledqr.web
 
+import io.github.eugeneponomarev.styledqr.core.QrCodeGenerator
+import io.github.eugeneponomarev.styledqr.core.QrErrorCorrectionLevel
+import io.github.eugeneponomarev.styledqr.render.QrRasterRenderOptions
+import io.github.eugeneponomarev.styledqr.render.QrRasterSizeMode
 import io.github.eugeneponomarev.styledqr.render.QrRenderErrorCode
+import io.github.eugeneponomarev.styledqr.render.SvgQrRenderer
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -172,6 +177,98 @@ class StyledQrSafeSvgTest {
         assertTrue(recovered.isSuccess)
         assertNotNull(recovered.svg)
         assertNull(recovered.error)
+    }
+
+    @Test
+    fun exportGeometryErrorsPrecedeLogoDataAndPlacementErrors() {
+        for (mode in listOf("integer-modules", "fit")) {
+            val cases = listOf<Triple<Int, String?, QrRenderErrorCode>>(
+                Triple(28, logoUri, QrRenderErrorCode.InvalidRenderParameters),
+                Triple(300, logoUri, QrRenderErrorCode.LogoValidationFailed),
+                Triple(28, null, QrRenderErrorCode.InvalidRenderParameters),
+                Triple(28, "invalid", QrRenderErrorCode.InvalidRenderParameters),
+            )
+
+            for ((sizePx, uri, expectedCode) in cases) {
+                val options = StyledQrOptions().apply {
+                    errorCorrection = "H"
+                    minVersion = 1
+                    maxVersion = 1
+                    quietZoneModules = 4
+                    logoDataUri = uri
+                }
+
+                assertFailure(
+                    renderStyledQrSvgForExport(
+                        content = "hi",
+                        output = StyledQrExportOptions(sizePx, mode),
+                        options = options,
+                    ),
+                    expectedCode,
+                )
+            }
+        }
+    }
+
+    @Test
+    fun exportWithSafeLogoStillMatchesTheCommonRenderer() {
+        val options = StyledQrOptions().apply {
+            errorCorrection = "H"
+            minVersion = 4
+            maxVersion = 4
+            quietZoneModules = 4
+            logoDataUri = logoUri
+        }
+        val code = QrCodeGenerator.encodeText(
+            text = "hi",
+            errorCorrection = QrErrorCorrectionLevel.H,
+            minVersion = 4,
+            maxVersion = 4,
+        )
+
+        for ((mode, sharedMode) in listOf(
+            "integer-modules" to QrRasterSizeMode.IntegerModules,
+            "fit" to QrRasterSizeMode.Fit,
+        )) {
+            val result = renderStyledQrSvgForExport(
+                content = "hi",
+                output = StyledQrExportOptions(415, mode),
+                options = options,
+            )
+
+            assertTrue(result.isSuccess, result.error?.message)
+            assertFalse(result.isEmpty)
+            assertNull(result.error)
+            assertEquals(
+                SvgQrRenderer.renderWithRasterOptions(
+                    qrCode = code,
+                    options = QrRasterRenderOptions(415, sharedMode),
+                    style = resolveStyledQrStyle(options),
+                    logoDataUri = logoUri,
+                ),
+                result.svg,
+            )
+        }
+    }
+
+    @Test
+    fun blankExportStillSkipsMatrixDependentGeometryAndLogoChecks() {
+        val options = StyledQrOptions().apply {
+            minVersion = 1
+            maxVersion = 1
+            logoDataUri = logoUri
+        }
+
+        val result = renderStyledQrSvgForExport(
+            content = " \n\t",
+            output = StyledQrExportOptions(28),
+            options = options,
+        )
+
+        assertTrue(result.isEmpty)
+        assertFalse(result.isSuccess)
+        assertNull(result.svg)
+        assertNull(result.error)
     }
 
     private fun assertFailure(

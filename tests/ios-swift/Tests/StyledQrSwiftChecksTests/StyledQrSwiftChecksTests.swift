@@ -528,6 +528,51 @@ final class StyledQrSwiftChecksTests: XCTestCase {
             XCTAssertEqual(renderer.errorCorrection, .h)
         }
 
+    @MainActor
+    func testRasterSizeErrorsTakePriorityOverUnsafeLogoPlacement() {
+        let renderer = StyledQrImageRenderer()
+        let options = QrStyleConfiguration()
+        options.quietZoneModules = 4
+
+        let logo = UIGraphicsImageRenderer(
+            size: CGSize(width: 16, height: 16)
+        ).image { context in
+            UIColor.red.setFill()
+            context.fill(CGRect(x: 0, y: 0, width: 16, height: 16))
+        }
+
+        let cases: [(Int32, QrRenderErrorCode)] = [
+            (28, .invalidrenderparameters),
+            (300, .logovalidationfailed)
+        ]
+        let modes: [QrRasterSizeMode] = [.integermodules, .fit]
+
+        for mode in modes {
+            for scale: Double in [1, 2, 3] {
+                for (sizePx, expectedCode) in cases {
+                    let result = renderRaster(
+                        renderer,
+                        options,
+                        content: "hi",
+                        sizePx: sizePx,
+                        mode: mode,
+                        scale: scale,
+                        logo: logo,
+                        minVersion: 1,
+                        maxVersion: 1
+                    )
+
+                    XCTAssertNil(result.image)
+                    XCTAssertFalse(result.isSuccess)
+                    XCTAssertFalse(result.isEmpty)
+                    XCTAssertEqual(result.error?.code, expectedCode)
+                    XCTAssertFalse(result.error?.message.isEmpty ?? true)
+                    XCTAssertEqual(renderer.lastRenderErrorCode, expectedCode)
+                }
+            }
+        }
+    }
+
         @MainActor
         func testRasterOptionsResolveAutomaticScaleWithoutChangingPixelSize()
             throws

@@ -3,6 +3,7 @@ package io.github.eugeneponomarev.styledqr.android
 import android.graphics.Bitmap
 import android.graphics.Color
 import io.github.eugeneponomarev.styledqr.core.QrCodeGenerator
+import io.github.eugeneponomarev.styledqr.core.QrErrorCorrectionLevel
 import io.github.eugeneponomarev.styledqr.render.QrLogoBackgroundShape
 import io.github.eugeneponomarev.styledqr.render.QrLogoConfiguration
 import io.github.eugeneponomarev.styledqr.render.QrModuleShape
@@ -151,6 +152,37 @@ class AndroidQrSafeApiTest {
             recycled,
             QrRenderErrorCode.LogoValidationFailed,
         )
+    }
+
+    @Test
+    fun insufficientSizeTakesPriorityOverUnsafeLogoPlacement() {
+        val logo = Bitmap.createBitmap(32, 16, Bitmap.Config.ARGB_8888)
+        logo.eraseColor(Color.RED)
+
+        try {
+            for (mode in QrRasterSizeMode.entries) {
+                for ((sizePx, expectedCode) in listOf(
+                    28 to QrRenderErrorCode.InvalidRenderParameters,
+                    300 to QrRenderErrorCode.LogoValidationFailed,
+                )) {
+                    val result = renderer.renderWithOptions(
+                        content = "hi",
+                        options = QrStyleConfiguration().apply {
+                            quietZoneModules = 4
+                        },
+                        output = QrRasterRenderOptions(sizePx, mode),
+                        errorCorrection = QrErrorCorrectionLevel.H,
+                        logo = logo,
+                        minVersion = 1,
+                        maxVersion = 1,
+                    )
+
+                    assertFailure(result, expectedCode)
+                }
+            }
+        } finally {
+            logo.recycle()
+        }
     }
 
     @Test
