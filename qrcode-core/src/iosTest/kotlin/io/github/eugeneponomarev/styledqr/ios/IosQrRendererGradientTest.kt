@@ -5,13 +5,18 @@ package io.github.eugeneponomarev.styledqr.ios
 import io.github.eugeneponomarev.styledqr.core.QrCode
 import io.github.eugeneponomarev.styledqr.core.QrCodeGenerator
 import io.github.eugeneponomarev.styledqr.render.QrColor
+import io.github.eugeneponomarev.styledqr.render.QrFinderPatternAppearance
+import io.github.eugeneponomarev.styledqr.render.QrFinderPatternLayerShape
 import io.github.eugeneponomarev.styledqr.render.QrGradientPoint
 import io.github.eugeneponomarev.styledqr.render.QrLinearGradient
 import io.github.eugeneponomarev.styledqr.render.QrLogoBackgroundShape
 import io.github.eugeneponomarev.styledqr.render.QrLogoOptions
+import io.github.eugeneponomarev.styledqr.render.QrRasterRenderOptions
+import io.github.eugeneponomarev.styledqr.render.QrRasterSizeMode
 import io.github.eugeneponomarev.styledqr.render.QrStyle
 import io.github.eugeneponomarev.styledqr.render.calculateLogoLayout
 import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.useContents
 import kotlinx.cinterop.usePinned
 import platform.CoreGraphics.CGBitmapContextCreate
 import platform.CoreGraphics.CGBitmapContextGetData
@@ -352,6 +357,277 @@ class IosQrRendererGradientTest {
                     pixels.pixelAt(left + ppm / 4, top + ppm / 4),
                     "Image clipping: $label",
                 )
+            }
+        }
+    }
+
+    @Test
+    fun finderOverridesUseIndependentShapesAndSolidColorsOverGradient() {
+        val code = QrCodeGenerator.encodeBytes(
+            byteArrayOf(0x42),
+        )
+        val outerColor = QrColor.fromHex("#123C66")
+        val centerColor = QrColor.fromHex("#087E8B")
+        val pixelsPerModule = 20
+
+        val style = QrStyle(
+            background = backgroundColor,
+            foregroundGradient = QrLinearGradient(
+                startColor = startColor,
+                endColor = endColor,
+            ),
+            finderPatternAppearance = QrFinderPatternAppearance(
+                outerShape = QrFinderPatternLayerShape.RoundedSquare,
+                centerShape = QrFinderPatternLayerShape.Circle,
+                outerColor = outerColor,
+                centerColor = centerColor,
+            ),
+        )
+
+        val pixels = code.toUIImage(
+            sizePoints = imageSize(
+                code = code,
+                style = style,
+                pixelsPerModule = pixelsPerModule,
+            ).toDouble(),
+            style = style,
+            scale = 1.0,
+        ).toPixelBuffer()
+
+        assertEquals(
+            outerColor,
+            pixels.pixelAtQrModule(
+                row = 0,
+                column = 3,
+                quietZoneModules = style.quietZoneModules,
+                pixelsPerModule = pixelsPerModule,
+            ),
+            "Outer finder layer must use its solid override colour",
+        )
+
+        assertEquals(
+            backgroundColor,
+            pixels.pixelAtQrModule(
+                row = 1,
+                column = 3,
+                quietZoneModules = style.quietZoneModules,
+                pixelsPerModule = pixelsPerModule,
+            ),
+            "Middle finder layer must remain the QR background",
+        )
+
+        assertEquals(
+            centerColor,
+            pixels.pixelAtQrModule(
+                row = 3,
+                column = 3,
+                quietZoneModules = style.quietZoneModules,
+                pixelsPerModule = pixelsPerModule,
+            ),
+            "Center finder layer must use its solid override colour",
+        )
+
+        val centerLeft =
+            (style.quietZoneModules + 2) * pixelsPerModule
+
+        assertEquals(
+            backgroundColor,
+            pixels.pixelAt(
+                x = centerLeft + 1,
+                y = centerLeft + 1,
+            ),
+            "Circle center shape must not fill its bounding-box corner",
+        )
+    }
+
+    @Test
+    fun integerGeometryUsesTheSamePhysicalPixelsAtScaleOneTwoAndThree() {
+        val code = QrCodeGenerator.encodeText(
+            text = "x",
+            minVersion = 1,
+            maxVersion = 1,
+        )
+        assertEquals(21, code.size)
+
+        for (scale in listOf(1.0, 2.0, 3.0)) {
+            val image = code.toUIImageWithOptions(
+                options = QrRasterRenderOptions(300),
+                scale = scale,
+            )
+            val pixels = image.toPixelBuffer()
+
+            assertEquals(300, pixels.width)
+            assertEquals(300, pixels.height)
+            assertEquals(scale, image.scale)
+            assertEquals(
+                300.0 / scale,
+                image.size.useContents { width },
+                1e-9,
+            )
+            assertEquals(
+                300.0 / scale,
+                image.size.useContents { height },
+                1e-9,
+            )
+
+            // Four quiet-zone modules × 10 px, plus a 5 px offset.
+            assertEquals(QrColor.White, pixels.pixelAt(44, 50))
+            assertEquals(QrColor.Black, pixels.pixelAt(46, 50))
+            assertEquals(QrColor.Black, pixels.pixelAt(113, 50))
+            assertEquals(QrColor.White, pixels.pixelAt(116, 50))
+
+            assertEquals(QrColor.White, pixels.pixelAt(50, 44))
+            assertEquals(QrColor.Black, pixels.pixelAt(50, 46))
+            assertEquals(QrColor.Black, pixels.pixelAt(50, 113))
+            assertEquals(QrColor.White, pixels.pixelAt(50, 116))
+        }
+    }
+
+    @Test
+    fun explicitPixelSizeIsPreservedForMultipleAndNonMultipleSides() {
+        val code = QrCodeGenerator.encodeText(
+            text = "x",
+            minVersion = 1,
+            maxVersion = 1,
+        )
+
+        for (sizePx in listOf(290, 300, 301)) {
+            for (scale in listOf(1.0, 2.0, 3.0)) {
+                for (mode in QrRasterSizeMode.entries) {
+                    val image = code.toUIImageWithOptions(
+                        options = QrRasterRenderOptions(sizePx, mode),
+                        scale = scale,
+                    )
+                    val pixels = image.toPixelBuffer()
+                    val label = "$sizePx px, scale=$scale, $mode"
+
+                    assertEquals(sizePx, pixels.width, label)
+                    assertEquals(sizePx, pixels.height, label)
+                    assertEquals(scale, image.scale, label)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun legacyImageGeometryStillFillsThePointSide() {
+        val code = QrCodeGenerator.encodeText(
+            text = "x",
+            minVersion = 1,
+            maxVersion = 1,
+        )
+
+        val legacy = code.toUIImage(
+            sizePoints = 300.0,
+            scale = 1.0,
+        ).toPixelBuffer()
+
+        val integer = code.toUIImageWithOptions(
+            options = QrRasterRenderOptions(300),
+            scale = 1.0,
+        ).toPixelBuffer()
+
+        // Historical Fit starts the matrix near 41.38 px.
+        // IntegerModules starts it at 45 px.
+        assertEquals(QrColor.Black, legacy.pixelAt(43, 46))
+        assertEquals(QrColor.White, integer.pixelAt(43, 46))
+    }
+
+    @Test
+    fun integerOffsetMovesGradientFindersAndLogoTogetherAtEveryScale() {
+        val code = QrCodeGenerator.encodeText(
+            text = "https://eugeneponomarev.com",
+            minVersion = 4,
+            maxVersion = 4,
+        )
+        val pixelsPerModule = 10
+        val quietZone = 4
+        val referenceSide = (code.size + quietZone * 2) * pixelsPerModule
+
+        // Eleven extra pixels produce a leading offset of five pixels.
+        val outputSide = referenceSide + 11
+        val expectedOffset = 5
+
+        for ((width, height) in listOf(200 to 100, 100 to 200)) {
+            val logo = createCropTestLogo(width, height)
+
+            for (shape in QrLogoBackgroundShape.entries) {
+                val style = QrStyle(
+                    background = QrColor.fromHex("#FFF0CC"),
+                    foregroundGradient = QrLinearGradient(
+                        startColor = startColor,
+                        endColor = endColor,
+                        start = QrGradientPoint(0.0, 0.5),
+                        end = QrGradientPoint(1.0, 0.5),
+                    ),
+                    finderPatternAppearance = QrFinderPatternAppearance(
+                        outerShape = QrFinderPatternLayerShape.RoundedSquare,
+                        centerShape = QrFinderPatternLayerShape.Circle,
+                        outerColor = QrColor.fromHex("#123C66"),
+                        centerColor = QrColor.fromHex("#0F4C5C"),
+                    ),
+                    logo = QrLogoOptions(
+                        sizeFraction = 0.16,
+                        paddingFraction = 0.04,
+                        background = QrColor.fromHex("#DDEEFF"),
+                        backgroundShape = shape,
+                        cornerRadiusFraction = 0.45,
+                    ),
+                )
+
+                // An exact multiple gives the historical renderer the same
+                // physical module size, with no additional offset.
+                val reference = code.toUIImage(
+                    sizePoints = referenceSide.toDouble(),
+                    style = style,
+                    scale = 1.0,
+                    logo = logo,
+                ).toPixelBuffer()
+
+                for (scale in listOf(1.0, 2.0, 3.0)) {
+                    val actual = code.toUIImageWithOptions(
+                        options = QrRasterRenderOptions(
+                            sizePx = outputSide,
+                            sizeMode = QrRasterSizeMode.IntegerModules,
+                        ),
+                        style = style,
+                        scale = scale,
+                        logo = logo,
+                    ).toPixelBuffer()
+
+                    assertEquals(outputSide, actual.width)
+                    assertEquals(outputSide, actual.height)
+
+                    for (row in 0 until code.size) {
+                        for (column in 0 until code.size) {
+                            val x = (quietZone + column) * pixelsPerModule +
+                                    pixelsPerModule / 2
+                            val y = (quietZone + row) * pixelsPerModule +
+                                    pixelsPerModule / 2
+
+                            val expected = reference.pixelAt(x, y)
+                            val observed = actual.pixelAt(
+                                x + expectedOffset,
+                                y + expectedOffset,
+                            )
+                            val label =
+                                "$width x $height, $shape, scale=$scale, " +
+                                        "row=$row, column=$column"
+
+                            // Sample module centres to avoid shape boundaries.
+                            // Allow small colour rounding differences.
+                            assertTrue(
+                                listOf(
+                                    expected.red - observed.red,
+                                    expected.green - observed.green,
+                                    expected.blue - observed.blue,
+                                    expected.alpha - observed.alpha,
+                                ).all { it in -2..2 },
+                                "$label: expected=$expected, actual=$observed",
+                            )
+                        }
+                    }
+                }
             }
         }
     }

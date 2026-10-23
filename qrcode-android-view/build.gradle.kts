@@ -46,6 +46,8 @@ android {
 }
 
 kotlin {
+    explicitApi()
+
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)
     }

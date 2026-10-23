@@ -12,9 +12,12 @@ import android.view.View
 import io.github.eugeneponomarev.styledqr.core.QrCodeGenerator
 import io.github.eugeneponomarev.styledqr.core.QrErrorCorrectionLevel
 import io.github.eugeneponomarev.styledqr.render.QrColor
+import io.github.eugeneponomarev.styledqr.render.QrFinderPatternAppearance
+import io.github.eugeneponomarev.styledqr.render.QrFinderPatternLayerShape
 import io.github.eugeneponomarev.styledqr.render.QrFunctionPatternStyle
 import io.github.eugeneponomarev.styledqr.render.QrGradientPoint
 import io.github.eugeneponomarev.styledqr.render.QrLinearGradient
+import io.github.eugeneponomarev.styledqr.render.QrLogoBackgroundShape
 import io.github.eugeneponomarev.styledqr.render.QrLogoOptions
 import io.github.eugeneponomarev.styledqr.render.QrModuleShape
 import io.github.eugeneponomarev.styledqr.render.QrStyle
@@ -236,6 +239,27 @@ public class StyledQrView @JvmOverloads constructor(
                 null
             }
 
+            val finderPatternAppearance = QrFinderPatternAppearance(
+                outerShape = finderPatternLayerShapeFrom(
+                    attributes.getInt(
+                        R.styleable.StyledQrView_qrFinderOuterShape,
+                        FINDER_LAYER_SHAPE_INHERIT,
+                    ),
+                ),
+                centerShape = finderPatternLayerShapeFrom(
+                    attributes.getInt(
+                        R.styleable.StyledQrView_qrFinderCenterShape,
+                        FINDER_LAYER_SHAPE_INHERIT,
+                    ),
+                ),
+                outerColor = attributes.optionalQrColor(
+                    R.styleable.StyledQrView_qrFinderOuterColor,
+                ),
+                centerColor = attributes.optionalQrColor(
+                    R.styleable.StyledQrView_qrFinderCenterColor,
+                ),
+            )
+
             val logoResId = attributes.getResourceId(R.styleable.StyledQrView_qrLogo, 0)
             val logoOptions = if (logoResId == 0) {
                 null
@@ -248,6 +272,27 @@ public class StyledQrView @JvmOverloads constructor(
                     paddingFraction = attributes.getDoubleOrDefault(
                         R.styleable.StyledQrView_qrLogoPaddingFraction,
                         DEFAULT_LOGO_OPTIONS.paddingFraction,
+                    ),
+                    background = attributes.optionalQrColor(
+                        R.styleable.StyledQrView_qrLogoBackgroundColor,
+                    ) ?: DEFAULT_LOGO_OPTIONS.background,
+                    backgroundShape = if (
+                        attributes.hasValue(
+                            R.styleable.StyledQrView_qrLogoBackgroundShape,
+                        )
+                    ) {
+                        logoBackgroundShapeFrom(
+                            attributes.getInt(
+                                R.styleable.StyledQrView_qrLogoBackgroundShape,
+                                0,
+                            ),
+                        )
+                    } else {
+                        DEFAULT_LOGO_OPTIONS.backgroundShape
+                    },
+                    cornerRadiusFraction = attributes.getDoubleOrDefault(
+                        R.styleable.StyledQrView_qrLogoCornerRadiusFraction,
+                        DEFAULT_LOGO_OPTIONS.cornerRadiusFraction,
                     ),
                 )
             }
@@ -289,6 +334,7 @@ public class StyledQrView @JvmOverloads constructor(
                 ),
                 logo = logoOptions,
                 foregroundGradient = foregroundGradient,
+                finderPatternAppearance = finderPatternAppearance,
             )
             logo = logoResId.takeIf { it != 0 }
                 ?.let(context::getDrawable)
@@ -300,6 +346,16 @@ public class StyledQrView @JvmOverloads constructor(
 
     private fun defaultSizePx(): Int = (DEFAULT_SIZE_DP * resources.displayMetrics.density).toInt()
 
+    private fun logoBackgroundShapeFrom(value: Int): QrLogoBackgroundShape =
+        when (value) {
+            0 -> QrLogoBackgroundShape.Square
+            1 -> QrLogoBackgroundShape.RoundedSquare
+            2 -> QrLogoBackgroundShape.Circle
+            else -> throw IllegalArgumentException(
+                "Unknown logo background shape: $value",
+            )
+        }
+
     private companion object {
         const val DEFAULT_SIZE_DP: Int = 240
         const val NO_CACHED_SIDE: Int = -1
@@ -307,6 +363,7 @@ public class StyledQrView @JvmOverloads constructor(
         const val ERROR_CORRECTION_H: Int = 3
         const val MODULE_SHAPE_SQUARE: Int = 0
         const val FUNCTION_PATTERN_PRESERVE_ALL: Int = 0
+        const val FINDER_LAYER_SHAPE_INHERIT: Int = 0
 
         val DEFAULT_LOGO_OPTIONS: QrLogoOptions = QrLogoOptions()
     }
@@ -333,10 +390,28 @@ internal fun functionPatternStyleFrom(value: Int?): QrFunctionPatternStyle = whe
     else -> QrFunctionPatternStyle.PreserveAll
 }
 
+internal fun finderPatternLayerShapeFrom(
+    value: Int,
+): QrFinderPatternLayerShape = when (value) {
+    1 -> QrFinderPatternLayerShape.Square
+    2 -> QrFinderPatternLayerShape.RoundedSquare
+    3 -> QrFinderPatternLayerShape.Circle
+    4 -> QrFinderPatternLayerShape.Diamond
+    else -> QrFinderPatternLayerShape.Inherit
+}
+
 private fun QrColor.toAndroidColor(): Int = Color.argb(alpha, red, green, blue)
 
 private fun TypedArray.getDoubleOrDefault(index: Int, defaultValue: Double): Double =
     if (hasValue(index)) getFloat(index, defaultValue.toFloat()).toDouble() else defaultValue
+
+private fun TypedArray.optionalQrColor(
+    index: Int,
+): QrColor? = if (hasValue(index)) {
+    getColor(index, Color.BLACK).toQrColor()
+} else {
+    null
+}
 
 private fun Int.toQrColor(): QrColor = QrColor(
     red = Color.red(this),

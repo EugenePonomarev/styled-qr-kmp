@@ -9,20 +9,25 @@ import android.graphics.RectF
 import android.graphics.Shader
 import io.github.eugeneponomarev.styledqr.core.QrCode
 import io.github.eugeneponomarev.styledqr.render.QrColor
+import io.github.eugeneponomarev.styledqr.render.QrFinderPatternLayerPaint
 import io.github.eugeneponomarev.styledqr.render.QrLinearGradient
 import io.github.eugeneponomarev.styledqr.render.QrLogoBackgroundShape
 import io.github.eugeneponomarev.styledqr.render.QrLogoLayout
 import io.github.eugeneponomarev.styledqr.render.QrLogoOptions
 import io.github.eugeneponomarev.styledqr.render.QrModuleShape
 import io.github.eugeneponomarev.styledqr.render.QrStyle
+import io.github.eugeneponomarev.styledqr.render.QrRasterRenderOptions
+import io.github.eugeneponomarev.styledqr.render.calculateQrRasterGeometry
+import io.github.eugeneponomarev.styledqr.render.qrImageTotalModules
+import io.github.eugeneponomarev.styledqr.render.ResolvedQrFinderPatternAppearance
 import io.github.eugeneponomarev.styledqr.render.calculateLogoLayout
 import io.github.eugeneponomarev.styledqr.render.calculateRasterModuleLayout
 import io.github.eugeneponomarev.styledqr.render.finderPatternTopLefts
 import io.github.eugeneponomarev.styledqr.render.isFinderPatternCore
-import io.github.eugeneponomarev.styledqr.render.resolvedFinderPatternShape
+import io.github.eugeneponomarev.styledqr.render.resolvedFinderPatternAppearance
 import io.github.eugeneponomarev.styledqr.render.shouldPreserveAsSquare
 
-/** Renders a [QrCode] to an Android [Bitmap] using only the Android graphics API. */
+/** Renders a [QrCode] to an Android [Bitmap] using the historical integer grid. */
 public fun QrCode.toBitmap(
     sizePx: Int,
     style: QrStyle = QrStyle(),
@@ -33,8 +38,51 @@ public fun QrCode.toBitmap(
         sizePx = sizePx,
         totalModules = totalModules,
     )
-    val moduleSize = rasterLayout.moduleSizePx.toFloat()
-    val offset = rasterLayout.offsetPx.toFloat()
+
+    return renderBitmap(
+        sizePx = sizePx,
+        style = style,
+        logo = logo,
+        moduleSize = rasterLayout.moduleSizePx.toFloat(),
+        offset = rasterLayout.offsetPx.toFloat(),
+    )
+}
+
+/**
+ * Renders a QR image with explicit physical pixel size and module geometry.
+ *
+ * Output parameters are separate from [style]. Invalid output dimensions throw
+ * an IllegalArgumentException; safe high-level APIs can expose its error category.
+ */
+public fun QrCode.toBitmapWithOptions(
+    options: QrRasterRenderOptions,
+    style: QrStyle = QrStyle(),
+    logo: Bitmap? = null,
+): Bitmap {
+    val geometry = calculateQrRasterGeometry(
+        options = options,
+        totalModules = qrImageTotalModules(
+            matrixSize = size,
+            quietZoneModules = style.quietZoneModules,
+        ),
+    )
+
+    return renderBitmap(
+        sizePx = geometry.sizePx,
+        style = style,
+        logo = logo,
+        moduleSize = geometry.moduleSizePx.toFloat(),
+        offset = geometry.offsetPx.toFloat(),
+    )
+}
+
+private fun QrCode.renderBitmap(
+    sizePx: Int,
+    style: QrStyle,
+    logo: Bitmap?,
+    moduleSize: Float,
+    offset: Float,
+): Bitmap {
     val logoOptions = if (logo == null) null else style.logo ?: QrLogoOptions()
     val logoLayout = logoOptions?.let { calculateLogoLayout(it) }
     val logoBackgroundPath = logoLayout?.let { layout ->
@@ -57,10 +105,12 @@ public fun QrCode.toBitmap(
             shader = gradient.toAndroidShader(size, style.quietZoneModules, moduleSize, offset)
         }
     }
-    val finderBackgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = style.background.toArgb()
-        this.style = Paint.Style.FILL
-    }
+
+    val finderAppearance = style.resolvedFinderPatternAppearance()
+
+    val finderOuterPaint = finderAppearance.outer.paint.toAndroidPaint(modulePaint)
+    val finderMiddlePaint = finderAppearance.middle.paint.toAndroidPaint(modulePaint)
+    val finderCenterPaint = finderAppearance.center.paint.toAndroidPaint(modulePaint)
 
     val foregroundSave = canvas.save()
     try {
@@ -85,10 +135,11 @@ public fun QrCode.toBitmap(
             moduleSize = moduleSize,
             quietZoneModules = style.quietZoneModules,
             offset = offset,
-            shape = style.resolvedFinderPatternShape(),
+            appearance = finderAppearance,
             roundedRadiusFraction = style.roundedModuleRadiusFraction.toFloat(),
-            foregroundPaint = modulePaint,
-            backgroundPaint = finderBackgroundPaint,
+            outerPaint = finderOuterPaint,
+            middlePaint = finderMiddlePaint,
+            centerPaint = finderCenterPaint,
         )
     } finally {
         canvas.restoreToCount(foregroundSave)
@@ -106,6 +157,16 @@ public fun QrCode.toBitmap(
     }
 
     return bitmap
+}
+
+private fun QrFinderPatternLayerPaint.toAndroidPaint(
+    foregroundPaint: Paint,
+): Paint = when (this) {
+    QrFinderPatternLayerPaint.Foreground -> foregroundPaint
+    is QrFinderPatternLayerPaint.Solid -> Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = this@toAndroidPaint.color.toArgb()
+        style = Paint.Style.FILL
+    }
 }
 
 private fun QrLinearGradient.toAndroidShader(
@@ -128,30 +189,39 @@ private fun Canvas.drawFinderPatterns(
     moduleSize: Float,
     quietZoneModules: Int,
     offset: Float,
-    shape: QrModuleShape,
+    appearance: ResolvedQrFinderPatternAppearance,
     roundedRadiusFraction: Float,
-    foregroundPaint: Paint,
-    backgroundPaint: Paint,
+    outerPaint: Paint,
+    middlePaint: Paint,
+    centerPaint: Paint,
 ) {
     qrCode.finderPatternTopLefts().forEach { (row, column) ->
         val left = offset + (column + quietZoneModules) * moduleSize
         val top = offset + (row + quietZoneModules) * moduleSize
-        drawFinderLayer(left, top, moduleSize * 7f, shape, roundedRadiusFraction, foregroundPaint)
+
         drawFinderLayer(
-            left + moduleSize,
-            top + moduleSize,
-            moduleSize * 5f,
-            shape,
-            roundedRadiusFraction,
-            backgroundPaint,
+            left = left,
+            top = top,
+            size = moduleSize * 7f,
+            shape = appearance.outer.shape,
+            roundedRadiusFraction = roundedRadiusFraction,
+            paint = outerPaint,
         )
         drawFinderLayer(
-            left + moduleSize * 2f,
-            top + moduleSize * 2f,
-            moduleSize * 3f,
-            shape,
-            roundedRadiusFraction,
-            foregroundPaint,
+            left = left + moduleSize,
+            top = top + moduleSize,
+            size = moduleSize * 5f,
+            shape = appearance.middle.shape,
+            roundedRadiusFraction = roundedRadiusFraction,
+            paint = middlePaint,
+        )
+        drawFinderLayer(
+            left = left + moduleSize * 2f,
+            top = top + moduleSize * 2f,
+            size = moduleSize * 3f,
+            shape = appearance.center.shape,
+            roundedRadiusFraction = roundedRadiusFraction,
+            paint = centerPaint,
         )
     }
 }

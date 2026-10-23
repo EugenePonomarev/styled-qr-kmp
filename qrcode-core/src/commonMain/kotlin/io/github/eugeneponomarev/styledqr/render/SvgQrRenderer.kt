@@ -12,9 +12,48 @@ public object SvgQrRenderer {
         qrCode: QrCode,
         style: QrStyle = QrStyle(),
         logoDataUri: String? = null,
+    ): String = renderSvg(
+        qrCode = qrCode,
+        style = style,
+        logoDataUri = logoDataUri,
+        geometry = null,
+    )
+
+    /**
+     * Renders an SVG with an explicit output side measured in physical pixels.
+     *
+     * The requested geometry applies when rasterizing at that size.
+     * Subsequent CSS scaling can change pixel alignment.
+     */
+    public fun renderWithRasterOptions(
+        qrCode: QrCode,
+        options: QrRasterRenderOptions,
+        style: QrStyle = QrStyle(),
+        logoDataUri: String? = null,
+    ): String {
+        val totalModules = qrImageTotalModules(
+            matrixSize = qrCode.size,
+            quietZoneModules = style.quietZoneModules,
+        )
+        val geometry = calculateQrRasterGeometry(options, totalModules)
+
+        return renderSvg(
+            qrCode = qrCode,
+            style = style,
+            logoDataUri = logoDataUri,
+            geometry = geometry,
+        )
+    }
+
+    private fun renderSvg(
+        qrCode: QrCode,
+        style: QrStyle,
+        logoDataUri: String?,
+        geometry: QrRasterGeometry?,
     ): String {
         val quietZone = style.quietZoneModules
-        val canvasSize = qrCode.size + quietZone * 2
+        val canvasSize = geometry?.totalModules
+            ?: (qrCode.size + quietZone * 2)
 
         val gradient = style.foregroundGradient
         val gradientId = gradient?.svgGradientId(
@@ -25,6 +64,8 @@ public object SvgQrRenderer {
         val foreground = gradientId?.let { id ->
             "url(#$id)"
         } ?: style.foreground.toCss()
+
+        val finderAppearance = style.resolvedFinderPatternAppearance()
 
         val logoOptions = style.logo?.takeIf { !logoDataUri.isNullOrBlank() }
         val logoLayout = logoOptions?.let(qrCode::calculateLogoLayout)
@@ -38,10 +79,22 @@ public object SvgQrRenderer {
 
         return buildString {
             val squareModulesPath = StringBuilder()
-            append("<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 ")
-            append(canvasSize)
+            val outputSize = geometry?.sizePx ?: canvasSize
+
+            append("<svg xmlns=\"http://www.w3.org/2000/svg\" ")
+
+            if (geometry != null) {
+                append("width=\"")
+                append(outputSize)
+                append("\" height=\"")
+                append(outputSize)
+                append("\" ")
+            }
+
+            append("viewBox=\"0 0 ")
+            append(outputSize)
             append(' ')
-            append(canvasSize)
+            append(outputSize)
             append("\" role=\"img\" aria-label=\"QR code\">")
             gradient?.let { value ->
                 val id = requireNotNull(gradientId)
@@ -63,12 +116,22 @@ public object SvgQrRenderer {
                 append("</linearGradient></defs>")
             }
             append("<rect width=\"")
-            append(canvasSize)
+            append(outputSize)
             append("\" height=\"")
-            append(canvasSize)
+            append(outputSize)
             append("\" fill=\"")
             append(style.background.toCss())
             append("\"/>")
+
+            if (geometry != null) {
+                append("<g transform=\"translate(")
+                append(geometry.offsetPx)
+                append(' ')
+                append(geometry.offsetPx)
+                append(") scale(")
+                append(geometry.moduleSizePx)
+                append(")\">")
+            }
 
             if (logoLayout != null && logoClipId != null) {
                 val logoPath = logoShapePath(
@@ -128,10 +191,9 @@ public object SvgQrRenderer {
             appendFinderPatterns(
                 qrCode = qrCode,
                 quietZone = quietZone.toDouble(),
-                shape = style.resolvedFinderPatternShape(),
+                appearance = finderAppearance,
                 roundedRadiusFraction = style.roundedModuleRadiusFraction,
                 foreground = foreground,
-                background = style.background.toCss(),
             )
 
             if (logoClipId != null) append("</g>")
@@ -144,6 +206,10 @@ public object SvgQrRenderer {
                     dataUri = logoDataUri,
                     clipId = requireNotNull(logoClipId),
                 )
+            }
+
+            if (geometry != null) {
+                append("</g>")
             }
 
             append("</svg>")
@@ -205,18 +271,50 @@ public object SvgQrRenderer {
     private fun StringBuilder.appendFinderPatterns(
         qrCode: QrCode,
         quietZone: Double,
-        shape: QrModuleShape,
+        appearance: ResolvedQrFinderPatternAppearance,
         roundedRadiusFraction: Double,
         foreground: String,
-        background: String,
     ) {
+        val outerFill = appearance.outer.paint.toSvgFill(foreground)
+        val middleFill = appearance.middle.paint.toSvgFill(foreground)
+        val centerFill = appearance.center.paint.toSvgFill(foreground)
+
         qrCode.finderPatternTopLefts().forEach { (row, column) ->
             val left = quietZone + column
             val top = quietZone + row
-            appendFinderLayer(left, top, 7.0, shape, roundedRadiusFraction, foreground)
-            appendFinderLayer(left + 1.0, top + 1.0, 5.0, shape, roundedRadiusFraction, background)
-            appendFinderLayer(left + 2.0, top + 2.0, 3.0, shape, roundedRadiusFraction, foreground)
+
+            appendFinderLayer(
+                left = left,
+                top = top,
+                size = 7.0,
+                shape = appearance.outer.shape,
+                roundedRadiusFraction = roundedRadiusFraction,
+                fill = outerFill,
+            )
+            appendFinderLayer(
+                left = left + 1.0,
+                top = top + 1.0,
+                size = 5.0,
+                shape = appearance.middle.shape,
+                roundedRadiusFraction = roundedRadiusFraction,
+                fill = middleFill,
+            )
+            appendFinderLayer(
+                left = left + 2.0,
+                top = top + 2.0,
+                size = 3.0,
+                shape = appearance.center.shape,
+                roundedRadiusFraction = roundedRadiusFraction,
+                fill = centerFill,
+            )
         }
+    }
+
+    private fun QrFinderPatternLayerPaint.toSvgFill(
+        foreground: String,
+    ): String = when (this) {
+        QrFinderPatternLayerPaint.Foreground -> foreground
+        is QrFinderPatternLayerPaint.Solid -> color.toCss()
     }
 
     private fun StringBuilder.appendFinderLayer(

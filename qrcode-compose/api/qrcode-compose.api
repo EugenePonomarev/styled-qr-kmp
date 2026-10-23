@@ -1,0 +1,4 @@
+public final class io/github/eugeneponomarev/styledqr/compose/StyledQrCodeKt {
+	public static final fun StyledQrCode (Ljava/lang/String;Landroidx/compose/ui/Modifier;Lio/github/eugeneponomarev/styledqr/core/QrErrorCorrectionLevel;Lio/github/eugeneponomarev/styledqr/render/QrStyle;Landroid/graphics/Bitmap;Landroidx/compose/runtime/Composer;II)V
+}
+

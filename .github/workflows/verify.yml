@@ -41,6 +41,9 @@ jobs:
           JITPACK: "true"
         run: >-
           ./gradlew --no-daemon
+          :qrcode-core:apiCheck
+          :qrcode-android-view:apiCheck
+          :qrcode-compose:apiCheck
           :qrcode-core:jvmTest
           :qrcode-core:assembleDebug
           :qrcode-core:testDebugUnitTest
@@ -73,6 +76,14 @@ jobs:
           :qrcode-web:verifyJsNpmPackage
           :qrcode-web:packJsPackage
           --stacktrace
+
+      - name: Set up Node for the TypeScript consumer
+        uses: actions/setup-node@v7.0.0
+        with:
+          node-version: "24"
+
+      - name: Verify packed Web package with TypeScript
+        run: npm --prefix tests/web-typescript test
 
       - name: Verify Maven publications used by JitPack
         env:

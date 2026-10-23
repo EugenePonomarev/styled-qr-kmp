@@ -45,6 +45,25 @@ final class StyledQrSwiftChecksTests: XCTestCase {
         XCTAssertNil(valid.error)
         XCTAssertNil(renderer.lastRenderError)
         XCTAssertNil(renderer.lastRenderErrorCode)
+
+        options.finderOuterColorHex = "#123C66"
+        options.finderOuterColorAlpha = 128
+
+        let invalidFinder = render(renderer, options)
+
+        XCTAssertNil(invalidFinder.image)
+        XCTAssertFalse(invalidFinder.isSuccess)
+        XCTAssertEqual(invalidFinder.error?.code, .invalidstyle)
+        XCTAssertEqual(renderer.lastRenderErrorCode, .invalidstyle)
+
+        options.finderOuterColorAlpha = 255
+
+        let recoveredFinder = render(renderer, options)
+
+        XCTAssertNotNil(recoveredFinder.image)
+        XCTAssertTrue(recoveredFinder.isSuccess)
+        XCTAssertNil(recoveredFinder.error)
+        XCTAssertNil(renderer.lastRenderErrorCode)
     }
 
     @MainActor
@@ -188,6 +207,13 @@ final class StyledQrSwiftChecksTests: XCTestCase {
         let options = QrStyleConfiguration()
         options.moduleShape = .roundedsquare
 
+        options.finderOuterShape = .roundedsquare
+        options.finderCenterShape = .circle
+        options.finderOuterColorHex = "#123C66"
+        options.finderOuterColorAlpha = 255
+        options.finderCenterColorHex = "#087E8B"
+        options.finderCenterColorAlpha = 255
+
         let gradient = QrGradientConfiguration()
         gradient.startColorHex = "#075985"
         gradient.endColorHex = "#6D28D9"
@@ -246,7 +272,7 @@ final class StyledQrSwiftChecksTests: XCTestCase {
         try assertVisionReads(
             styledImage,
             expectedPayload: payload,
-            label: "library-gradient"
+            label: "library-gradient-branded-finders"
         )
     }
 
@@ -362,4 +388,237 @@ final class StyledQrSwiftChecksTests: XCTestCase {
             logo: nil
         )
     }
+
+        @MainActor
+        func testRasterOptionsKeepPhysicalSizeAcrossScalesAndModes() throws {
+            let renderer = StyledQrImageRenderer()
+            let options = QrStyleConfiguration()
+            let modes: [QrRasterSizeMode] = [.fit, .integermodules]
+
+            for sizePx: Int32 in [290, 300, 301] {
+                for scale: Double in [1, 2, 3] {
+                    for mode in modes {
+                        let result = renderRaster(
+                            renderer,
+                            options,
+                            content: "x",
+                            sizePx: sizePx,
+                            mode: mode,
+                            scale: scale
+                        )
+
+                        XCTAssertTrue(
+                            result.isSuccess,
+                            result.error?.message ?? "Rendering failed"
+                        )
+                        XCTAssertFalse(result.isEmpty)
+                        XCTAssertNil(result.error)
+
+                        let image = try XCTUnwrap(result.image)
+                        let cgImage = try XCTUnwrap(image.cgImage)
+
+                        XCTAssertEqual(cgImage.width, Int(sizePx))
+                        XCTAssertEqual(cgImage.height, Int(sizePx))
+                        XCTAssertEqual(image.scale, CGFloat(scale))
+                        XCTAssertEqual(
+                            image.size.width,
+                            CGFloat(Double(sizePx) / scale),
+                            accuracy: 0.000001
+                        )
+                        XCTAssertEqual(
+                            image.size.height,
+                            CGFloat(Double(sizePx) / scale),
+                            accuracy: 0.000001
+                        )
+                    }
+                }
+            }
+        }
+
+        @MainActor
+        func testRasterOptionsReturnDistinctErrorsAndRecover() {
+            let renderer = StyledQrImageRenderer()
+            renderer.content = "stored content"
+            let originalStyle = renderer.qrStyle
+            let options = QrStyleConfiguration()
+
+            options.foregroundHex = "invalid"
+            XCTAssertEqual(
+                renderRaster(renderer, options, content: "").error?.code,
+                .invalidstyle
+            )
+            options.foregroundHex = "#000000"
+
+            XCTAssertEqual(
+                renderRaster(renderer, options, sizePx: 0).error?.code,
+                .invalidrenderparameters
+            )
+            XCTAssertEqual(
+                renderRaster(renderer, options, sizePx: 28).error?.code,
+                .invalidrenderparameters
+            )
+            XCTAssertEqual(
+                renderRaster(renderer, options, scale: .nan).error?.code,
+                .invalidrenderparameters
+            )
+            XCTAssertEqual(
+                renderRaster(renderer, options, minVersion: 0).error?.code,
+                .invalidrenderparameters
+            )
+            XCTAssertEqual(
+                renderRaster(
+                    renderer,
+                    options,
+                    minVersion: 2,
+                    maxVersion: 1
+                ).error?.code,
+                .invalidrenderparameters
+            )
+            XCTAssertEqual(
+                renderRaster(
+                    renderer,
+                    options,
+                    content: String(repeating: "a", count: 5000)
+                ).error?.code,
+                .payloadtoolong
+            )
+            XCTAssertEqual(
+                renderRaster(
+                    renderer,
+                    options,
+                    content: String(repeating: "a", count: 100),
+                    maxVersion: 1
+                ).error?.code,
+                .payloadtoolong
+            )
+
+            let logo = UIGraphicsImageRenderer(
+                size: CGSize(width: 16, height: 16)
+            ).image { context in
+                UIColor.red.setFill()
+                context.fill(CGRect(x: 0, y: 0, width: 16, height: 16))
+            }
+
+            let unsafe = renderRaster(
+                renderer,
+                options,
+                content: "hi",
+                logo: logo
+            )
+            XCTAssertNil(unsafe.image)
+            XCTAssertFalse(unsafe.isEmpty)
+            XCTAssertEqual(unsafe.error?.code, .logovalidationfailed)
+            XCTAssertEqual(renderer.lastRenderErrorCode, .logovalidationfailed)
+
+            let empty = renderRaster(renderer, options, content: " \n\t")
+            XCTAssertTrue(empty.isEmpty)
+            XCTAssertFalse(empty.isSuccess)
+            XCTAssertNil(empty.error)
+            XCTAssertNil(renderer.lastRenderError)
+            XCTAssertNil(renderer.lastRenderErrorCode)
+
+            let recovered = renderRaster(renderer, options)
+            XCTAssertTrue(recovered.isSuccess)
+            XCTAssertNil(recovered.error)
+            XCTAssertNil(renderer.lastRenderErrorCode)
+
+            XCTAssertEqual(renderer.content, "stored content")
+            XCTAssertTrue(renderer.qrStyle === originalStyle)
+            XCTAssertNil(renderer.logo)
+            XCTAssertEqual(renderer.errorCorrection, .h)
+        }
+
+    @MainActor
+    func testRasterSizeErrorsTakePriorityOverUnsafeLogoPlacement() {
+        let renderer = StyledQrImageRenderer()
+        let options = QrStyleConfiguration()
+        options.quietZoneModules = 4
+
+        let logo = UIGraphicsImageRenderer(
+            size: CGSize(width: 16, height: 16)
+        ).image { context in
+            UIColor.red.setFill()
+            context.fill(CGRect(x: 0, y: 0, width: 16, height: 16))
+        }
+
+        let cases: [(Int32, QrRenderErrorCode)] = [
+            (28, .invalidrenderparameters),
+            (300, .logovalidationfailed)
+        ]
+        let modes: [QrRasterSizeMode] = [.integermodules, .fit]
+
+        for mode in modes {
+            for scale: Double in [1, 2, 3] {
+                for (sizePx, expectedCode) in cases {
+                    let result = renderRaster(
+                        renderer,
+                        options,
+                        content: "hi",
+                        sizePx: sizePx,
+                        mode: mode,
+                        scale: scale,
+                        logo: logo,
+                        minVersion: 1,
+                        maxVersion: 1
+                    )
+
+                    XCTAssertNil(result.image)
+                    XCTAssertFalse(result.isSuccess)
+                    XCTAssertFalse(result.isEmpty)
+                    XCTAssertEqual(result.error?.code, expectedCode)
+                    XCTAssertFalse(result.error?.message.isEmpty ?? true)
+                    XCTAssertEqual(renderer.lastRenderErrorCode, expectedCode)
+                }
+            }
+        }
+    }
+
+        @MainActor
+        func testRasterOptionsResolveAutomaticScaleWithoutChangingPixelSize()
+            throws
+        {
+            let renderer = StyledQrImageRenderer()
+            let result = renderRaster(
+                renderer,
+                QrStyleConfiguration(),
+                scale: 0
+            )
+
+            let image = try XCTUnwrap(
+                result.image,
+                result.error?.message ?? "Image is missing"
+            )
+            let cgImage = try XCTUnwrap(image.cgImage)
+
+            XCTAssertEqual(cgImage.width, 300)
+            XCTAssertEqual(cgImage.height, 300)
+            XCTAssertEqual(image.scale, UIScreen.main.scale)
+        }
+
+        @MainActor
+        private func renderRaster(
+            _ renderer: StyledQrImageRenderer,
+            _ options: QrStyleConfiguration,
+            content: String = "hi",
+            sizePx: Int32 = 300,
+            mode: QrRasterSizeMode = .integermodules,
+            scale: Double = 1,
+            logo: UIImage? = nil,
+            minVersion: Int32 = 1,
+            maxVersion: Int32 = 40
+        ) -> QrImageRenderResult {
+            renderer.renderWithRasterOptions(
+                content: content,
+                options: options,
+                output: QrRasterRenderOptions(
+                    sizePx: sizePx,
+                    sizeMode: mode
+                ),
+                errorCorrection: .h,
+                scale: scale,
+                logo: logo,
+                minVersion: minVersion,
+                maxVersion: maxVersion
+            )
+        }
 }

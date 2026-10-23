@@ -2,11 +2,7 @@ package io.github.eugeneponomarev.styledqr.render
 
 import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.pow
 import kotlin.math.roundToInt
-
-private const val MIN_GRADIENT_CONTRAST_RATIO = 4.5
 
 /** Position in the QR matrix, excluding its quiet zone. Both coordinates are in 0.0..1.0. */
 public data class QrGradientPoint(
@@ -53,19 +49,22 @@ internal fun QrLinearGradient.validateAgainst(background: QrColor) {
     if (
         cornerLuminance < backgroundLuminance &&
         (backgroundLuminance + 0.05) / (cornerLuminance + 0.05) >=
-        MIN_GRADIENT_CONTRAST_RATIO
+        MIN_QR_FOREGROUND_CONTRAST_RATIO
     ) return
 
     fun check(progress: Double) {
         val color = colorAt(progress)
         val luminance = color.relativeLuminance()
-        val contrast = (max(luminance, backgroundLuminance) + 0.05) /
-            (min(luminance, backgroundLuminance) + 0.05)
-        require(luminance < backgroundLuminance && contrast >= MIN_GRADIENT_CONTRAST_RATIO) {
+        val contrast = color.contrastRatioAgainst(background)
+
+        require(
+            luminance < backgroundLuminance &&
+                    contrast >= MIN_QR_FOREGROUND_CONTRAST_RATIO,
+        ) {
             "Unsafe gradient at progress $progress: " +
-                "contrast $contrast:1 against background " +
-                "(minimum $MIN_GRADIENT_CONTRAST_RATIO:1; " +
-                "foreground must be darker)"
+                    "contrast $contrast:1 against background " +
+                    "(minimum $MIN_QR_FOREGROUND_CONTRAST_RATIO:1; " +
+                    "foreground must be darker)"
         }
     }
 
@@ -128,20 +127,4 @@ internal fun QrLinearGradient.colorAt(progress: Double): QrColor {
         green = mix(startColor.green, endColor.green),
         blue = mix(startColor.blue, endColor.blue),
     )
-}
-
-private val LINEARIZED_SRGB_CHANNELS = DoubleArray(256) { channel ->
-    val value = channel / 255.0
-    if (value <= 0.04045) value / 12.92 else ((value + 0.055) / 1.055).pow(2.4)
-}
-
-internal fun QrColor.relativeLuminance(): Double =
-    0.2126 * LINEARIZED_SRGB_CHANNELS[red] +
-        0.7152 * LINEARIZED_SRGB_CHANNELS[green] +
-        0.0722 * LINEARIZED_SRGB_CHANNELS[blue]
-
-internal fun QrColor.contrastRatioAgainst(other: QrColor): Double {
-    val first = relativeLuminance()
-    val second = other.relativeLuminance()
-    return (max(first, second) + 0.05) / (min(first, second) + 0.05)
 }

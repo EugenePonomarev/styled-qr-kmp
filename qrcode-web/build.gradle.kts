@@ -9,6 +9,8 @@ val npmPackageVersion =
     providers.gradleProperty("VERSION_NAME")
 
 kotlin {
+    explicitApi()
+
     js {
         browser()
         binaries.library()
@@ -25,8 +27,12 @@ kotlin {
             implementation(project(":qrcode-core"))
         }
 
-        jsTest.dependencies {
-            implementation(kotlin("test"))
+        jsTest {
+            kotlin.srcDir(rootProject.file("tests/fixtures/kotlin"))
+
+            dependencies {
+                implementation(kotlin("test"))
+            }
         }
     }
 }
@@ -144,6 +150,19 @@ tasks.register("verifyJsNpmPackage") {
         ) {
             "npm TypeScript declarations do not export " +
                     "StyledQrLinearGradientOptions"
+        }
+
+        listOf(
+            "finderOuterShape",
+            "finderCenterShape",
+            "finderOuterColor",
+            "finderCenterColor",
+            "logoSizeFraction",
+            "logoPaddingFraction",
+        ).forEach { field ->
+            check(field in declarations) {
+                "npm TypeScript declarations do not export $field"
+            }
         }
     }
 }
