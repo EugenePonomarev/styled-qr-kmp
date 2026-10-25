@@ -27,17 +27,17 @@ Then choose the smallest module that provides the UI you need:
 ```kotlin
 dependencies {
     // Android XML layouts and imperative View code:
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.3.1")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.4.0")
 
     // Or Jetpack Compose (also brings the Android View adapter):
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.3.1")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.4.0")
 
     // Encoder, SVG renderer, and Android Bitmap renderer only:
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-core:0.3.1")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-core:0.4.0")
 }
 ```
 
-Use the Git tag shown in GitHub Releases in place of `0.3.1`. JitPack builds a public tag on the
+Use the Git tag shown in GitHub Releases in place of `0.4.0`. JitPack builds a public tag on the
 first request; its status page is linked from the repository's README badge after the first release.
 
 ### Native iOS
@@ -50,7 +50,7 @@ For CocoaPods without a private token, reference the standalone podspec at the p
 
 ```ruby
 pod "StyledQrKmp",
-    :podspec => "https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/0.3.1/StyledQrKmp.podspec"
+    :podspec => "https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/0.4.0/StyledQrKmp.podspec"
 ```
 
 The standalone podspec downloads the matching XCFramework from that GitHub Release. Do not use
@@ -94,7 +94,7 @@ Add the Android View module, then create `StyledQrView` exactly as any other And
 
 ```kotlin
 dependencies {
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.3.1")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.4.0")
 }
 
 val qrView = StyledQrView(context).apply {
@@ -169,7 +169,7 @@ imperative code.
 
 ```kotlin
 dependencies {
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.3.1")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.4.0")
 }
 
 StyledQrCode(
@@ -205,6 +205,74 @@ For a reusable native `UIImageView` and a SwiftUI `UIViewRepresentable`, add the
 ```swift
 StyledQrCodeView(content: "https://eugeneponomarev.com")
     .frame(width: 240, height: 240)
+```
+
+#### Safe configuration from Swift (0.4.0)
+
+Use `QrStyleConfiguration` when style values come from application input.
+Its setters store values without validation; `build()` and
+`renderWithOptions` validate them inside Kotlin and return structured errors.
+This avoids constructing an invalid `QrStyle`, `QrLogoOptions`, or
+`QrLinearGradient` directly from Swift, where Kotlin validation exceptions
+cannot be handled with Swift `do`/`catch`.
+
+```swift
+import UIKit
+import StyledQrKmp
+
+let renderer = StyledQrImageRenderer()
+let options = QrStyleConfiguration()
+options.foregroundHex = "#143A5A"
+options.moduleShape = .roundedsquare
+options.moduleScale = 0.92
+
+let result = renderer.renderWithOptions(
+    content: "https://eugeneponomarev.com",
+    options: options,
+    sizePoints: 240.0,
+    errorCorrection: .h,
+    scale: 0.0,
+    logo: nil
+)
+
+if let image = result.image {
+    // Assign the native UIImage to your UIImageView or SwiftUI Image.
+    print("Rendered QR: \(image.size)")
+} else if let error = result.error {
+    print("QR error: \(error.code): \(error.message)")
+} else if result.isEmpty {
+    // Blank content with valid options produces no image and no error.
+    print("No QR content")
+}
+```
+
+`QrImageRenderResult.isSuccess` indicates an image without an error.
+`renderWithOptions` updates `lastRenderError` and `lastRenderErrorCode`,
+but leaves the renderer's stored content, style, correction level, and logo
+unchanged. Style configuration and basic size/scale checks run even for
+blank content, so an invalid style is reported before an empty result.
+
+| `QrRenderErrorCode` (Kotlin name) | Meaning |
+| --- | --- |
+| `InvalidStyle` | Invalid colour, module, gradient, or logo configuration. |
+| `InvalidRenderParameters` | Invalid image size, scale, or computed pixel dimensions. |
+| `PayloadTooLong` | The payload cannot fit at the selected correction level. |
+| `LogoValidationFailed` | The logo overlaps required patterns or exceeds the correction budget. |
+| `RenderFailed` | Image generation failed after validation. |
+
+For gradients and logos, assign `QrGradientConfiguration` and
+`QrLogoConfiguration` to `options.foregroundGradient` and `options.logo`.
+Pass the actual logo image separately through `renderWithOptions(..., logo:)`.
+Do not mutate a configuration concurrently with building or rendering.
+
+The SwiftUI adapter accepts the same configuration:
+
+```swift
+StyledQrCodeView(
+    content: "https://eugeneponomarev.com",
+    configuration: options
+)
+.frame(width: 240, height: 240)
 ```
 
 ### Web / npm
@@ -463,8 +531,9 @@ QR does not have a standard mechanism for leaving arbitrary central data modules
 therefore visually overwrites a small set of encoded codeword bits. The library makes that
 operation conservative: it aligns the box to whole modules, refuses to cover a mandatory QR
 pattern, counts affected codewords per Reed–Solomon block, and keeps one correctable codeword as
-a safety margin. If the requested logo cannot fit, rendering throws an `IllegalArgumentException`
-instead of silently producing an unreliable image.
+a safety margin. If the requested logo cannot fit, the direct Kotlin rendering API throws an
+`IllegalArgumentException`. The safe iOS `renderWithOptions` API returns a
+`LogoValidationFailed` error instead of an image.
 
 Logo images preserve their aspect ratio and fill the inner area after padding.
 Excess content is cropped around the centre and clipped to the selected logo
@@ -518,6 +587,20 @@ Use JDK 17 and Gradle 8.13. The repository includes the Gradle Wrapper:
 ./gradlew :qrcode-compose:assembleDebug
 ```
 
+On macOS with Xcode and an installed iOS simulator, verify the native API with:
+
+```bash
+# Use iosX64Test on an Intel Mac.
+./gradlew --no-configuration-cache :qrcode-core:iosSimulatorArm64Test
+./gradlew --no-configuration-cache :qrcode-core:assembleStyledQrKmpReleaseXCFramework
+bash scripts/verify-ios-swift-api.sh
+bash scripts/test-ios-swift-api.sh
+```
+
+The Swift test script copies the built XCFramework into the local test package
+under `tests/ios-swift` and runs XCTest on an available iPhone simulator.
+This package is test infrastructure, not a published Swift Package dependency.
+
 The QR encoder, QR matrix decoder, SVG renderer, Android View, and UIKit renderer have no
 third-party QR-generation or QR-decoding dependency. Gradle and the Kotlin
 Multiplatform/Android plugins are build tools; the optional `qrcode-compose` module adds AndroidX
@@ -532,12 +615,12 @@ Compose UI solely to expose a Compose API.
    and generated documentation in a pull request.
 4. Merge after the `Verify` workflow succeeds, then wait for verification
    of the resulting `main` commit.
-5. Create and push a matching tag, such as `0.3.1`,
+5. Create and push a matching tag, such as `0.4.0`,
    from that verified commit. The tag must not have a `v` prefix.
 
 Pushing the tag starts `.github/workflows/release.yml`:
 
-- `native-ios` builds the XCFramework, checks the Swift API, creates
+- `native-ios` builds the XCFramework, checks the Swift API, runs Swift XCTest, creates
   the GitHub Release, and validates the published CocoaPods artifact.
 - After `native-ios` succeeds, `npm-web` tests and packages the Web adapter
   and publishes `styled-qr-kmp-web` to npm.

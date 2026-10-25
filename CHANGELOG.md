@@ -1,5 +1,40 @@
 # Changelog
 
+## 0.4.0 — Safe iOS configuration and rendering
+
+### Added
+
+- Add mutable `QrStyleConfiguration`, `QrLogoConfiguration`, and
+  `QrGradientConfiguration` inputs with validated `QrStyleBuildResult` output.
+- Add `StyledQrImageRenderer.renderWithOptions` and `QrImageRenderResult`
+  so Swift callers can distinguish a rendered image, empty content, and a failure.
+- Report structured errors through `QrRenderError` and `QrRenderErrorCode` for
+  invalid styles, invalid render parameters, oversized payloads, unsafe logo
+  layouts, and rendering failures.
+- Expose `lastRenderErrorCode` alongside the existing renderer error message.
+
+### Changed
+
+- Validate iOS image dimensions and scale before rendering.
+- Update the UIKit renderer and SwiftUI adapter to handle safe configuration
+  results and clear stale error state between renders.
+
+### Tests
+
+- Add shared configuration and image-parameter validation tests, plus iOS
+  renderer regression coverage.
+- Add a local Swift Package with XCTest integration checks and simulator
+  execution in verification and release workflows.
+- Upload the verified XCFramework, source commit, checksum, and iOS test
+  reports as CI artifacts.
+
+### Compatibility
+
+- Existing rendering entry points and default QR appearance remain supported.
+- Direct style constructors retain their existing validation behaviour;
+  use `QrStyleConfiguration` for structured validation errors from Swift.
+- Android and Web rendering APIs are unchanged.
+
 ## 0.3.1 — Encoding and rendering fixes
 
 ### Fixed
