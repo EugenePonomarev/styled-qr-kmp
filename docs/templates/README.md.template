@@ -368,9 +368,8 @@ when they overlap mandatory QR patterns or exceed the correction budget.
 
 Safe Linear Gradients are introduced in version 0.3.0.
 
-`QrStyle.foregroundGradient` fills dark modules and finder layers without an
-explicit solid colour override with one global gradient. `foreground` remains
-the solid fallback when the gradient is absent.
+`QrStyle.foregroundGradient` fills dark modules and both dark finder layers with one
+global gradient. `foreground` remains the solid fallback when the gradient is absent.
 
 Coordinates range from `(0, 0)` at the top left of the QR matrix to `(1, 1)` at
 the bottom right, excluding the quiet zone. The background, quiet zone, finder
