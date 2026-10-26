@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.5.0]
+
+### Added
+
+- Branded Finder Patterns 1.0: independent shapes and colours for outer and centre finder-pattern layers.
+- Safe validation for custom finder-pattern colours, including opacity, darkness and minimum contrast requirements.
+- Cross-platform finder-pattern support for Android, iOS and Web.
+- Safe rendering APIs and explicit raster export options across supported platforms.
+- Cross-platform parity fixtures and expanded Android, Web/TypeScript, Kotlin iOS and Swift test coverage.
+
+### Changed
+
+- Finder-pattern rendering now consistently preserves QR 7:5:3 geometry on all supported platforms.
+- Gradient inheritance is consistently applied to dark finder-pattern layers when no explicit solid colour is configured.
+
 ## 0.4.0 — Safe iOS configuration and rendering
 
 ### Added
