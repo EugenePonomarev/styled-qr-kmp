@@ -102,13 +102,13 @@ class StyledQrWebTest {
         assertEquals(
             3,
             Regex(
-                """width="7(?:\.0)?" height="7(?:\.0)?" rx="[^"]+" fill="#123C66"""",
+                """width="7" height="7" rx="[^"]+" fill="#123C66"""",
             ).findAll(svg).count(),
         )
         assertEquals(
             3,
             Regex(
-                """width="5(?:\.0)?" height="5(?:\.0)?" rx="[^"]+" fill="#FFFFFF"""",
+                """width="5" height="5" rx="[^"]+" fill="#FFFFFF"""",
             ).findAll(svg).count(),
         )
         assertEquals(
@@ -157,7 +157,7 @@ class StyledQrWebTest {
         assertEquals(
             3,
             Regex(
-                """width="7(?:\.0)?" height="7(?:\.0)?" rx="[^"]+" fill="#123C66"""",
+                """width="7" height="7" rx="[^"]+" fill="#123C66"""",
             ).findAll(svg).count(),
         )
         assertEquals(

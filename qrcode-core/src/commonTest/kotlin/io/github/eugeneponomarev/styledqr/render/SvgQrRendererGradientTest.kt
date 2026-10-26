@@ -70,11 +70,8 @@ class SvgQrRendererGradientTest {
         val svg = code.toSvg(style)
         val gradientId = gradientIdFrom(svg)
 
-        val quietZone =
-            style.quietZoneModules.toDouble()
-
-        val matrixEnd =
-            quietZone + code.size
+        val quietZone = style.quietZoneModules
+        val matrixEnd = quietZone + code.size
 
         val totalModules =
             code.size +
@@ -183,14 +180,10 @@ class SvgQrRendererGradientTest {
         )
 
         val svg = code.toSvg(style)
-
         val gradientId = gradientIdFrom(svg)
 
-        val quietZone =
-            style.quietZoneModules.toDouble()
-
-        val matrixEnd =
-            quietZone + code.size
+        val quietZone = style.quietZoneModules
+        val matrixEnd = quietZone + code.size
 
         assertContains(
             svg,
@@ -200,21 +193,12 @@ class SvgQrRendererGradientTest {
                     "y2=\"$quietZone\"",
         )
 
-        assertContains(
-            svg,
-            "<circle",
-        )
-
-        assertContains(
-            svg,
-            "fill=\"url(#$gradientId)\"",
-        )
+        assertContains(svg, "<circle")
+        assertContains(svg, "fill=\"url(#$gradientId)\"")
 
         assertEquals(
             1,
-            Regex("<linearGradient ")
-                .findAll(svg)
-                .count(),
+            Regex("<linearGradient ").findAll(svg).count(),
         )
     }
 
