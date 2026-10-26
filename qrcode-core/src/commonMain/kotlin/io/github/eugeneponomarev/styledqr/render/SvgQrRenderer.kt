@@ -110,7 +110,15 @@ public object SvgQrRenderer {
                             "gradientUnits=\"userSpaceOnUse\" " +
                             "color-interpolation=\"sRGB\"",
                 )
-                append(" x1=\"$startX\" y1=\"$startY\" x2=\"$endX\" y2=\"$endY\">")
+                append(" x1=\"")
+                appendSvgNumber(startX)
+                append("\" y1=\"")
+                appendSvgNumber(startY)
+                append("\" x2=\"")
+                appendSvgNumber(endX)
+                append("\" y2=\"")
+                appendSvgNumber(endY)
+                append("\">")
                 append("<stop offset=\"0%\" stop-color=\"${value.startColor.toCss()}\"/>")
                 append("<stop offset=\"100%\" stop-color=\"${value.endColor.toCss()}\"/>")
                 append("</linearGradient></defs>")
@@ -125,11 +133,11 @@ public object SvgQrRenderer {
 
             if (geometry != null) {
                 append("<g transform=\"translate(")
-                append(geometry.offsetPx)
+                appendSvgNumber(geometry.offsetPx)
                 append(' ')
-                append(geometry.offsetPx)
+                appendSvgNumber(geometry.offsetPx)
                 append(") scale(")
-                append(geometry.moduleSizePx)
+                appendSvgNumber(geometry.moduleSizePx)
                 append(")\">")
             }
 
@@ -232,16 +240,66 @@ public object SvgQrRenderer {
         val centreY = y + 0.5
 
         when (shape) {
-            QrModuleShape.Square -> append("<rect x=\"$left\" y=\"$top\" width=\"$width\" height=\"$width\" fill=\"$fill\" shape-rendering=\"crispEdges\"/>")
+            QrModuleShape.Square -> append("<rect x=\"")
+                .appendSvgNumber(left)
+                .append("\" y=\"")
+                .appendSvgNumber(top)
+                .append("\" width=\"")
+                .appendSvgNumber(width)
+                .append("\" height=\"")
+                .appendSvgNumber(width)
+                .append("\" fill=\"")
+                .append(fill)
+                .append("\" shape-rendering=\"crispEdges\"/>")
+
             QrModuleShape.RoundedSquare -> {
                 val radius = width * roundedRadiusFraction
-                append("<rect x=\"$left\" y=\"$top\" width=\"$width\" height=\"$width\" rx=\"$radius\" fill=\"$fill\"/>")
+                append("<rect x=\"")
+                    .appendSvgNumber(left)
+                    .append("\" y=\"")
+                    .appendSvgNumber(top)
+                    .append("\" width=\"")
+                    .appendSvgNumber(width)
+                    .append("\" height=\"")
+                    .appendSvgNumber(width)
+                    .append("\" rx=\"")
+                    .appendSvgNumber(radius)
+                    .append("\" fill=\"")
+                    .append(fill)
+                    .append("\"/>")
             }
 
-            QrModuleShape.Circle -> append("<circle cx=\"$centreX\" cy=\"$centreY\" r=\"${width / 2.0}\" fill=\"$fill\"/>")
+            QrModuleShape.Circle -> append("<circle cx=\"")
+                .appendSvgNumber(centreX)
+                .append("\" cy=\"")
+                .appendSvgNumber(centreY)
+                .append("\" r=\"")
+                .appendSvgNumber(width / 2.0)
+                .append("\" fill=\"")
+                .append(fill)
+                .append("\"/>")
+
             QrModuleShape.Diamond -> {
                 val half = width / 2.0
-                append("<path d=\"M $centreX ${centreY - half} L ${centreX + half} $centreY L $centreX ${centreY + half} L ${centreX - half} $centreY Z\" fill=\"$fill\"/>")
+                append("<path d=\"M ")
+                    .appendSvgNumber(centreX)
+                    .append(' ')
+                    .appendSvgNumber(centreY - half)
+                    .append(" L ")
+                    .appendSvgNumber(centreX + half)
+                    .append(' ')
+                    .appendSvgNumber(centreY)
+                    .append(" L ")
+                    .appendSvgNumber(centreX)
+                    .append(' ')
+                    .appendSvgNumber(centreY + half)
+                    .append(" L ")
+                    .appendSvgNumber(centreX - half)
+                    .append(' ')
+                    .appendSvgNumber(centreY)
+                    .append(" Z\" fill=\"")
+                    .append(fill)
+                    .append("\"/>")
             }
         }
     }
@@ -256,15 +314,15 @@ public object SvgQrRenderer {
         val left = x + inset
         val top = y + inset
         append("M ")
-        append(left)
+        appendSvgNumber(left)
         append(' ')
-        append(top)
+        appendSvgNumber(top)
         append(" h ")
-        append(scale)
+        appendSvgNumber(scale)
         append(" v ")
-        append(scale)
+        appendSvgNumber(scale)
         append(" h -")
-        append(scale)
+        appendSvgNumber(scale)
         append(" Z ")
     }
 
@@ -328,16 +386,66 @@ public object SvgQrRenderer {
         val centreX = left + size / 2.0
         val centreY = top + size / 2.0
         when (shape) {
-            QrModuleShape.Square -> append("<rect x=\"$left\" y=\"$top\" width=\"$size\" height=\"$size\" fill=\"$fill\" shape-rendering=\"crispEdges\"/>")
+            QrModuleShape.Square -> append("<rect x=\"")
+                .appendSvgNumber(left)
+                .append("\" y=\"")
+                .appendSvgNumber(top)
+                .append("\" width=\"")
+                .appendSvgNumber(size)
+                .append("\" height=\"")
+                .appendSvgNumber(size)
+                .append("\" fill=\"")
+                .append(fill)
+                .append("\" shape-rendering=\"crispEdges\"/>")
+
             QrModuleShape.RoundedSquare -> {
                 val radius = size * roundedRadiusFraction
-                append("<rect x=\"$left\" y=\"$top\" width=\"$size\" height=\"$size\" rx=\"$radius\" fill=\"$fill\"/>")
+                append("<rect x=\"")
+                    .appendSvgNumber(left)
+                    .append("\" y=\"")
+                    .appendSvgNumber(top)
+                    .append("\" width=\"")
+                    .appendSvgNumber(size)
+                    .append("\" height=\"")
+                    .appendSvgNumber(size)
+                    .append("\" rx=\"")
+                    .appendSvgNumber(radius)
+                    .append("\" fill=\"")
+                    .append(fill)
+                    .append("\"/>")
             }
 
-            QrModuleShape.Circle -> append("<circle cx=\"$centreX\" cy=\"$centreY\" r=\"${size / 2.0}\" fill=\"$fill\"/>")
+            QrModuleShape.Circle -> append("<circle cx=\"")
+                .appendSvgNumber(centreX)
+                .append("\" cy=\"")
+                .appendSvgNumber(centreY)
+                .append("\" r=\"")
+                .appendSvgNumber(size / 2.0)
+                .append("\" fill=\"")
+                .append(fill)
+                .append("\"/>")
+
             QrModuleShape.Diamond -> {
                 val half = size / 2.0
-                append("<path d=\"M $centreX ${centreY - half} L ${centreX + half} $centreY L $centreX ${centreY + half} L ${centreX - half} $centreY Z\" fill=\"$fill\"/>")
+                append("<path d=\"M ")
+                    .appendSvgNumber(centreX)
+                    .append(' ')
+                    .appendSvgNumber(centreY - half)
+                    .append(" L ")
+                    .appendSvgNumber(centreX + half)
+                    .append(' ')
+                    .appendSvgNumber(centreY)
+                    .append(" L ")
+                    .appendSvgNumber(centreX)
+                    .append(' ')
+                    .appendSvgNumber(centreY + half)
+                    .append(" L ")
+                    .appendSvgNumber(centreX - half)
+                    .append(' ')
+                    .appendSvgNumber(centreY)
+                    .append(" Z\" fill=\"")
+                    .append(fill)
+                    .append("\"/>")
             }
         }
     }
@@ -356,21 +464,93 @@ public object SvgQrRenderer {
         val bottom = y + side
         if (options.backgroundShape == QrLogoBackgroundShape.Circle) {
             val radius = side / 2.0
-            return "M ${x + radius} $y " +
-                "a $radius $radius 0 1 1 0 $side " +
-                "a $radius $radius 0 1 1 0 -$side Z"
+            return buildString {
+                append("M ")
+                appendSvgNumber(x + radius)
+                append(' ')
+                appendSvgNumber(y)
+                append(" a ")
+                appendSvgNumber(radius)
+                append(' ')
+                appendSvgNumber(radius)
+                append(" 0 1 1 0 ")
+                appendSvgNumber(side)
+                append(" a ")
+                appendSvgNumber(radius)
+                append(' ')
+                appendSvgNumber(radius)
+                append(" 0 1 1 0 -")
+                appendSvgNumber(side)
+                append(" Z")
+            }
         }
         val radius = if (options.backgroundShape == QrLogoBackgroundShape.RoundedSquare) {
             (boxSize * options.cornerRadiusFraction - inset).coerceIn(0.0, side / 2.0)
         } else {
             0.0
         }
-        if (radius == 0.0) return "M $x $y H $right V $bottom H $x Z"
-        return "M ${x + radius} $y H ${right - radius} " +
-            "A $radius $radius 0 0 1 $right ${y + radius} V ${bottom - radius} " +
-            "A $radius $radius 0 0 1 ${right - radius} $bottom H ${x + radius} " +
-            "A $radius $radius 0 0 1 $x ${bottom - radius} V ${y + radius} " +
-            "A $radius $radius 0 0 1 ${x + radius} $y Z"
+        if (radius == 0.0) {
+            return buildString {
+                append("M ")
+                appendSvgNumber(x)
+                append(' ')
+                appendSvgNumber(y)
+                append(" H ")
+                appendSvgNumber(right)
+                append(" V ")
+                appendSvgNumber(bottom)
+                append(" H ")
+                appendSvgNumber(x)
+                append(" Z")
+            }
+        }
+        return buildString {
+            append("M ")
+            appendSvgNumber(x + radius)
+            append(' ')
+            appendSvgNumber(y)
+            append(" H ")
+            appendSvgNumber(right - radius)
+            append(" A ")
+            appendSvgNumber(radius)
+            append(' ')
+            appendSvgNumber(radius)
+            append(" 0 0 1 ")
+            appendSvgNumber(right)
+            append(' ')
+            appendSvgNumber(y + radius)
+            append(" V ")
+            appendSvgNumber(bottom - radius)
+            append(" A ")
+            appendSvgNumber(radius)
+            append(' ')
+            appendSvgNumber(radius)
+            append(" 0 0 1 ")
+            appendSvgNumber(right - radius)
+            append(' ')
+            appendSvgNumber(bottom)
+            append(" H ")
+            appendSvgNumber(x + radius)
+            append(" A ")
+            appendSvgNumber(radius)
+            append(' ')
+            appendSvgNumber(radius)
+            append(" 0 0 1 ")
+            appendSvgNumber(x)
+            append(' ')
+            appendSvgNumber(bottom - radius)
+            append(" V ")
+            appendSvgNumber(y + radius)
+            append(" A ")
+            appendSvgNumber(radius)
+            append(' ')
+            appendSvgNumber(radius)
+            append(" 0 0 1 ")
+            appendSvgNumber(x + radius)
+            append(' ')
+            appendSvgNumber(y)
+            append(" Z")
+        }
     }
 
     private fun StringBuilder.appendLogo(
@@ -395,13 +575,13 @@ public object SvgQrRenderer {
         append("<image href=\"")
         append(dataUri.escapeXmlAttribute())
         append("\" x=\"")
-        append(left + padding)
+        appendSvgNumber(left + padding)
         append("\" y=\"")
-        append(top + padding)
+        appendSvgNumber(top + padding)
         append("\" width=\"")
-        append(logoSize)
+        appendSvgNumber(logoSize)
         append("\" height=\"")
-        append(logoSize)
+        appendSvgNumber(logoSize)
         append("\" preserveAspectRatio=\"xMidYMid slice\" clip-path=\"url(#$imageClipId)\"/>")
     }
 

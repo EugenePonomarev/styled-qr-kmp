@@ -18,7 +18,7 @@ public data class QrColor(
     internal fun toCss(): String = if (alpha == 255) {
         "#${red.hex()}${green.hex()}${blue.hex()}"
     } else {
-        "rgba($red, $green, $blue, ${alpha / 255.0})"
+        "rgba($red, $green, $blue, ${(alpha / 255.0).toSvgNumber()})"
     }
 
     public companion object {
