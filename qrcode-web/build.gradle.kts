@@ -166,3 +166,21 @@ tasks.register("verifyJsNpmPackage") {
         }
     }
 }
+
+tasks.withType<dev.petuska.npm.publish.task.NpmPackTask>().configureEach {
+    val packTemporaryDirectory = temporaryDir
+
+    doFirst {
+        // npm-publish 3.7.0 selects the first temporary file after packing.
+        // Remove archives left by previous executions before creating a new one.
+        packTemporaryDirectory.listFiles()
+            ?.filter {
+                it.isFile && it.extension.equals("tgz", ignoreCase = true)
+            }
+            ?.forEach { archive ->
+                check(archive.delete()) {
+                    "Could not remove stale temporary npm archive: ${archive.name}"
+                }
+            }
+    }
+}
