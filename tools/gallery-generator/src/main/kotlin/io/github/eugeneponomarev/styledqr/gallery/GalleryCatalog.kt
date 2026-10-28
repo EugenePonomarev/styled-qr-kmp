@@ -7,6 +7,7 @@ import io.github.eugeneponomarev.styledqr.render.QrFinderPatternLayerShape
 import io.github.eugeneponomarev.styledqr.render.QrFunctionPatternStyle
 import io.github.eugeneponomarev.styledqr.render.QrLinearGradient
 import io.github.eugeneponomarev.styledqr.render.QrLogoOptions
+import io.github.eugeneponomarev.styledqr.render.QrLogoBackgroundShape
 import io.github.eugeneponomarev.styledqr.render.QrModuleShape
 import io.github.eugeneponomarev.styledqr.render.QrRasterRenderOptions
 import io.github.eugeneponomarev.styledqr.render.QrRasterSizeMode
@@ -130,6 +131,64 @@ internal object GalleryCatalog {
                 sizeMode = QrRasterSizeMode.Fit,
             ),
         ),
+        GalleryRecipe(
+            id = "story-square",
+            caption = "A complete short story with square modules",
+            theme = QrThemes.Minimal,
+            payload = GalleryPayloads.lighthouseStory,
+            rasterOptions = storyOutput(),
+        ),
+        GalleryRecipe(
+            id = "story-circle",
+            caption = "A complete short story with circular modules",
+            styleFactory = {
+                storyCircleStyle()
+            },
+            payload = GalleryPayloads.lighthouseStory,
+            rasterOptions = storyOutput(),
+        ),
+        GalleryRecipe(
+            id = "logo-monogram",
+            caption = "Fintech with a circular monogram",
+            theme = QrThemes.Fintech,
+            logoOptions = showcaseLogoOptions(),
+            logoSource = "logo-monogram-mark.svg",
+        ),
+        GalleryRecipe(
+            id = "logo-lighthouse",
+            caption = "Aurora with a lighthouse illustration",
+            theme = QrThemes.Aurora,
+            logoOptions = showcaseLogoOptions(),
+            logoSource = "logo-lighthouse-mark.svg",
+        ),
+        GalleryRecipe(
+            id = "story-circle-logo",
+            caption = "A complete short story with circular modules and a lighthouse",
+            styleFactory = {
+                storyCircleStyle(logo = storyLogoOptions())
+            },
+            logoOptions = storyLogoOptions(),
+            logoSource = "logo-lighthouse-mark.svg",
+            payload = GalleryPayloads.lighthouseStory,
+            rasterOptions = storyOutput(),
+        ),
+        GalleryRecipe(
+            id = "story-gradient-logo",
+            caption = "A complete short story with a gradient and monogram",
+            styleFactory = {
+                QrThemes.Fintech.createGradientStyle(
+                    gradient = QrLinearGradient(
+                        startColor = QrColor.fromHex("#075985"),
+                        endColor = QrColor.fromHex("#6D28D9"),
+                    ),
+                    logo = storyLogoOptions(),
+                )
+            },
+            logoOptions = storyLogoOptions(),
+            logoSource = "logo-monogram-mark.svg",
+            payload = GalleryPayloads.lighthouseStory,
+            rasterOptions = storyOutput(),
+        ),
     )
 
     private fun themeCase(
@@ -140,6 +199,42 @@ internal object GalleryCatalog {
         id = id,
         caption = caption,
         theme = theme,
+    )
+
+    private fun showcaseLogoOptions(): QrLogoOptions = QrLogoOptions(
+        sizeFraction = 0.20,
+        paddingFraction = 0.02,
+        background = QrColor.White,
+        backgroundShape = QrLogoBackgroundShape.Circle,
+    )
+
+    private fun storyLogoOptions(): QrLogoOptions = QrLogoOptions(
+        sizeFraction = 0.16,
+        paddingFraction = 0.02,
+        background = QrColor.White,
+        backgroundShape = QrLogoBackgroundShape.Circle,
+    )
+
+    private fun storyOutput(): QrRasterRenderOptions = QrRasterRenderOptions(
+        sizePx = 1260,
+        sizeMode = QrRasterSizeMode.IntegerModules,
+    )
+
+    private fun storyCircleStyle(
+        logo: QrLogoOptions? = null,
+    ): QrStyle = QrStyle(
+        foreground = QrColor.fromHex("#0B3A82"),
+        background = QrColor.White,
+        moduleShape = QrModuleShape.Circle,
+        moduleScale = 0.94,
+        functionPatternStyle = QrFunctionPatternStyle.PreserveAll,
+        finderPatternAppearance = QrFinderPatternAppearance(
+            outerShape = QrFinderPatternLayerShape.RoundedSquare,
+            centerShape = QrFinderPatternLayerShape.Circle,
+            outerColor = QrColor.fromHex("#0B3A82"),
+            centerColor = QrColor.fromHex("#6D28D9"),
+        ),
+        logo = logo,
     )
 }
 
