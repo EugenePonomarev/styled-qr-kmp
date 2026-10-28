@@ -26,6 +26,36 @@ Android, iOS and Web share encoding, themes and defined styling safety rules.
 `{{VERSION_NAME}}`. Canonical numeric SVG serialization is currently an unreleased
 change in `main`; these gallery files are not byte snapshots of the published release.
 
+### Long text, shaped modules and logos
+
+These examples encode the same complete English short story: 349 UTF-8 bytes,
+QR version 20, error correction H and a 97 × 97 module matrix.
+Each SVG is exported at 1260 × 1260 pixels with integer module sizing.
+Open a preview to view the full-size SVG.
+
+| Circular modules + lighthouse | Gradient + monogram |
+| --- | --- |
+| <a href="https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/story-circle-logo.svg"><img src="https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/story-circle-logo.svg" alt="Complete short story encoded with blue circular modules and a central lighthouse illustration" width="360" height="360"></a> | <a href="https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/story-gradient-logo.svg"><img src="https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/story-gradient-logo.svg" alt="Complete short story encoded with a blue-to-purple gradient and a central monogram" width="360" height="360"></a> |
+
+Compare the same story with
+[square modules](https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/story-square.svg)
+or [circular modules without a logo](https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/story-circle.svg).
+The full payload is defined in
+[GalleryPayloads.kt](https://github.com/EugenePonomarev/styled-qr-kmp/blob/main/tools/gallery-generator/src/main/kotlin/io/github/eugeneponomarev/styledqr/gallery/GalleryPayloads.kt).
+
+### Centre logos
+
+Short URL examples combine theme styles with a circular logo background.
+
+| Fintech + monogram | Aurora + lighthouse |
+| --- | --- |
+| <a href="https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/logo-monogram.svg"><img src="https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/logo-monogram.svg" alt="Fintech QR code with a central circular monogram" width="240" height="240"></a> | <a href="https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/logo-lighthouse.svg"><img src="https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/logo-lighthouse.svg" alt="Aurora QR code with a central lighthouse illustration" width="240" height="240"></a> |
+
+Some IDE SVG previews omit embedded logo images. Open the SVG directly in a
+browser to inspect the complete image.
+
+### Themes and finder styles
+
 | Aurora | Fintech | Minimal |
 | --- | --- | --- |
 | <img src="https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/theme-aurora.svg" alt="Aurora theme QR code" width="176" height="176"> | <img src="https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/theme-fintech.svg" alt="Fintech theme QR code" width="176" height="176"> | <img src="https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/theme-minimal.svg" alt="Minimal theme QR code" width="176" height="176"> |
