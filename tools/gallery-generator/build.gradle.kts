@@ -105,3 +105,58 @@ tasks.register<JavaExec>("verifyGallery") {
 
     mustRunAfter(writeGalleryTask)
 }
+
+tasks.register<JavaExec>("assembleDocsSite") {
+    group = "documentation"
+    description = "Builds the initial static documentation site."
+
+    dependsOn(tasks.named("classes"))
+    dependsOn(":checkGallery")
+    dependsOn(":checkVersionedDocs")
+
+    val siteOutputDirectory = rootProject.layout.buildDirectory.dir("docs-site")
+    val siteStylesheet = rootProject.layout.projectDirectory.file("docs/site/style.css")
+    val siteVersion = providers.gradleProperty("VERSION_NAME").get()
+
+    mainClass.set(
+        "io.github.eugeneponomarev.styledqr.gallery.DocsSiteGeneratorKt",
+    )
+    classpath = sourceSets.main.get().runtimeClasspath
+
+    inputs.files(sourceSets.main.get().allSource)
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.dir(committedGalleryDirectory)
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.property("version", siteVersion)
+    inputs.file(siteStylesheet)
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+
+    args(
+        committedGalleryDirectory.asFile.absolutePath,
+        siteOutputDirectory.get().asFile.absolutePath,
+        siteStylesheet.asFile.absolutePath,
+        siteVersion,
+    )
+
+    outputs.dir(siteOutputDirectory)
+    outputs.upToDateWhen { false }
+}
+
+tasks.register<JavaExec>("verifyDocsSite") {
+    group = "verification"
+    description = "Checks the assembled documentation site."
+
+    dependsOn("assembleDocsSite")
+
+    val siteOutputDirectory = rootProject.layout.buildDirectory.dir("docs-site")
+
+    mainClass.set(
+        "io.github.eugeneponomarev.styledqr.gallery.DocsSiteCheckKt",
+    )
+    classpath = sourceSets.main.get().runtimeClasspath
+
+    inputs.dir(siteOutputDirectory)
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+
+    args(siteOutputDirectory.get().asFile.absolutePath)
+}

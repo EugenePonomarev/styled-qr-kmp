@@ -118,6 +118,20 @@ tasks.register("checkGallery") {
     dependsOn(":gallery-generator:verifyGallery")
 }
 
+tasks.register("buildDocsSite") {
+    group = "documentation"
+    description = "Builds the static documentation site."
+
+    dependsOn(":gallery-generator:assembleDocsSite")
+}
+
+tasks.register("checkDocsSite") {
+    group = "verification"
+    description = "Checks the assembled static documentation site."
+
+    dependsOn(":gallery-generator:verifyDocsSite")
+}
+
 allprojects {
     group = libraryGroup.get()
     version = libraryVersion
