@@ -25,7 +25,7 @@ class GalleryPipelineTest {
         )
 
     @Test
-    fun catalogueHasTwelveUniqueCasesInTheRequiredOrder() {
+    fun catalogueHasEighteenUniqueCasesInTheRequiredOrder() {
         assertEquals(
             listOf(
                 "theme-aurora",
@@ -40,6 +40,12 @@ class GalleryPipelineTest {
                 "logo-backed",
                 "raster-integer-modules",
                 "raster-fit",
+                "story-square",
+                "story-circle",
+                "logo-monogram",
+                "logo-lighthouse",
+                "story-circle-logo",
+                "story-gradient-logo",
             ),
             GalleryCatalog.recipes.map { it.id },
         )
@@ -297,6 +303,35 @@ class GalleryPipelineTest {
 
             assertEquals(before, snapshot(gallery))
         }
+
+    @Test
+    fun storyCasesContainTheCompleteLongPayloadAndUseDenseMatrices() {
+        val generated = generateGallery(logoInputs)
+        val story = GalleryPayloads.lighthouseStory
+
+        assertTrue(story.encodeToByteArray().size > 300)
+
+        val stories = generated.cases.filter {
+            it.recipe.payload == story
+        }
+
+        assertEquals(
+            setOf(
+                "story-square",
+                "story-circle",
+                "story-circle-logo",
+                "story-gradient-logo",
+            ),
+            stories.map { it.recipe.id }.toSet(),
+        )
+
+        stories.forEach {
+            assertTrue(
+                it.qrCode.size >= 81,
+                "Expected a dense matrix for ${it.recipe.id}",
+            )
+        }
+    }
 
     private fun parseSvg(bytes: ByteArray) =
         DocumentBuilderFactory.newInstance().apply {
