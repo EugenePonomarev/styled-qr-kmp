@@ -1,3 +1,6 @@
 *.sh text eol=lf
 StyledQrKmp.podspec text eol=lf
 docs/templates/StyledQrKmp.podspec.template text eol=lf
+docs/gallery-inputs/*.svg text eol=lf
+docs/gallery/*.svg text eol=lf
+docs/gallery/manifest.json text eol=lf

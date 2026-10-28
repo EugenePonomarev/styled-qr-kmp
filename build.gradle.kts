@@ -4,16 +4,20 @@ import org.gradle.api.publish.maven.MavenPublication
 plugins {
     kotlin("multiplatform") version "2.2.20" apply false
     kotlin("android") version "2.2.20" apply false
-    id("org.jetbrains.kotlin.plugin.compose") version "2.2.20" apply false
+    kotlin("jvm") version "2.2.20" apply false
 
+    id("org.jetbrains.kotlin.plugin.compose") version "2.2.20" apply false
+    id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.18.2"
     id("com.android.library") version "8.12.3" apply false
     id("com.android.application") version "8.12.3" apply false
-    id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.18.2"
 }
 
 apiValidation {
     // Public JavaScript API is verified through generated .d.mts in the Web PR.
     ignoredProjects.add("qrcode-web")
+
+    // Private executable tooling; not a published library API.
+    ignoredProjects.add("gallery-generator")
 }
 
 val libraryGroup = providers
@@ -98,6 +102,20 @@ tasks.register("checkVersionedDocs") {
             "StyledQrKmp.podspec is out of date. Run ./gradlew updateVersionedDocs and commit the result."
         }
     }
+}
+
+tasks.register("updateGallery") {
+    group = "documentation"
+    description = "Regenerates the committed SVG gallery and manifest."
+
+    dependsOn(":gallery-generator:writeGallery")
+}
+
+tasks.register("checkGallery") {
+    group = "verification"
+    description = "Checks that the committed gallery matches the generator."
+
+    dependsOn(":gallery-generator:verifyGallery")
 }
 
 allprojects {

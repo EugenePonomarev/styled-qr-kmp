@@ -50,6 +50,8 @@ jobs:
           :qrcode-android-view:assembleDebug
           :qrcode-compose:assembleDebug
           :qrcode-android-view:testDebugUnitTest
+          :gallery-generator:test
+          checkGallery
           --stacktrace
 
       - name: Run core JS browser tests
