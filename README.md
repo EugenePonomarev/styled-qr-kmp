@@ -5,7 +5,74 @@
 [![JitPack](https://jitpack.io/v/EugenePonomarev/styled-qr-kmp.svg)](https://jitpack.io/#EugenePonomarev/styled-qr-kmp)
 [![Verify](https://github.com/EugenePonomarev/styled-qr-kmp/actions/workflows/verify.yml/badge.svg)](https://github.com/EugenePonomarev/styled-qr-kmp/actions/workflows/verify.yml)
 
-`Styled QR KMP` is a Kotlin Multiplatform QR-code generator. Its encoding core is implemented in Kotlin and does not depend on ZXing, ML Kit, or another QR generation library.
+Styled QR KMP is a styled QR engine for Kotlin Multiplatform:
+Android, iOS and Web share encoding, themes and defined styling safety rules.
+
+- **No Google Play services or ZXing runtime required.** Generate QR codes locally,
+  including on Android devices without GMS.
+- **Shared visual styles.** Seven themes, custom module shapes, linear gradients,
+  independent finder layers and validated centre-logo placement.
+- **Native platform output.** Android Bitmap/View/Compose, iOS UIImage and Web SVG/PNG.
+  The Compose adapter is Android-only.
+- **Compatibility checks.** Kotlin API baselines, Swift API checks and a TypeScript
+  consumer test guard against accidental API regressions.
+
+**Quick starts:** [Android Compose](#jetpack-compose) ·
+[iOS UIKit and SwiftUI](#ios-uikit-and-swiftui) · [Web/npm](#web--npm)
+
+## Gallery
+
+**Generated from repository main.** These visual APIs are available in
+`0.5.0`. Canonical numeric SVG serialization is currently an unreleased
+change in `main`; these gallery files are not byte snapshots of the published release.
+
+| Aurora | Fintech | Minimal |
+| --- | --- | --- |
+| <img src="https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/theme-aurora.svg" alt="Aurora theme QR code" width="176" height="176"> | <img src="https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/theme-fintech.svg" alt="Fintech theme QR code" width="176" height="176"> | <img src="https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/theme-minimal.svg" alt="Minimal theme QR code" width="176" height="176"> |
+
+| Neon | Wedding | Coffee |
+| --- | --- | --- |
+| <img src="https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/theme-neon.svg" alt="Neon theme QR code" width="176" height="176"> | <img src="https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/theme-wedding.svg" alt="Wedding theme QR code" width="176" height="176"> | <img src="https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/theme-coffee.svg" alt="Coffee theme QR code" width="176" height="176"> |
+
+| Cyber | Linear gradient | Branded finders |
+| --- | --- | --- |
+| <img src="https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/theme-cyber.svg" alt="Cyber theme QR code" width="176" height="176"> | <img src="https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/linear-gradient.svg" alt="QR code with a blue-to-purple linear gradient" width="176" height="176"> | <img src="https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/branded-finders.svg" alt="QR code with rounded outer finders and circular centres" width="176" height="176"> |
+
+Additional examples:
+[backed centre logo](https://github.com/EugenePonomarev/styled-qr-kmp/blob/main/docs/gallery/logo-backed.svg),
+[512 px integer modules](https://github.com/EugenePonomarev/styled-qr-kmp/blob/main/docs/gallery/raster-integer-modules.svg),
+[512 px fit sizing](https://github.com/EugenePonomarev/styled-qr-kmp/blob/main/docs/gallery/raster-fit.svg).
+
+Both sizing examples are SVG files with explicit pixel geometry.
+
+### Start with a theme
+
+```kotlin
+import io.github.eugeneponomarev.styledqr.core.QrCodeGenerator
+import io.github.eugeneponomarev.styledqr.render.SvgQrRenderer
+import io.github.eugeneponomarev.styledqr.theme.QrThemes
+
+val qrCode = QrCodeGenerator.encodeText("https://example.com")
+val style = QrThemes.Fintech.createStyle()
+val svg = SvgQrRenderer.render(qrCode, style)
+```
+
+Use the same theme style with the native Android and iOS renderers.
+
+### Safety contract
+
+Gradient colours and explicitly customised finder colours must be opaque,
+darker than an opaque background and have at least `4.5:1` contrast.
+Gradient validation covers every reachable colour in the shared 8-bit
+interpolation model.
+
+Logo placement is aligned to whole modules and rejected when it overlaps
+mandatory QR patterns or exceeds the permitted Reed–Solomon correction
+budget in any affected block.
+
+Ordinary solid foreground colours are not universally rejected for low contrast.
+These checks do not guarantee optical readability in every environment;
+test final images on your target devices.
 
 ## Install from GitHub
 
@@ -86,7 +153,7 @@ renderers. Choose the platform layer that matches the host application:
 | Android Compose | `qrcode-compose` / `StyledQrCode` | Jetpack Compose |
 | iOS UIKit | `qrcode-core` / `StyledQrImageRenderer` | UIKit code |
 | iOS SwiftUI | `examples/ios/StyledQrCodeView.swift` | `UIViewRepresentable` adapter in the app target |
-| Web / JavaScript | `qrcode-web` / `generateStyledQrSvg` | Browser applications bundled as ES modules |
+| Web / JavaScript | `qrcode-web` / `renderStyledQrSvg` | Browser applications bundled as ES modules |
 
 ### Android View and XML
 
@@ -277,42 +344,58 @@ StyledQrCodeView(
 
 ### Web / npm
 
-The browser adapter is available as an ES module on npm:
-For the unreleased options-based API, theme overrides, safe results and explicit
-PNG/SVG export dimensions, see
-[Consistent output across platforms](#consistent-output-across-platforms).
+Install the published ES module:
 
 ```bash
-npm install styled-qr-kmp-web
+npm install styled-qr-kmp-web@0.5.0
 ```
 
-```ts
-import { generateStyledQrSvg } from "styled-qr-kmp-web";
+Use the options-based API in a browser application:
 
-const svg = generateStyledQrSvg(
-  "https://eugeneponomarev.com",
-  "H",
-  "#143A5A",
-  "#FFFFFF",
-  "rounded-square",
-  0.88,
-);
-
-document.querySelector<HTMLImageElement>("#qr")!.src =
-  `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+```html
+<img id="qr" alt="QR code" width="240" height="240">
 ```
 
-`errorCorrection` accepts `L`, `M`, `Q`, or `H`. Supported module shapes are
-`square`, `rounded-square`, `circle`, and `diamond`.
+```typescript
+import {
+  StyledQrOptions,
+  renderStyledQrSvg,
+} from "styled-qr-kmp-web";
 
-`functionPatternStyle` is an optional seventh argument. It defaults to
-`match-data-modules`, which applies the selected shape to data modules and all dark
-non-finder function modules, including alignment, timing, format, version, and fixed
-dark modules. Finder patterns remain composed eyes in the selected visual shape.
+const options = new StyledQrOptions();
+options.themeId = "fintech";
+options.errorCorrection = "H";
 
-Use `preserve-all` to keep non-finder structural modules square, or
-`preserve-finders-and-alignment` to keep alignment patterns square while timing, format,
-and version modules follow the selected shape.
+const result = renderStyledQrSvg("https://example.com", options);
+const image = document.querySelector<HTMLImageElement>("#qr");
+
+if (image == null) {
+  throw new Error("Missing #qr image element");
+}
+
+if (result.error != null) {
+  throw new Error(`${result.error.code}: ${result.error.message}`);
+} else if (result.svg != null) {
+  image.src =
+    `data:image/svg+xml;charset=utf-8,${encodeURIComponent(result.svg)}`;
+} else {
+  image.removeAttribute("src");
+}
+```
+
+`StyledQrOptions` supports theme selection and explicit visual overrides.
+`errorCorrection` accepts `L`, `M`, `Q` or `H`.
+
+For custom styling, `moduleShape` accepts `square`, `rounded-square`,
+`circle` or `diamond`. `functionPatternStyle` accepts
+`match-data-modules`, `preserve-all` or `preserve-finders-and-alignment`.
+
+The safe API distinguishes successful output, empty input and structured errors.
+Historical positional helpers remain available for compatibility.
+
+See [Consistent output across platforms](#consistent-output-across-platforms)
+for gradients, finder overrides, logo options, explicit export dimensions
+and PNG output.
 
 ## Built-in themes
 
@@ -357,8 +440,9 @@ const svgWithLogo = generateThemedQrSvgWithLogo(
 );
 ```
 
-Error correction defaults to H. Pass an optional final argument to
-`generateThemedQrSvg` or `generateThemedQrSvgWithLogo` to select another level.
+Error correction defaults to H. Supply `errorCorrection` as the third argument
+to `generateThemedQrSvg`, or the fourth argument to `generateThemedQrSvgWithLogo`,
+to select another level.
 
 For a custom style with a logo, use `generateStyledQrSvgWithLogo`.
 All logo placements use the shared layout validation and may be rejected
@@ -583,9 +667,11 @@ That optimisation can be added in a later iteration without changing the public 
 
 ## Consistent output across platforms
 
-The options-based APIs in this section are unreleased. Before publication,
-consume artifacts built from this branch, including the locally packed npm
-archive.
+The options-based APIs in this section are available in `0.5.0`.
+
+Canonical numeric SVG serialization is currently an unreleased change in
+`main`. Do not assume byte equality between repository-main gallery files
+and output from the published release.
 
 The shared `QrStyle`, `QrLogoOptions`, `QrStyleConfiguration`, encoder and
 validation rules define the visual contract. Use the same payload, explicit
