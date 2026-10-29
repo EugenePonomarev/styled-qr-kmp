@@ -1,0 +1,956 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QR Builder · Styled QR KMP</title>
+
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      color: #14213d;
+      background: #f5f7fc;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+    }
+
+    main {
+      width: min(1100px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 48px 0 72px;
+    }
+
+    .eyebrow {
+      color: #6d28d9;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 10px 0 12px;
+      font-size: clamp(2.4rem, 6vw, 4rem);
+      line-height: 1.05;
+      letter-spacing: -0.045em;
+    }
+
+    .intro {
+      max-width: 680px;
+      color: #485571;
+      line-height: 1.6;
+    }
+
+    .builder {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(300px, 0.9fr);
+      gap: 24px;
+      margin-top: 32px;
+    }
+
+    .panel {
+      padding: 28px;
+      border: 1px solid #dce3f1;
+      border-radius: 22px;
+      background: #fff;
+    }
+
+    .panel h2 {
+      margin: 0 0 20px;
+      font-size: 1.2rem;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    label {
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    textarea,
+    select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #bdc9dd;
+      border-radius: 10px;
+      color: #14213d;
+      background: #fff;
+      font: inherit;
+    }
+
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    textarea:focus-visible,
+    select:focus-visible {
+      outline: 3px solid #a99af5;
+      outline-offset: 2px;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .preview-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #fff;
+      background: #111a31;
+    }
+
+    .preview-panel h2 {
+      align-self: stretch;
+    }
+
+    .preview-frame {
+      display: grid;
+      place-items: center;
+      width: min(100%, 380px);
+      min-height: 300px;
+      padding: 20px;
+      border-radius: 16px;
+      background: #fff;
+    }
+
+    .preview-frame img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .preview-frame img[hidden] {
+      display: none;
+    }
+
+    .status {
+      align-self: stretch;
+      min-height: 1.5em;
+      margin: 18px 0 0;
+      color: #d9e2f3;
+      line-height: 1.5;
+    }
+
+    .status.error {
+      color: #ffb4b4;
+    }
+
+    .note {
+      color: #65718a;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 760px) {
+      .builder {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .field-row {
+        grid-template-columns: 1fr;
+      }
+
+      .panel {
+        padding: 20px;
+      }
+    }
+        input[type="color"] {
+      width: 100%;
+      height: 48px;
+      padding: 4px;
+      border: 1px solid #bdc9dd;
+      border-radius: 10px;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    input[type="color"]:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    input[type="checkbox"] {
+      margin-right: 8px;
+    }
+
+    .download-button,
+    .copy-button {
+      padding: 11px 16px;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .download-button {
+      align-self: stretch;
+      margin-top: 16px;
+      color: #111a31;
+      background: #fff;
+    }
+
+    .download-button:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+
+    .code-section {
+      margin-top: 24px;
+      padding: 28px;
+      border: 1px solid #dce3f1;
+      border-radius: 22px;
+      background: #fff;
+    }
+
+    .code-heading {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .code-heading h2 {
+      margin: 0;
+    }
+
+    .copy-button {
+      color: #fff;
+      background: #4f46e5;
+    }
+
+    .code-section pre {
+      overflow-x: auto;
+      padding: 20px;
+      border-radius: 14px;
+      color: #e5edff;
+      background: #111a31;
+      line-height: 1.65;
+    }
+
+    .code-section code {
+      font-family: ui-monospace, Consolas, monospace;
+    }
+
+    button:focus-visible,
+    input:focus-visible {
+      outline: 3px solid #a99af5;
+      outline-offset: 2px;
+    }
+
+    #code-platform {
+      width: auto;
+      min-width: 170px;
+    }
+        .builder-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 20px;
+      margin-bottom: 36px;
+    }
+
+    .builder-nav a {
+      color: #4338ca;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .builder-nav a:focus-visible {
+      outline: 3px solid #a99af5;
+      outline-offset: 4px;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <p class="eyebrow">Styled QR KMP · Local prototype</p>
+    <h1>Make a QR code<br>your own.</h1>
+    <p class="intro">
+      Change the content and styling to see the result generated
+      by the shared QR engine.
+    </p>
+
+    <div class="builder">
+      <section class="panel">
+        <h2>Configure your QR</h2>
+
+        <div class="field">
+          <label for="content">Content</label>
+          <textarea id="content">https://example.com</textarea>
+        </div>
+
+        <div class="field">
+          <label for="theme">Theme</label>
+          <select id="theme">
+            <option value="aurora">Aurora</option>
+            <option value="fintech" selected>Fintech</option>
+            <option value="minimal">Minimal</option>
+            <option value="neon">Neon</option>
+            <option value="wedding">Wedding</option>
+            <option value="coffee">Coffee</option>
+            <option value="cyber">Cyber</option>
+          </select>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="shape">Module shape</label>
+            <select id="shape">
+              <option value="">Theme default</option>
+              <option value="square">Square</option>
+              <option value="rounded-square">Rounded square</option>
+              <option value="circle">Circle</option>
+              <option value="diamond">Diamond</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="ecc">Error correction</label>
+            <select id="ecc">
+              <option value="L">L</option>
+              <option value="M">M</option>
+              <option value="Q">Q</option>
+              <option value="H" selected>H</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>
+            <input id="custom-colors" type="checkbox">
+            Override theme colors
+          </label>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="foreground">Foreground</label>
+            <input id="foreground" type="color" value="#0b3a82" disabled>
+          </div>
+
+          <div class="field">
+            <label for="background">Background</label>
+            <input id="background" type="color" value="#ffffff" disabled>
+          </div>
+        </div>
+        <p class="note">
+          This local prototype generates the SVG in your browser.
+          Test the final image with the scanners and devices you intend to use.
+        </p>
+      </section>
+
+      <section class="panel preview-panel">
+        <h2>Live preview</h2>
+
+        <div class="preview-frame">
+          <img id="preview" alt="Generated QR code" hidden>
+        </div>
+
+        <p id="status" class="status" role="status" aria-live="polite">
+          Loading QR engine…
+        </p>
+
+        <button id="download" class="download-button" type="button" disabled>
+          Download SVG
+        </button>
+      </section>
+    </div>
+        <section class="code-section">
+      <div class="code-heading">
+        <div>
+          <p class="eyebrow">USE IT IN YOUR PROJECT</p>
+          <h2>Code example</h2>
+        </div>
+        <label for="code-platform">Platform</label>
+        <select id="code-platform">
+          <option value="web">Web / JavaScript</option>
+          <option value="android">Android / Kotlin</option>
+          <option value="android-view">Android / XML + View</option>
+          <option value="compose">Android / Compose</option>
+          <option value="ios">iOS / Swift</option>
+        </select>
+        <button id="copy-code" class="copy-button" type="button">
+          Copy code
+        </button>
+      </div>
+
+        <p id="platform-note" class="note"></p>
+
+      <pre><code id="generated-code"></code></pre>
+      <p id="copy-status" class="note" role="status" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <nav class="builder-nav" aria-label="Site navigation">
+    <a href="index.html">Home</a>
+    <a href="gallery.html">Gallery</a>
+    <a href="getting-started.html">Getting started</a>
+    <a href="safety.html">Safety</a>
+  </nav>
+
+  <script type="module">
+    import {
+      StyledQrOptions,
+      renderStyledQrSvg,
+    } from "../../qrcode-web/build/packages/js/styled-qr-kmp-qrcode-web.mjs";
+
+    const content = document.querySelector("#content");
+    const theme = document.querySelector("#theme");
+    const shape = document.querySelector("#shape");
+    const ecc = document.querySelector("#ecc");
+    const codePlatform = document.querySelector("#code-platform");
+
+    const customColors = document.querySelector("#custom-colors");
+    const foreground = document.querySelector("#foreground");
+    const background = document.querySelector("#background");
+
+    const preview = document.querySelector("#preview");
+    const status = document.querySelector("#status");
+    const download = document.querySelector("#download");
+
+    const generatedCode = document.querySelector("#generated-code");
+    const copyCode = document.querySelector("#copy-code");
+    const copyStatus = document.querySelector("#copy-status");
+    const platformNote = document.querySelector("#platform-note");
+
+    let currentSvg = null;
+
+    function makeOptions() {
+      const options = new StyledQrOptions();
+
+      options.themeId = theme.value;
+      options.errorCorrection = ecc.value;
+
+      if (shape.value !== "") {
+        options.moduleShape = shape.value;
+      }
+
+      if (customColors.checked) {
+        options.foregroundHex = foreground.value;
+        options.backgroundHex = background.value;
+      }
+
+      return options;
+    }
+
+    function makeWebCode() {
+      const lines = [
+        'import {',
+        '  StyledQrOptions,',
+        '  renderStyledQrSvg,',
+        '} from "styled-qr-kmp-web";',
+        '',
+        `const content = ${JSON.stringify(content.value)};`,
+        'const options = new StyledQrOptions();',
+        `options.themeId = ${JSON.stringify(theme.value)};`,
+        `options.errorCorrection = ${JSON.stringify(ecc.value)};`,
+      ];
+
+      if (shape.value !== "") {
+        lines.push(
+          `options.moduleShape = ${JSON.stringify(shape.value)};`,
+        );
+      }
+
+      if (customColors.checked) {
+        lines.push(
+          `options.foregroundHex = ${JSON.stringify(foreground.value)};`,
+        );
+        lines.push(
+          `options.backgroundHex = ${JSON.stringify(background.value)};`,
+        );
+      }
+
+      lines.push(
+        '',
+        'const result = renderStyledQrSvg(content, options);',
+        '',
+        'if (result.error != null) {',
+        '  console.error(result.error.code, result.error.message);',
+        '} else if (result.svg != null) {',
+        '  console.log(result.svg);',
+        '} else {',
+        '  console.log("No QR content");',
+        '}',
+      );
+
+      return lines.join("\n");
+    }
+
+function kotlinString(value) {
+  let result = '"';
+
+  // Work with UTF-16 code units so that supplementary characters
+  // are preserved as a pair of Kotlin Unicode escapes.
+  for (let index = 0; index < value.length; index++) {
+    const character = value[index];
+    const code = value.charCodeAt(index);
+
+    switch (character) {
+      case '"':
+        result += '\\"';
+        break;
+      case "\\":
+        result += "\\\\";
+        break;
+      case "$":
+        result += "\\$";
+        break;
+      case "\n":
+        result += "\\n";
+        break;
+      case "\r":
+        result += "\\r";
+        break;
+      case "\t":
+        result += "\\t";
+        break;
+      case "\b":
+        result += "\\b";
+        break;
+      default:
+        if (code < 0x20 || code > 0x7e) {
+          result += "\\u" + code.toString(16).padStart(4, "0");
+        } else {
+          result += character;
+        }
+    }
+  }
+
+  return result + '"';
+}
+
+function makeAndroidCode() {
+  const themeNames = {
+    aurora: "Aurora",
+    fintech: "Fintech",
+    minimal: "Minimal",
+    neon: "Neon",
+    wedding: "Wedding",
+    coffee: "Coffee",
+    cyber: "Cyber",
+  };
+
+  const shapeNames = {
+    square: "Square",
+    "rounded-square": "RoundedSquare",
+    circle: "Circle",
+    diamond: "Diamond",
+  };
+
+  const lines = [
+    "import io.github.eugeneponomarev.styledqr.core.QrCodeGenerator",
+    "import io.github.eugeneponomarev.styledqr.core.QrErrorCorrectionLevel",
+    "import io.github.eugeneponomarev.styledqr.render.QrModuleShape",
+    "import io.github.eugeneponomarev.styledqr.render.QrStyleConfiguration",
+    "import io.github.eugeneponomarev.styledqr.render.SvgQrRenderer",
+    "import io.github.eugeneponomarev.styledqr.theme.QrThemes",
+    "",
+    `val content = ${kotlinString(content.value)}`,
+    "",
+    "val configuration = QrStyleConfiguration.fromStyle(",
+    `    QrThemes.${themeNames[theme.value]}.createStyle(),`,
+    ")",
+  ];
+
+  if (shape.value !== "") {
+    lines.push(
+      `configuration.moduleShape = QrModuleShape.${shapeNames[shape.value]}`,
+    );
+  }
+
+  if (customColors.checked) {
+    lines.push(
+      `configuration.foregroundHex = ${kotlinString(foreground.value)}`,
+    );
+    lines.push(
+      `configuration.backgroundHex = ${kotlinString(background.value)}`,
+    );
+  }
+
+  lines.push(
+    "",
+    "val styleResult = configuration.build()",
+    "val style = requireNotNull(styleResult.style) {",
+    '    styleResult.error?.message ?: "Invalid QR style"',
+    "}",
+    "",
+    "val svg = if (content.isBlank()) {",
+    "    null",
+    "} else {",
+    "    val qrCode = QrCodeGenerator.encodeText(",
+    "        text = content,",
+    `        errorCorrection = QrErrorCorrectionLevel.${ecc.value},`,
+    "    )",
+    "    SvgQrRenderer.render(qrCode, style)",
+    "}",
+  );
+
+  return lines.join("\n");
+}
+
+function selectedThemeName() {
+  return {
+    aurora: "Aurora",
+    fintech: "Fintech",
+    minimal: "Minimal",
+    neon: "Neon",
+    wedding: "Wedding",
+    coffee: "Coffee",
+    cyber: "Cyber",
+  }[theme.value];
+}
+
+function selectedKotlinShape() {
+  return {
+    square: "Square",
+    "rounded-square": "RoundedSquare",
+    circle: "Circle",
+    diamond: "Diamond",
+  }[shape.value];
+}
+
+function kotlinUiConfiguration(indent = "") {
+  const lines = [
+    `${indent}val configuration = QrStyleConfiguration.fromStyle(`,
+    `${indent}    QrThemes.${selectedThemeName()}.createStyle(),`,
+    `${indent})`,
+  ];
+
+  if (shape.value !== "") {
+    lines.push(
+      `${indent}configuration.moduleShape = ` +
+        `QrModuleShape.${selectedKotlinShape()}`,
+    );
+  }
+
+  if (customColors.checked) {
+    lines.push(
+      `${indent}configuration.foregroundHex = ${kotlinString(foreground.value)}`,
+    );
+    lines.push(
+      `${indent}configuration.backgroundHex = ${kotlinString(background.value)}`,
+    );
+  }
+
+  lines.push(
+    "",
+    `${indent}val styleResult = configuration.build()`,
+    `${indent}val style = requireNotNull(styleResult.style) {`,
+    `${indent}    styleResult.error?.message ?: "Invalid QR style"`,
+    `${indent}}`,
+  );
+
+  return lines;
+}
+
+function makeAndroidViewCode() {
+  return [
+    "<!-- res/layout/activity_main.xml -->",
+    '<io.github.eugeneponomarev.styledqr.android.StyledQrView',
+    '    xmlns:android="http://schemas.android.com/apk/res/android"',
+    '    android:id="@+id/qrView"',
+    '    android:layout_width="240dp"',
+    '    android:layout_height="240dp" />',
+    "",
+    "// In your Activity, after setContentView(...):",
+    "// Imports: StyledQrView, QrThemes, QrStyleConfiguration,",
+    "// QrModuleShape and QrErrorCorrectionLevel.",
+    "",
+    ...kotlinUiConfiguration(),
+    "",
+    "val qrView = findViewById<StyledQrView>(R.id.qrView)",
+    "qrView.setQrCode(",
+    `    content = ${kotlinString(content.value)},`,
+    `    errorCorrection = QrErrorCorrectionLevel.${ecc.value},`,
+    "    style = style,",
+    ")",
+  ].join("\n");
+}
+
+function makeComposeCode() {
+  return [
+    "import androidx.compose.runtime.Composable",
+    "import androidx.compose.foundation.layout.size",
+    "import androidx.compose.ui.Modifier",
+    "import androidx.compose.ui.unit.dp",
+    "import io.github.eugeneponomarev.styledqr.compose.StyledQrCode",
+    "import io.github.eugeneponomarev.styledqr.core.QrErrorCorrectionLevel",
+    "import io.github.eugeneponomarev.styledqr.render.QrModuleShape",
+    "import io.github.eugeneponomarev.styledqr.render.QrStyleConfiguration",
+    "import io.github.eugeneponomarev.styledqr.theme.QrThemes",
+    "",
+    "@Composable",
+    "fun QrExample() {",
+    ...kotlinUiConfiguration("    "),
+    "",
+    "    StyledQrCode(",
+    `        content = ${kotlinString(content.value)},`,
+    "        modifier = Modifier.size(240.dp),",
+    `        errorCorrection = QrErrorCorrectionLevel.${ecc.value},`,
+    "        style = style,",
+    "    )",
+    "}",
+  ].join("\n");
+}
+
+// Swift supports Unicode scalar escapes in the form \u{...}.
+// Return null for isolated UTF-16 surrogates, which Swift strings
+// cannot represent as Unicode scalars.
+function swiftString(value) {
+  let result = '"';
+
+  for (const character of value) {
+    const code = character.codePointAt(0);
+
+    if (code >= 0xd800 && code <= 0xdfff) {
+      return null;
+    }
+
+    switch (character) {
+      case '"':
+        result += '\\"';
+        break;
+      case "\\":
+        result += "\\\\";
+        break;
+      case "\n":
+        result += "\\n";
+        break;
+      case "\r":
+        result += "\\r";
+        break;
+      case "\t":
+        result += "\\t";
+        break;
+      default:
+        if (code < 0x20 || code === 0x7f ||
+            code === 0x2028 || code === 0x2029) {
+          result += "\\u{" + code.toString(16) + "}";
+        } else {
+          result += character;
+        }
+    }
+  }
+
+  return result + '"';
+}
+
+function makeSwiftCode() {
+  // QrThemes.shared.all is defined in this order in the shared library.
+  const themeIndexes = {
+    aurora: 0,
+    fintech: 1,
+    minimal: 2,
+    neon: 3,
+    wedding: 4,
+    coffee: 5,
+    cyber: 6,
+  };
+
+  const swiftShapes = {
+    square: "square",
+    "rounded-square": "roundedsquare",
+    circle: "circle",
+    diamond: "diamond",
+  };
+
+  const swiftContent = swiftString(content.value);
+
+  if (swiftContent == null) {
+    return "// The input contains an invalid Unicode surrogate.\n" +
+      "// Replace it before generating a Swift example.";
+  }
+
+  const lines = [
+    "import UIKit",
+    "import StyledQrKmp",
+    "",
+    "@MainActor",
+    "func makeQrImage() -> QrImageRenderResult {",
+    `    let content = ${swiftContent}`,
+    `    let theme = QrThemes.shared.all[${themeIndexes[theme.value]}]`,
+    "    let baseStyle = theme.createStyle(logo: nil)",
+    "    let options = QrStyleConfiguration.companion.fromStyle(",
+    "        style: baseStyle",
+    "    )",
+  ];
+
+  if (shape.value !== "") {
+    lines.push(
+      `    options.moduleShape = .${swiftShapes[shape.value]}`,
+    );
+  }
+
+  if (customColors.checked) {
+    lines.push(
+      `    options.foregroundHex = ${swiftString(foreground.value)}`,
+    );
+    lines.push(
+      `    options.backgroundHex = ${swiftString(background.value)}`,
+    );
+  }
+
+  lines.push(
+    "",
+    "    return StyledQrImageRenderer().renderWithOptions(",
+    "        content: content,",
+    "        options: options,",
+    "        sizePoints: 240.0,",
+    `        errorCorrection: .${ecc.value.toLowerCase()},`,
+    "        scale: 0.0,",
+    "        logo: nil",
+    "    )",
+    "}",
+    "",
+    "// Use result.image on success; inspect result.error on failure.",
+    "// result.isEmpty indicates valid blank content.",
+  );
+
+  return lines.join("\n");
+}
+
+function updateCodeExample() {
+  switch (codePlatform.value) {
+    case "web":
+      generatedCode.textContent = makeWebCode();
+      platformNote.textContent =
+        "Install styled-qr-kmp-web to use this example.";
+      break;
+
+    case "android":
+      generatedCode.textContent = makeAndroidCode();
+      platformNote.textContent =
+        "Use the qrcode-core dependency for this Kotlin SVG example.";
+      break;
+
+    case "android-view":
+      generatedCode.textContent = makeAndroidViewCode();
+      platformNote.textContent =
+        "Add qrcode-android-view. The Kotlin section runs inside an Activity.";
+      break;
+
+    case "compose":
+      generatedCode.textContent = makeComposeCode();
+      platformNote.textContent =
+        "Add qrcode-compose to use the Compose adapter.";
+      break;
+
+    case "ios":
+      generatedCode.textContent = makeSwiftCode();
+      platformNote.textContent =
+        "Add StyledQrKmp.xcframework to your Xcode target.";
+      break;
+
+    default:
+      generatedCode.textContent = "";
+      platformNote.textContent = "Select a supported platform.";
+  }
+
+  copyStatus.textContent = "";
+}
+
+    function updatePreview() {
+      foreground.disabled = !customColors.checked;
+      background.disabled = !customColors.checked;
+
+      updateCodeExample();
+
+      const result = renderStyledQrSvg(content.value, makeOptions());
+
+      if (result.error != null) {
+        currentSvg = null;
+        download.disabled = true;
+        preview.hidden = true;
+        preview.removeAttribute("src");
+
+        status.classList.add("error");
+        status.textContent =
+          `${result.error.code}: ${result.error.message}`;
+        return;
+      }
+
+      status.classList.remove("error");
+
+      if (result.isEmpty || result.svg == null) {
+        currentSvg = null;
+        download.disabled = true;
+        preview.hidden = true;
+        preview.removeAttribute("src");
+
+        status.textContent = "Enter content to generate a QR code.";
+        return;
+      }
+
+      currentSvg = result.svg;
+      download.disabled = false;
+
+      preview.src =
+        `data:image/svg+xml;charset=utf-8,${encodeURIComponent(currentSvg)}`;
+      preview.hidden = false;
+      status.textContent = customColors.checked
+        ? "QR generated. Check contrast and scan the final image on target devices."
+        : "QR code generated in your browser.";
+    }
+
+    function downloadSvg() {
+      if (currentSvg == null) return;
+
+      const blob = new Blob([currentSvg], {
+        type: "image/svg+xml;charset=utf-8",
+      });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "styled-qr.svg";
+      link.click();
+
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    async function copyGeneratedCode() {
+      try {
+        await navigator.clipboard.writeText(generatedCode.textContent);
+        copyStatus.textContent = "Code copied.";
+      } catch {
+        copyStatus.textContent =
+          "Could not copy automatically. Select and copy the code above.";
+      }
+    }
+
+    content.addEventListener("input", updatePreview);
+    theme.addEventListener("change", updatePreview);
+    shape.addEventListener("change", updatePreview);
+    ecc.addEventListener("change", updatePreview);
+    codePlatform.addEventListener("change", updateCodeExample);
+
+    customColors.addEventListener("change", updatePreview);
+    foreground.addEventListener("input", updatePreview);
+    background.addEventListener("input", updatePreview);
+
+    download.addEventListener("click", downloadSvg);
+    copyCode.addEventListener("click", copyGeneratedCode);
+
+    updatePreview();
+  </script>
+</body>
+</html>
