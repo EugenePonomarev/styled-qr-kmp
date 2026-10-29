@@ -20,6 +20,9 @@ Android, iOS and Web share encoding, themes and defined styling safety rules.
 **Quick starts:** [Android Compose](#jetpack-compose) ·
 [iOS UIKit and SwiftUI](#ios-uikit-and-swiftui) · [Web/npm](#web--npm)
 
+**Explore:** [Documentation](https://eugeneponomarev.github.io/styled-qr-kmp/) ·
+[QR Builder](https://eugeneponomarev.github.io/styled-qr-kmp/playground.html)
+
 ## Gallery
 
 **Generated from repository main.** These visual APIs are available in
