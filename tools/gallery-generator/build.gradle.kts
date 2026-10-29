@@ -7,6 +7,12 @@ kotlin {
     jvmToolchain(17)
 }
 
+kotlin.sourceSets.named("test") {
+    kotlin.srcDir(
+        layout.buildDirectory.dir("generated/playground-tests"),
+    )
+}
+
 dependencies {
     implementation(project(":qrcode-core"))
 
@@ -113,9 +119,14 @@ tasks.register<JavaExec>("assembleDocsSite") {
     dependsOn(tasks.named("classes"))
     dependsOn(":checkGallery")
     dependsOn(":checkVersionedDocs")
+    dependsOn(":qrcode-web:assembleJsPackage")
 
     val siteOutputDirectory = rootProject.layout.buildDirectory.dir("docs-site")
     val siteStylesheet = rootProject.layout.projectDirectory.file("docs/site/style.css")
+    val playgroundTemplate = rootProject.layout.projectDirectory
+        .file("docs/site/playground-preview.html")
+    val webPackageDirectory = rootProject.layout.projectDirectory
+        .dir("qrcode-web/build/packages/js")
     val siteVersion = providers.gradleProperty("VERSION_NAME").get()
 
     mainClass.set(
@@ -130,11 +141,17 @@ tasks.register<JavaExec>("assembleDocsSite") {
     inputs.property("version", siteVersion)
     inputs.file(siteStylesheet)
         .withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.file(playgroundTemplate)
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.dir(webPackageDirectory)
+        .withPathSensitivity(PathSensitivity.RELATIVE)
 
     args(
         committedGalleryDirectory.asFile.absolutePath,
         siteOutputDirectory.get().asFile.absolutePath,
         siteStylesheet.asFile.absolutePath,
+        playgroundTemplate.asFile.absolutePath,
+        webPackageDirectory.asFile.absolutePath,
         siteVersion,
     )
 

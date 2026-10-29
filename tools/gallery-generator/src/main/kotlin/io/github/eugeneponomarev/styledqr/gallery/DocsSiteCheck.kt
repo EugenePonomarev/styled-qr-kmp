@@ -9,6 +9,7 @@ import java.nio.file.Path
 private val SITE_PAGES = listOf(
     "index.html",
     "gallery.html",
+    "playground.html",
     "getting-started.html",
     "safety.html",
 )
@@ -35,6 +36,7 @@ internal fun checkDocsSite(siteDirectory: Path) {
     val expectedFiles = (
             SITE_PAGES +
                     "style.css" +
+                    docsWebModules.map { "web/$it" } +
                     "gallery/manifest.json" +
                     GalleryCatalog.recipes.map { "gallery/${it.fileName}" }
             ).toSet()

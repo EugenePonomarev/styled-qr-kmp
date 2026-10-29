@@ -43,6 +43,10 @@ android {
             withSourcesJar()
         }
     }
+
+    sourceSets.named("test") {
+        java.srcDir(layout.buildDirectory.dir("generated/playground-tests"))
+    }
 }
 
 kotlin {
