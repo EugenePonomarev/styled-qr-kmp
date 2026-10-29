@@ -291,6 +291,49 @@ public final class io/github/eugeneponomarev/styledqr/render/QrRenderErrorCode :
 	public static fun values ()[Lio/github/eugeneponomarev/styledqr/render/QrRenderErrorCode;
 }
 
+public final class io/github/eugeneponomarev/styledqr/render/QrScanabilityIssue {
+	public final fun getCode ()Lio/github/eugeneponomarev/styledqr/render/QrScanabilityIssueCode;
+	public final fun getMessage ()Ljava/lang/String;
+}
+
+public final class io/github/eugeneponomarev/styledqr/render/QrScanabilityIssueCode : java/lang/Enum {
+	public static final field CONTRAST_INDETERMINATE_TRANSPARENCY Lio/github/eugeneponomarev/styledqr/render/QrScanabilityIssueCode;
+	public static final field INVALID_RENDER_PARAMETERS Lio/github/eugeneponomarev/styledqr/render/QrScanabilityIssueCode;
+	public static final field LOGO_AREA_DOES_NOT_FIT Lio/github/eugeneponomarev/styledqr/render/QrScanabilityIssueCode;
+	public static final field LOGO_EXCEEDS_RS_BUDGET Lio/github/eugeneponomarev/styledqr/render/QrScanabilityIssueCode;
+	public static final field LOGO_NO_CORRECTION_BUDGET Lio/github/eugeneponomarev/styledqr/render/QrScanabilityIssueCode;
+	public static final field LOGO_OVERLAPS_FUNCTION_PATTERN Lio/github/eugeneponomarev/styledqr/render/QrScanabilityIssueCode;
+	public static final field LOW_CONTRAST Lio/github/eugeneponomarev/styledqr/render/QrScanabilityIssueCode;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/eugeneponomarev/styledqr/render/QrScanabilityIssueCode;
+	public static fun values ()[Lio/github/eugeneponomarev/styledqr/render/QrScanabilityIssueCode;
+}
+
+public final class io/github/eugeneponomarev/styledqr/render/QrScanabilityMeasurements {
+	public final fun getContrastMargin ()Ljava/lang/Double;
+	public final fun getErrorCorrection ()Lio/github/eugeneponomarev/styledqr/core/QrErrorCorrectionLevel;
+	public final fun getLogoAffectedCodewordsInMostLoadedBlock ()Ljava/lang/Integer;
+	public final fun getLogoAllowedCodewordsPerBlock ()Ljava/lang/Integer;
+	public final fun getMatrixModules ()I
+	public final fun getMinContrastRatio ()Ljava/lang/Double;
+	public final fun getPixelsPerModule ()Ljava/lang/Double;
+	public final fun getQuietZoneModules ()I
+	public final fun getRemainingLogoCodewordHeadroom ()Ljava/lang/Integer;
+	public final fun getVersion ()I
+}
+
+public final class io/github/eugeneponomarev/styledqr/render/QrScanabilityReport {
+	public final fun getErrors ()Ljava/util/List;
+	public final fun getMeasurements ()Lio/github/eugeneponomarev/styledqr/render/QrScanabilityMeasurements;
+	public final fun getWarnings ()Ljava/util/List;
+	public final fun isRenderable ()Z
+}
+
+public final class io/github/eugeneponomarev/styledqr/render/QrScanabilityReportKt {
+	public static final fun analyzeScanability (Lio/github/eugeneponomarev/styledqr/core/QrCode;Lio/github/eugeneponomarev/styledqr/render/QrStyle;Lio/github/eugeneponomarev/styledqr/render/QrRasterRenderOptions;Z)Lio/github/eugeneponomarev/styledqr/render/QrScanabilityReport;
+	public static synthetic fun analyzeScanability$default (Lio/github/eugeneponomarev/styledqr/core/QrCode;Lio/github/eugeneponomarev/styledqr/render/QrStyle;Lio/github/eugeneponomarev/styledqr/render/QrRasterRenderOptions;ZILjava/lang/Object;)Lio/github/eugeneponomarev/styledqr/render/QrScanabilityReport;
+}
+
 public final class io/github/eugeneponomarev/styledqr/render/QrStyle {
 	public fun <init> ()V
 	public fun <init> (Lio/github/eugeneponomarev/styledqr/render/QrColor;Lio/github/eugeneponomarev/styledqr/render/QrColor;ILio/github/eugeneponomarev/styledqr/render/QrModuleShape;DDZLio/github/eugeneponomarev/styledqr/render/QrFunctionPatternStyle;Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternShape;Lio/github/eugeneponomarev/styledqr/render/QrLogoOptions;Lio/github/eugeneponomarev/styledqr/render/QrLinearGradient;Lio/github/eugeneponomarev/styledqr/render/QrFinderPatternAppearance;)V
