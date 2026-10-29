@@ -50,10 +50,41 @@ public class QrLogoLayout internal constructor(
  * @throws IllegalArgumentException if the bounding square does not fit the matrix,
  * covers a function module, or cannot fit within the allowed correction budget.
  */
-public fun QrCode.calculateLogoLayout(options: QrLogoOptions): QrLogoLayout {
+public fun QrCode.calculateLogoLayout(options: QrLogoOptions): QrLogoLayout =
+    when (val result = analyzeLogoLayout(options)) {
+        is QrLogoAnalysisResult.Success -> result.layout
+        is QrLogoAnalysisResult.Failure -> throw IllegalArgumentException(result.message)
+    }
+
+internal sealed interface QrLogoAnalysisResult {
+    data class Success(
+        val layout: QrLogoLayout,
+        val affectedCodewordsInMostLoadedBlock: Int,
+        val allowedCodewordsPerBlock: Int,
+    ) : QrLogoAnalysisResult
+
+    data class Failure(
+        val reason: QrLogoAnalysisFailure,
+        val message: String,
+        val affectedCodewordsInMostLoadedBlock: Int? = null,
+        val allowedCodewordsPerBlock: Int? = null,
+    ) : QrLogoAnalysisResult
+}
+
+internal enum class QrLogoAnalysisFailure {
+    AreaDoesNotFit,
+    OverlapsFunctionPattern,
+    NoCorrectionBudget,
+    ExceedsCorrectionBudget,
+}
+
+internal fun QrCode.analyzeLogoLayout(options: QrLogoOptions): QrLogoAnalysisResult {
     val sizeModules = ceil(size * (options.sizeFraction + options.paddingFraction * 2.0)).toInt()
-    require(sizeModules in 1..size) {
-        "Logo area of $sizeModules modules does not fit QR version $version ($size×$size modules)"
+    if (sizeModules !in 1..size) {
+        return QrLogoAnalysisResult.Failure(
+            QrLogoAnalysisFailure.AreaDoesNotFit,
+            "Logo area of $sizeModules modules does not fit QR version $version ($size×$size modules)",
+        )
     }
 
     val requestedPadding = (size * options.paddingFraction).roundToInt()
@@ -64,9 +95,12 @@ public fun QrCode.calculateLogoLayout(options: QrLogoOptions): QrLogoLayout {
 
     for (row in topModule until topModule + sizeModules) {
         for (column in leftModule until leftModule + sizeModules) {
-            require(!isFunctionModule(row, column)) {
-                "Centre logo overlaps a mandatory QR pattern in version $version. " +
-                    "Use a smaller logo or a shorter payload."
+            if (isFunctionModule(row, column)) {
+                return QrLogoAnalysisResult.Failure(
+                    QrLogoAnalysisFailure.OverlapsFunctionPattern,
+                    "Centre logo overlaps a mandatory QR pattern in version $version. " +
+                        "Use a smaller logo or a shorter payload.",
+                )
             }
         }
     }
@@ -84,18 +118,27 @@ public fun QrCode.calculateLogoLayout(options: QrLogoOptions): QrLogoLayout {
 
     val correctionCapacity = QrTables.errorCorrectionCodewordsPerBlock(version, errorCorrection) / 2
     val allowedAffectedCodewords = correctionCapacity - LOGO_SAFETY_MARGIN_CODEWORDS
-    require(allowedAffectedCodewords > 0) {
-        "QR version $version at $errorCorrection correction has no safe correction budget for a centre logo"
+    if (allowedAffectedCodewords <= 0) {
+        return QrLogoAnalysisResult.Failure(
+            QrLogoAnalysisFailure.NoCorrectionBudget,
+            "QR version $version at $errorCorrection correction has no safe correction budget for a centre logo",
+            allowedCodewordsPerBlock = allowedAffectedCodewords,
+        )
     }
 
     val highestAffectedCount = affectedCodewords.maxOf { it.size }
-    require(highestAffectedCount <= allowedAffectedCodewords) {
-        "Centre logo can alter up to $highestAffectedCount codewords in one correction block, " +
-            "but QR version $version at $errorCorrection correction safely allows only " +
-            "$allowedAffectedCodewords. Reduce the logo or padding."
+    if (highestAffectedCount > allowedAffectedCodewords) {
+        return QrLogoAnalysisResult.Failure(
+            QrLogoAnalysisFailure.ExceedsCorrectionBudget,
+            "Centre logo can alter up to $highestAffectedCount codewords in one correction block, " +
+                "but QR version $version at $errorCorrection correction safely allows only " +
+                "$allowedAffectedCodewords. Reduce the logo or padding.",
+            affectedCodewordsInMostLoadedBlock = highestAffectedCount,
+            allowedCodewordsPerBlock = allowedAffectedCodewords,
+        )
     }
 
-    return layout
+    return QrLogoAnalysisResult.Success(layout, highestAffectedCount, allowedAffectedCodewords)
 }
 
 private const val LOGO_SAFETY_MARGIN_CODEWORDS: Int = 1
