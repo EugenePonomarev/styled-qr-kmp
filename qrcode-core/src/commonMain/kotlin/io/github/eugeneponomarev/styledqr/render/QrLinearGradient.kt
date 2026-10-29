@@ -82,7 +82,7 @@ internal fun QrLinearGradient.validateAgainst(background: QrColor) {
     }
 }
 
-private fun QrLinearGradient.quantizationBoundaries(): List<Long> = buildList {
+internal fun QrLinearGradient.quantizationBoundaries(): List<Long> = buildList {
     fun addChannel(from: Int, to: Int) {
         val changes = abs(to - from)
         for (step in 1..changes) {
