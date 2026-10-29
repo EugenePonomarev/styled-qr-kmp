@@ -5,6 +5,8 @@ import {
   StyledQrGradientOptions,
   StyledQrExportOptions,
   StyledQrEncodingOptions,
+  StyledQrScanabilityOptions,
+  analyzeStyledQrScanability,
   encodeStyledQrText,
   encodeStyledQrBytes,
   decodeStyledQrMatrix,
@@ -411,5 +413,18 @@ for (const fixture of qrParityFixtures) {
 }
 
 console.log("Frozen QR parity fixtures: PASS");
+
+const scanOptions = new StyledQrScanabilityOptions();
+scanOptions.style.foregroundAlpha = 0;
+const scanResult = analyzeStyledQrScanability("scanability", scanOptions);
+const scanReport = required(scanResult.report, "Expected scanability report");
+check(scanReport.isRenderable, "Warnings must not prevent rendering");
+check(scanReport.measurements.minContrastRatio == null, "Transparent contrast must be null");
+check(scanReport.warnings[0]?.code === "CONTRAST_INDETERMINATE_TRANSPARENCY", "Missing transparency warning");
+const contrast: number | null | undefined = scanReport.measurements.minContrastRatio;
+check(contrast == null, "Nullable contrast contract");
+scanOptions.style.moduleScale = 0.1;
+const badScan = analyzeStyledQrScanability("scanability", scanOptions);
+check(badScan.report == null && badScan.error?.code === "InvalidStyle", "Invalid style must return an error");
 
 console.log("ESM imports, strict types and runtime API checks: PASS");
