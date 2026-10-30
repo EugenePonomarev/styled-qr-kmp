@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.5.5] — Scanability reports
+
+### Added
+
+- Add `QrScanabilityReport` to analyze a QR matrix and style, returning typed errors, warnings and available measurements for contrast, output geometry and centre-logo correction budgets.
+- Add Swift and Web entry points for scanability analysis, with nullable measurements and structured style errors.
+- Show scanability checks in the QR Builder, including contrast warnings and matrix information.
+- Add a reproducible SVG gallery, a documentation site and an interactive QR Builder with platform-specific code examples.
+
+### Changed
+
+- Use canonical numeric serialization in SVG output. Generated SVG text can differ byte-for-byte from earlier versions.
+- Reuse a shared typed logo-layout analysis without changing the existing public logo layout contract.
+
+### Testing and limitations
+
+- Add common, Android, JVM, JS, Swift and TypeScript tests for scanability, report adapters and the builder.
+- Scanability checks do not guarantee camera readability or successful platform rendering. The report does not analyze logo image contents or the contrast of an opaque logo background.
+
 ## [0.5.0]
 
 ### Added

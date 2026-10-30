@@ -26,8 +26,8 @@ Android, iOS and Web share encoding, themes and defined styling safety rules.
 ## Gallery
 
 **Generated from repository main.** These visual APIs are available in
-`{{VERSION_NAME}}`. Canonical numeric SVG serialization is currently an unreleased
-change in `main`; these gallery files are not byte snapshots of the published release.
+`{{VERSION_NAME}}`. Gallery files illustrate the current repository and are not
+byte snapshots of a particular published release.
 
 ### Long text, shaped modules and logos
 
@@ -636,11 +636,10 @@ println("Corrected codeword errors: ${decoded.correctedErrorCount}")
 
 Use `copyBytes()` when the payload is binary or does not declare UTF-8 through ECI.
 
-## Scanability report (unreleased)
+## Scanability report
 
-> This API is available on the current `main` branch and is **not part of the
-> published 0.5.0 artifacts**. It will be included in a future release; use a
-> build of the current source to try these examples.
+The APIs in this section are available in `{{VERSION_NAME}}` and are not part of
+the earlier 0.5.0 artifacts.
 
 A scanability report analyzes an encoded matrix and a valid style before rendering.
 It reports selected configuration errors, warnings and measurements. It does not
@@ -829,9 +828,9 @@ That optimisation can be added in a later iteration without changing the public 
 
 The options-based APIs in this section are available in `{{VERSION_NAME}}`.
 
-Canonical numeric SVG serialization is currently an unreleased change in
-`main`. Do not assume byte equality between repository-main gallery files
-and output from the published release.
+SVG numeric values use canonical serialization. Output may differ byte-for-byte
+from earlier library versions; repository-main gallery files can also change after
+a release.
 
 The shared `QrStyle`, `QrLogoOptions`, `QrStyleConfiguration`, encoder and
 validation rules define the visual contract. Use the same payload, explicit
