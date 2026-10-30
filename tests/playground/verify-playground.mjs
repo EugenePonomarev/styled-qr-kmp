@@ -4,6 +4,8 @@ import vm from "node:vm";
 
 import {
   StyledQrOptions,
+  StyledQrScanabilityOptions,
+  analyzeStyledQrScanability,
   renderStyledQrSvg,
 } from "../../build/docs-site/web/styled-qr-kmp-qrcode-web.mjs";
 
@@ -106,6 +108,7 @@ const elements = {
   background: element({ value: "#ffffff", disabled: true }),
   preview: element({ hidden: true }),
   status: element(),
+  "scanability-result": element(),
   download: element({ disabled: true }),
   "generated-code": element(),
   "platform-note": element(),
@@ -113,8 +116,14 @@ const elements = {
   "copy-status": element(),
 };
 
+let forceAnalysisFailure = false;
 const context = {
   StyledQrOptions,
+  StyledQrScanabilityOptions,
+  analyzeStyledQrScanability(...args) {
+    if (forceAnalysisFailure) throw new Error("Simulated analysis failure");
+    return analyzeStyledQrScanability(...args);
+  },
   renderStyledQrSvg,
 
   document: {
@@ -178,6 +187,19 @@ assert.equal(elements.preview.hidden, false);
 assert.equal(elements.download.disabled, false);
 assert.equal(previewSvg(), expectedSvg());
 assert.match(elements["generated-code"].textContent, /renderStyledQrSvg/);
+assert.match(elements["scanability-result"].textContent, /No errors found/);
+assert.match(elements["scanability-result"].textContent, /Minimum contrast:/);
+assert.match(elements["scanability-result"].textContent, /Pixels per module: unavailable/);
+
+// A diagnostics failure must not break the real preview or download.
+forceAnalysisFailure = true;
+elements.content.dispatch("input");
+assert.match(elements["scanability-result"].textContent, /analysis is unavailable/);
+assert.equal(elements.preview.hidden, false);
+assert.equal(elements.download.disabled, false);
+forceAnalysisFailure = false;
+elements.content.dispatch("input");
+assert.match(elements["scanability-result"].textContent, /No errors found/);
 
 // Theme, shape, ECC and custom colors must affect the real preview.
 elements.theme.value = "aurora";
@@ -208,6 +230,20 @@ assert.ok(webCode.includes('options.moduleShape = "circle"'));
 assert.ok(webCode.includes('options.errorCorrection = "Q"'));
 assert.ok(webCode.includes('options.foregroundHex = "#123456"'));
 
+// Low contrast is a warning; it does not prevent SVG generation.
+elements.theme.value = "minimal";
+elements.theme.dispatch("change");
+elements.foreground.value = "#eeeeee";
+elements.foreground.dispatch("input");
+assert.match(elements["scanability-result"].textContent, /LOW_CONTRAST/);
+assert.equal(elements.preview.hidden, false);
+assert.equal(elements.download.disabled, false);
+elements.theme.value = "aurora";
+elements.theme.dispatch("change");
+elements.foreground.value = "#123456";
+elements.foreground.dispatch("input");
+assert.doesNotMatch(elements["scanability-result"].textContent, /LOW_CONTRAST/);
+
 // Empty content must clear the preview and disable download.
 elements.content.value = "";
 elements.content.dispatch("input");
@@ -215,6 +251,8 @@ elements.content.dispatch("input");
 assert.equal(elements.preview.hidden, true);
 assert.equal(elements.preview.src, "");
 assert.equal(elements.download.disabled, true);
+assert.match(elements["scanability-result"].textContent, /Enter content/);
+assert.doesNotMatch(elements["scanability-result"].textContent, /Minimum contrast/);
 
 // Switching platforms must still work when content is empty.
 const platformCases = [
@@ -259,6 +297,8 @@ assert.equal(elements.preview.hidden, true);
 assert.equal(elements.preview.src, "");
 assert.equal(elements.download.disabled, true);
 assert.ok(elements.status.textContent.includes("PayloadTooLong"));
+assert.match(elements["scanability-result"].textContent, /PayloadTooLong/);
+assert.doesNotMatch(elements["scanability-result"].textContent, /Minimum contrast/);
 
 // A valid value should recover after the error.
 elements.content.value = "https://example.com";
@@ -267,6 +307,7 @@ elements.content.dispatch("input");
 assert.equal(elements.preview.hidden, false);
 assert.equal(elements.download.disabled, false);
 assert.equal(previewSvg(), expectedSvg());
+assert.match(elements["scanability-result"].textContent, /No errors found/);
 
 console.log("Playground preview and platform checks: PASS");
 

@@ -150,6 +150,35 @@
       color: #ffb4b4;
     }
 
+    .scanability {
+      align-self: stretch;
+      margin-top: 18px;
+      padding: 14px;
+      border: 1px solid #52617e;
+      border-radius: 10px;
+      background: #172238;
+    }
+
+    .scanability h3 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+    }
+
+    .scanability-result {
+      margin: 0;
+      color: #e6edf9;
+      line-height: 1.5;
+      white-space: pre-line;
+      overflow-wrap: anywhere;
+    }
+
+    .scanability-note {
+      margin: 10px 0 0;
+      color: #bdc9de;
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+
     .note {
       color: #65718a;
       font-size: 0.85rem;
@@ -374,6 +403,16 @@
           Loading QR engine…
         </p>
 
+        <section class="scanability" aria-labelledby="scanability-heading">
+          <h3 id="scanability-heading">Scanability checks</h3>
+          <p id="scanability-result" class="scanability-result" role="status" aria-live="polite">
+            Waiting for QR content…
+          </p>
+          <p class="scanability-note">
+            These checks do not guarantee scanning. Test the final image on your target devices.
+          </p>
+        </section>
+
         <button id="download" class="download-button" type="button" disabled>
           Download SVG
         </button>
@@ -408,6 +447,8 @@
   <script type="module">
     import {
       StyledQrOptions,
+      StyledQrScanabilityOptions,
+      analyzeStyledQrScanability,
       renderStyledQrSvg,
     } from "../../qrcode-web/build/packages/js/styled-qr-kmp-qrcode-web.mjs";
 
@@ -424,6 +465,7 @@
     const preview = document.querySelector("#preview");
     const status = document.querySelector("#status");
     const download = document.querySelector("#download");
+    const scanabilityResult = document.querySelector("#scanability-result");
 
     const generatedCode = document.querySelector("#generated-code");
     const copyCode = document.querySelector("#copy-code");
@@ -867,13 +909,60 @@ function updateCodeExample() {
   copyStatus.textContent = "";
 }
 
+    function updateScanability(qrOptions) {
+      // SVG has no fixed pixel size and this builder does not draw a logo.
+      const options = new StyledQrScanabilityOptions();
+      options.style = qrOptions;
+      options.logoIsRendered = false;
+
+      try {
+        const result = analyzeStyledQrScanability(content.value, options);
+        if (result.error != null) {
+          scanabilityResult.textContent =
+            `Analysis unavailable: ${result.error.code}: ${result.error.message}`;
+          return;
+        }
+        if (result.report == null) {
+          scanabilityResult.textContent = result.isEmpty
+            ? "Enter content to run scanability checks."
+            : "Scanability analysis is unavailable.";
+          return;
+        }
+
+        const report = result.report;
+        const lines = [report.isRenderable
+          ? "No errors found in the checks performed."
+          : "The checks found errors."];
+        for (const issue of report.errors) {
+          lines.push(`Error: ${issue.code} — ${issue.message}`);
+        }
+        for (const issue of report.warnings) {
+          lines.push(`Warning: ${issue.code} — ${issue.message}`);
+        }
+        const measurements = report.measurements;
+        lines.push(`QR version: ${measurements.version} (${measurements.matrixModules} × ${measurements.matrixModules} modules)`);
+        lines.push(`Error correction: ${measurements.errorCorrection}`);
+        const contrast = measurements.minContrastRatio;
+        lines.push(contrast == null
+          ? "Contrast: unavailable"
+          : `Minimum contrast: ${contrast.toFixed(2)}:1`);
+        lines.push("Pixels per module: unavailable for SVG without an output size");
+        scanabilityResult.textContent = lines.join("\n");
+      } catch {
+        // Diagnostics are independent of rendering and must not block the preview.
+        scanabilityResult.textContent = "Scanability analysis is unavailable.";
+      }
+    }
+
     function updatePreview() {
       foreground.disabled = !customColors.checked;
       background.disabled = !customColors.checked;
 
       updateCodeExample();
 
-      const result = renderStyledQrSvg(content.value, makeOptions());
+      const options = makeOptions();
+      updateScanability(options);
+      const result = renderStyledQrSvg(content.value, options);
 
       if (result.error != null) {
         currentSvg = null;
