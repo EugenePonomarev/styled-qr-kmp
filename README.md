@@ -26,8 +26,8 @@ Android, iOS and Web share encoding, themes and defined styling safety rules.
 ## Gallery
 
 **Generated from repository main.** These visual APIs are available in
-`0.5.0`. Canonical numeric SVG serialization is currently an unreleased
-change in `main`; these gallery files are not byte snapshots of the published release.
+`0.5.5`. Gallery files illustrate the current repository and are not
+byte snapshots of a particular published release.
 
 ### Long text, shaped modules and logos
 
@@ -127,17 +127,17 @@ Then choose the smallest module that provides the UI you need:
 ```kotlin
 dependencies {
     // Android XML layouts and imperative View code:
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.5.0")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.5.5")
 
     // Or Jetpack Compose (also brings the Android View adapter):
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.5.0")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.5.5")
 
     // Encoder, SVG renderer, and Android Bitmap renderer only:
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-core:0.5.0")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-core:0.5.5")
 }
 ```
 
-Use the Git tag shown in GitHub Releases in place of `0.5.0`. JitPack builds a public tag on the
+Use the Git tag shown in GitHub Releases in place of `0.5.5`. JitPack builds a public tag on the
 first request; its status page is linked from the repository's README badge after the first release.
 
 ### Native iOS
@@ -150,7 +150,7 @@ For CocoaPods without a private token, reference the standalone podspec at the p
 
 ```ruby
 pod "StyledQrKmp",
-    :podspec => "https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/0.5.0/StyledQrKmp.podspec"
+    :podspec => "https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/0.5.5/StyledQrKmp.podspec"
 ```
 
 The standalone podspec downloads the matching XCFramework from that GitHub Release. Do not use
@@ -194,7 +194,7 @@ Add the Android View module, then create `StyledQrView` exactly as any other And
 
 ```kotlin
 dependencies {
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.5.0")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-android-view:0.5.5")
 }
 
 val qrView = StyledQrView(context).apply {
@@ -269,7 +269,7 @@ imperative code.
 
 ```kotlin
 dependencies {
-    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.5.0")
+    implementation("com.github.EugenePonomarev.styled-qr-kmp:qrcode-compose:0.5.5")
 }
 
 StyledQrCode(
@@ -380,7 +380,7 @@ StyledQrCodeView(
 Install the published ES module:
 
 ```bash
-npm install styled-qr-kmp-web@0.5.0
+npm install styled-qr-kmp-web@0.5.5
 ```
 
 Use the options-based API in a browser application:
@@ -636,11 +636,10 @@ println("Corrected codeword errors: ${decoded.correctedErrorCount}")
 
 Use `copyBytes()` when the payload is binary or does not declare UTF-8 through ECI.
 
-## Scanability report (unreleased)
+## Scanability report
 
-> This API is available on the current `main` branch and is **not part of the
-> published 0.5.0 artifacts**. It will be included in a future release; use a
-> build of the current source to try these examples.
+The APIs in this section are available in `0.5.5` and are not part of
+the earlier 0.5.0 artifacts.
 
 A scanability report analyzes an encoded matrix and a valid style before rendering.
 It reports selected configuration errors, warnings and measurements. It does not
@@ -827,11 +826,11 @@ That optimisation can be added in a later iteration without changing the public 
 
 ## Consistent output across platforms
 
-The options-based APIs in this section are available in `0.5.0`.
+The options-based APIs in this section are available in `0.5.5`.
 
-Canonical numeric SVG serialization is currently an unreleased change in
-`main`. Do not assume byte equality between repository-main gallery files
-and output from the published release.
+SVG numeric values use canonical serialization. Output may differ byte-for-byte
+from earlier library versions; repository-main gallery files can also change after
+a release.
 
 The shared `QrStyle`, `QrLogoOptions`, `QrStyleConfiguration`, encoder and
 validation rules define the visual contract. Use the same payload, explicit
@@ -1395,7 +1394,7 @@ Compose UI solely to expose a Compose API.
    and generated documentation in a pull request.
 4. Merge after the `Verify` workflow succeeds, then wait for verification
    of the resulting `main` commit.
-5. Create and push a matching tag, such as `0.5.0`,
+5. Create and push a matching tag, such as `0.5.5`,
    from that verified commit. The tag must not have a `v` prefix.
 
 Pushing the tag starts `.github/workflows/release.yml`:
