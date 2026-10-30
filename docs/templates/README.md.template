@@ -636,6 +636,133 @@ println("Corrected codeword errors: ${decoded.correctedErrorCount}")
 
 Use `copyBytes()` when the payload is binary or does not declare UTF-8 through ECI.
 
+## Scanability report (unreleased)
+
+> This API is available on the current `main` branch and is **not part of the
+> published 0.5.0 artifacts**. It will be included in a future release; use a
+> build of the current source to try these examples.
+
+A scanability report analyzes an encoded matrix and a valid style before rendering.
+It reports selected configuration errors, warnings and measurements. It does not
+read an image with a camera, validate logo image contents or guarantee that the
+result can be rendered or scanned in every environment. Test final images with
+real scanning devices and conditions.
+
+### Kotlin (Android and common code)
+
+```kotlin
+import io.github.eugeneponomarev.styledqr.core.QrCodeGenerator
+import io.github.eugeneponomarev.styledqr.render.QrRasterRenderOptions
+import io.github.eugeneponomarev.styledqr.render.QrStyle
+import io.github.eugeneponomarev.styledqr.render.analyzeScanability
+
+val code = QrCodeGenerator.encodeText("https://example.com")
+val style = QrStyle()
+val report = code.analyzeScanability(
+    style = style,
+    rasterOptions = QrRasterRenderOptions(sizePx = 300),
+    logoIsRendered = false,
+)
+
+report.errors.forEach { println("Error: ${it.code}: ${it.message}") }
+report.warnings.forEach { println("Warning: ${it.code}: ${it.message}") }
+println("Pixels per module: ${report.measurements.pixelsPerModule}")
+```
+
+`isRenderable` means that `errors` is empty **for the checks performed by this
+report**. Warnings do not make it false. The Kotlin entry point accepts an
+already encoded `QrCode` and a constructed `QrStyle`; errors while encoding or
+constructing a style must be handled before calling it.
+
+### Swift
+
+```swift
+import StyledQrKmp
+
+let code = QrCodeGenerator.shared.encodeText(
+    text: "https://example.com", errorCorrection: .h, minVersion: 1, maxVersion: 40
+)
+let style = QrStyleConfiguration()
+let output = QrRasterRenderOptions(sizePx: 300, sizeMode: .integermodules)
+let result = StyledQrScanabilityAnalyzer().analyze(
+    code: code, options: style, output: output, logoIsRendered: false
+)
+
+if let error = result.error {
+    print("Style error: \(error.code): \(error.message)")
+} else if let report = result.report {
+    print("Checks passed: \(report.isRenderable)")
+    for issue in report.errors + report.warnings {
+        print("\(issue.code.name): \(issue.message)")
+    }
+    print("Pixels per module: \(String(describing: report.measurements.pixelsPerModule))")
+}
+```
+
+The Swift analyzer safely builds the supplied configuration. An invalid style
+returns an error and no report. Its `isSuccess` indicates that a report was
+created; check `report.isRenderable` separately for errors within that report.
+The caller is responsible for encoding the matrix before analysis.
+
+### Web / TypeScript
+
+```typescript
+import {
+  analyzeStyledQrScanability,
+  StyledQrExportOptions,
+  StyledQrScanabilityOptions,
+} from "styled-qr-kmp-web";
+
+const options = new StyledQrScanabilityOptions();
+options.output = new StyledQrExportOptions(300, "fit");
+options.logoIsRendered = false;
+const result = analyzeStyledQrScanability("https://example.com", options);
+
+if (result.error != null) {
+  console.error(result.error.code, result.error.message);
+} else if (result.report != null) {
+  const report = result.report;
+  console.log("Checks passed:", report.isRenderable);
+  for (const issue of [...report.errors, ...report.warnings]) {
+    console.log(issue.code, issue.message);
+  }
+  console.log("Pixels per module:", report.measurements.pixelsPerModule ?? "unavailable");
+} else {
+  console.log("No report: input was blank");
+}
+```
+
+Web `isSuccess` indicates that a report was created, even when that report has
+errors. Blank text with valid options returns an empty result. Invalid style,
+encoding parameters or a payload that cannot fit return an error and no report.
+An invalid raster size is returned inside the report when a matrix was encoded;
+invalid Web-only output values may instead produce an input error.
+
+### Interpreting results
+
+- Supply the intended output size to measure `pixelsPerModule`. Without output
+  options, or when geometry is invalid, the measurement is unavailable.
+- Supply logo options in the style **and** set `logoIsRendered` to `true` when a
+  logo will actually be drawn. A configured logo with the flag set to `false` is
+  not analyzed. The flag alone does not add missing logo options.
+- Logo measurements describe unique codewords in the most affected RS block
+  and its allowed budget, including the existing safety margin. Headroom is
+  allowed minus affected and can be negative when the budget is exceeded. Values
+  are unavailable when no logo is analyzed or an earlier check prevents their
+  calculation.
+- Contrast is measured for foreground and finder colours against the QR
+  background. The logo image and the contrast of an opaque logo background are
+  not measured. Relevant transparency without a known backdrop produces the
+  `CONTRAST_INDETERMINATE_TRANSPARENCY` warning and null contrast measurements.
+  `LOW_CONTRAST` is a warning below 4.5:1; it does not reject a solid style.
+- Where both raster geometry and logo layout are invalid, report errors list
+  geometry before logo. The report can contain both errors, rather than stopping
+  after the first.
+
+Nullable values mean that a measurement is unavailable, not zero. On Web the
+exported declarations may allow `null` or `undefined`; on Swift nullable numbers
+are bridged as optional Kotlin numeric wrappers.
+
 ## Logo safety and design rules
 
 The QR matrix always remains a square grid. The library changes how each dark
