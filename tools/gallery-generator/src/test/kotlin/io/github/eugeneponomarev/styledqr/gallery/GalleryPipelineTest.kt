@@ -59,7 +59,7 @@ class GalleryPipelineTest {
             val decoded = QrCodeDecoder.decode(rendered.qrCode.copyModules())
 
             assertEquals(
-                rendered.recipe.payload,
+                "https://eugeneponomarev.github.io/styled-qr-kmp/",
                 decoded.utf8TextOrNull(),
                 rendered.recipe.id,
             )
@@ -305,31 +305,15 @@ class GalleryPipelineTest {
         }
 
     @Test
-    fun storyCasesContainTheCompleteLongPayloadAndUseDenseMatrices() {
+    fun highDensityExamplesKeepTheirOriginalMatrixSize() {
         val generated = generateGallery(logoInputs)
-        val story = GalleryPayloads.lighthouseStory
+        val denseIds = setOf("story-square", "story-circle", "story-circle-logo", "story-gradient-logo")
+        val denseCases = generated.cases.filter { it.recipe.id in denseIds }
 
-        assertTrue(story.encodeToByteArray().size > 300)
-
-        val stories = generated.cases.filter {
-            it.recipe.payload == story
-        }
-
-        assertEquals(
-            setOf(
-                "story-square",
-                "story-circle",
-                "story-circle-logo",
-                "story-gradient-logo",
-            ),
-            stories.map { it.recipe.id }.toSet(),
-        )
-
-        stories.forEach {
-            assertTrue(
-                it.qrCode.size >= 81,
-                "Expected a dense matrix for ${it.recipe.id}",
-            )
+        assertEquals(denseIds.size, denseCases.size)
+        denseCases.forEach {
+            assertEquals(20, it.qrCode.version, it.recipe.id)
+            assertEquals(97, it.qrCode.size, it.recipe.id)
         }
     }
 

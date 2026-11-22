@@ -29,26 +29,26 @@ Android, iOS and Web share encoding, themes and defined styling safety rules.
 `0.5.5`. Gallery files illustrate the current repository and are not
 byte snapshots of a particular published release.
 
-### Long text, shaped modules and logos
+### High-density codes, shaped modules and logos
 
-These examples encode the same complete English short story: 349 UTF-8 bytes,
-QR version 20, error correction H and a 97 × 97 module matrix.
+Scan any gallery code to open the [Styled QR KMP project site](https://eugeneponomarev.github.io/styled-qr-kmp/).
+These four examples use QR version 20, error correction H and a 97 × 97 module matrix.
 Each SVG is exported at 1260 × 1260 pixels with integer module sizing.
 Open a preview to view the full-size SVG.
 
 | Circular modules + lighthouse | Gradient + monogram |
 | --- | --- |
-| <a href="https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/story-circle-logo.svg"><img src="https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/story-circle-logo.svg" alt="Complete short story encoded with blue circular modules and a central lighthouse illustration" width="360" height="360"></a> | <a href="https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/story-gradient-logo.svg"><img src="https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/story-gradient-logo.svg" alt="Complete short story encoded with a blue-to-purple gradient and a central monogram" width="360" height="360"></a> |
+| <a href="https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/story-circle-logo.svg"><img src="https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/story-circle-logo.svg" alt="QR code with blue circular modules and a central lighthouse illustration" width="360" height="360"></a> | <a href="https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/story-gradient-logo.svg"><img src="https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/story-gradient-logo.svg" alt="QR code with a blue-to-purple gradient and a central monogram" width="360" height="360"></a> |
 
-Compare the same story with
+Compare the same URL with
 [square modules](https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/story-square.svg)
 or [circular modules without a logo](https://raw.githubusercontent.com/EugenePonomarev/styled-qr-kmp/main/docs/gallery/story-circle.svg).
-The full payload is defined in
+The gallery URL is defined in
 [GalleryPayloads.kt](https://github.com/EugenePonomarev/styled-qr-kmp/blob/main/tools/gallery-generator/src/main/kotlin/io/github/eugeneponomarev/styledqr/gallery/GalleryPayloads.kt).
 
 ### Centre logos
 
-Short URL examples combine theme styles with a circular logo background.
+These URL examples combine theme styles with a circular logo background.
 
 | Fintech + monogram | Aurora + lighthouse |
 | --- | --- |
@@ -85,7 +85,7 @@ import io.github.eugeneponomarev.styledqr.core.QrCodeGenerator
 import io.github.eugeneponomarev.styledqr.render.SvgQrRenderer
 import io.github.eugeneponomarev.styledqr.theme.QrThemes
 
-val qrCode = QrCodeGenerator.encodeText("https://example.com")
+val qrCode = QrCodeGenerator.encodeText("https://eugeneponomarev.github.io/styled-qr-kmp/")
 val style = QrThemes.Fintech.createStyle()
 val svg = SvgQrRenderer.render(qrCode, style)
 ```
@@ -199,7 +199,7 @@ dependencies {
 
 val qrView = StyledQrView(context).apply {
     setQrCode(
-        content = "https://eugeneponomarev.com",
+        content = "https://eugeneponomarev.github.io/styled-qr-kmp/",
         errorCorrection = QrErrorCorrectionLevel.H,
         style = QrStyle(
             foreground = QrColor.fromHex("#14532D"),
@@ -220,7 +220,7 @@ drawable resource. Its logo area is still validated by the shared renderer.
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="240dp"
     android:layout_height="240dp"
-    app:qrContent="https://eugeneponomarev.com"
+    app:qrContent="https://eugeneponomarev.github.io/styled-qr-kmp/"
     app:qrErrorCorrection="h"
     app:qrForegroundColor="#14532D"
     app:qrModuleShape="circle"
@@ -236,7 +236,7 @@ A safe foreground gradient can also be configured directly from XML:
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="240dp"
     android:layout_height="240dp"
-    app:qrContent="https://example.com"
+    app:qrContent="https://eugeneponomarev.github.io/styled-qr-kmp/"
     app:qrGradientStartColor="#075985"
     app:qrGradientEndColor="#6D28D9"
     app:qrGradientStartX="0.0"
@@ -273,7 +273,7 @@ dependencies {
 }
 
 StyledQrCode(
-    content = "https://eugeneponomarev.com",
+    content = "https://eugeneponomarev.github.io/styled-qr-kmp/",
     modifier = Modifier.size(240.dp),
     style = QrStyle(
         foreground = QrColor.fromHex("#143A5A"),
@@ -291,7 +291,7 @@ of `UIImageView` a usable Swift type, so the iOS public API is the Swift-importa
 
 ```swift
 let renderer = StyledQrImageRenderer()
-renderer.content = "https://eugeneponomarev.com"
+renderer.content = "https://eugeneponomarev.github.io/styled-qr-kmp/"
 imageView.image = renderer.render(sizePoints: 240, scale: 0)
 ```
 
@@ -303,7 +303,7 @@ For a reusable native `UIImageView` and a SwiftUI `UIViewRepresentable`, add the
 `examples/ios/StyledQrCodeView.swift` file to the iOS app target, then use:
 
 ```swift
-StyledQrCodeView(content: "https://eugeneponomarev.com")
+StyledQrCodeView(content: "https://eugeneponomarev.github.io/styled-qr-kmp/")
     .frame(width: 240, height: 240)
 ```
 
@@ -327,7 +327,7 @@ options.moduleShape = .roundedsquare
 options.moduleScale = 0.92
 
 let result = renderer.renderWithOptions(
-    content: "https://eugeneponomarev.com",
+    content: "https://eugeneponomarev.github.io/styled-qr-kmp/",
     options: options,
     sizePoints: 240.0,
     errorCorrection: .h,
@@ -369,7 +369,7 @@ The SwiftUI adapter accepts the same configuration:
 
 ```swift
 StyledQrCodeView(
-    content: "https://eugeneponomarev.com",
+    content: "https://eugeneponomarev.github.io/styled-qr-kmp/",
     configuration: options
 )
 .frame(width: 240, height: 240)
@@ -399,7 +399,7 @@ const options = new StyledQrOptions();
 options.themeId = "fintech";
 options.errorCorrection = "H";
 
-const result = renderStyledQrSvg("https://example.com", options);
+const result = renderStyledQrSvg("https://eugeneponomarev.github.io/styled-qr-kmp/", options);
 const image = document.querySelector<HTMLImageElement>("#qr");
 
 if (image == null) {
@@ -463,11 +463,11 @@ import {
 } from "styled-qr-kmp-web";
 
 const themes = getStyledQrThemeIds();
-const svg = generateThemedQrSvg("https://example.com", "fintech");
+const svg = generateThemedQrSvg("https://eugeneponomarev.github.io/styled-qr-kmp/", "fintech");
 
 // logoDataUri contains a complete base64 PNG, JPEG, or WebP data URI.
 const svgWithLogo = generateThemedQrSvgWithLogo(
-  "https://example.com",
+  "https://eugeneponomarev.github.io/styled-qr-kmp/",
   "fintech",
   logoDataUri,
 );
@@ -493,7 +493,7 @@ the bottom right, excluding the quiet zone. The background, quiet zone, finder
 middle rings, and logo background remain solid.
 
 ```kotlin
-val qrCode = QrCodeGenerator.encodeText("https://example.com")
+val qrCode = QrCodeGenerator.encodeText("https://eugeneponomarev.github.io/styled-qr-kmp/")
 
 val style = QrStyle(
     background = QrColor.White,
@@ -560,7 +560,7 @@ options.moduleScale = 0.90;
 options.errorCorrection = "H";
 
 const svg = generateStyledQrSvgWithLinearGradient(
-  "https://example.com",
+  "https://eugeneponomarev.github.io/styled-qr-kmp/",
   options,
 );
 ```
@@ -588,7 +588,7 @@ Kotlin callers can omit these constructor arguments because they have defaults.
 
 ```kotlin
 val qrCode = QrCodeGenerator.encodeText(
-    text = "https://eugeneponomarev.com",
+    text = "https://eugeneponomarev.github.io/styled-qr-kmp/",
     errorCorrection = QrErrorCorrectionLevel.H,
 )
 
@@ -655,7 +655,7 @@ import io.github.eugeneponomarev.styledqr.render.QrRasterRenderOptions
 import io.github.eugeneponomarev.styledqr.render.QrStyle
 import io.github.eugeneponomarev.styledqr.render.analyzeScanability
 
-val code = QrCodeGenerator.encodeText("https://example.com")
+val code = QrCodeGenerator.encodeText("https://eugeneponomarev.github.io/styled-qr-kmp/")
 val style = QrStyle()
 val report = code.analyzeScanability(
     style = style,
@@ -679,7 +679,7 @@ constructing a style must be handled before calling it.
 import StyledQrKmp
 
 let code = QrCodeGenerator.shared.encodeText(
-    text: "https://example.com", errorCorrection: .h, minVersion: 1, maxVersion: 40
+    text: "https://eugeneponomarev.github.io/styled-qr-kmp/", errorCorrection: .h, minVersion: 1, maxVersion: 40
 )
 let style = QrStyleConfiguration()
 let output = QrRasterRenderOptions(sizePx: 300, sizeMode: .integermodules)
@@ -715,7 +715,7 @@ import {
 const options = new StyledQrScanabilityOptions();
 options.output = new StyledQrExportOptions(300, "fit");
 options.logoIsRendered = false;
-const result = analyzeStyledQrScanability("https://example.com", options);
+const result = analyzeStyledQrScanability("https://eugeneponomarev.github.io/styled-qr-kmp/", options);
 
 if (result.error != null) {
   console.error(result.error.code, result.error.message);
@@ -1175,9 +1175,9 @@ options.foregroundGradient = new StyledQrGradientOptions(
 options.finderOuterShape = "circle";
 options.finderCenterColorHex = "#0F4C5C";
 
-const scalable = renderStyledQrSvg("https://example.com", options);
+const scalable = renderStyledQrSvg("https://eugeneponomarev.github.io/styled-qr-kmp/", options);
 const sized = renderStyledQrSvgForExport(
-  "https://example.com",
+  "https://eugeneponomarev.github.io/styled-qr-kmp/",
   new StyledQrExportOptions(300, "integer-modules"),
   options,
 );
@@ -1312,7 +1312,7 @@ The XML adapter also supports an independent logo background, shape and radius:
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="240dp"
     android:layout_height="240dp"
-    app:qrContent="https://eugeneponomarev.com"
+    app:qrContent="https://eugeneponomarev.github.io/styled-qr-kmp/"
     app:qrErrorCorrection="h"
     app:qrBackgroundColor="#FFF0CC"
     app:qrLogo="@drawable/logo"

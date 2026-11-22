@@ -22,7 +22,7 @@ class GalleryGeneratorTest {
 
         assertEquals("theme-minimal", recipe.id)
         assertEquals("theme-minimal.svg", recipe.fileName)
-        assertEquals("https://example.com", decoded.utf8TextOrNull())
+        assertEquals(GalleryPayloads.projectUrl, decoded.utf8TextOrNull())
         assertEquals(QrErrorCorrectionLevel.H, rendered.qrCode.errorCorrection)
         assertTrue(rendered.qrCode.version in recipe.minVersion..recipe.maxVersion)
         assertEquals(17 + 4 * rendered.qrCode.version, rendered.qrCode.size)
