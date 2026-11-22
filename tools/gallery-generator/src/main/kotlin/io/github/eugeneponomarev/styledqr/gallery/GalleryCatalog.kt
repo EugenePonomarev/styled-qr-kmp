@@ -23,7 +23,7 @@ internal data class GalleryRecipe(
     val logoOptions: QrLogoOptions? = null,
     val logoSource: String? = null,
     val rasterOptions: QrRasterRenderOptions? = null,
-    val payload: String = "https://example.com",
+    val payload: String = GalleryPayloads.projectUrl,
     val requestedErrorCorrection: QrErrorCorrectionLevel = QrErrorCorrectionLevel.H,
     val minVersion: Int = 1,
     val maxVersion: Int = 40,
@@ -62,7 +62,8 @@ internal object GalleryCatalog {
         themeCase("theme-aurora", "Aurora theme", QrThemes.Aurora),
         themeCase("theme-fintech", "Fintech theme", QrThemes.Fintech),
         themeCase("theme-minimal", "Minimal theme", QrThemes.Minimal),
-        themeCase("theme-neon", "Neon theme", QrThemes.Neon),
+        // Keep the diamond finders readable at the 176 px and 240 px preview sizes.
+        themeCase("theme-neon", "Neon theme", QrThemes.Neon).copy(minVersion = 10),
         themeCase("theme-wedding", "Wedding theme", QrThemes.Wedding),
         themeCase("theme-coffee", "Coffee theme", QrThemes.Coffee),
         themeCase("theme-cyber", "Cyber theme", QrThemes.Cyber),
@@ -133,19 +134,19 @@ internal object GalleryCatalog {
         ),
         GalleryRecipe(
             id = "story-square",
-            caption = "A complete short story with square modules",
+            caption = "Version 20 with square modules",
             theme = QrThemes.Minimal,
-            payload = GalleryPayloads.lighthouseStory,
-            rasterOptions = storyOutput(),
+            minVersion = 20,
+            rasterOptions = denseOutput(),
         ),
         GalleryRecipe(
             id = "story-circle",
-            caption = "A complete short story with circular modules",
+            caption = "Version 20 with circular modules",
             styleFactory = {
-                storyCircleStyle()
+                denseCircleStyle()
             },
-            payload = GalleryPayloads.lighthouseStory,
-            rasterOptions = storyOutput(),
+            minVersion = 20,
+            rasterOptions = denseOutput(),
         ),
         GalleryRecipe(
             id = "logo-monogram",
@@ -163,31 +164,31 @@ internal object GalleryCatalog {
         ),
         GalleryRecipe(
             id = "story-circle-logo",
-            caption = "A complete short story with circular modules and a lighthouse",
+            caption = "Version 20 with circular modules and a lighthouse",
             styleFactory = {
-                storyCircleStyle(logo = storyLogoOptions())
+                denseCircleStyle(logo = denseLogoOptions())
             },
-            logoOptions = storyLogoOptions(),
+            logoOptions = denseLogoOptions(),
             logoSource = "logo-lighthouse-mark.svg",
-            payload = GalleryPayloads.lighthouseStory,
-            rasterOptions = storyOutput(),
+            minVersion = 20,
+            rasterOptions = denseOutput(),
         ),
         GalleryRecipe(
             id = "story-gradient-logo",
-            caption = "A complete short story with a gradient and monogram",
+            caption = "Version 20 with a gradient and monogram",
             styleFactory = {
                 QrThemes.Fintech.createGradientStyle(
                     gradient = QrLinearGradient(
                         startColor = QrColor.fromHex("#075985"),
                         endColor = QrColor.fromHex("#6D28D9"),
                     ),
-                    logo = storyLogoOptions(),
+                    logo = denseLogoOptions(),
                 )
             },
-            logoOptions = storyLogoOptions(),
+            logoOptions = denseLogoOptions(),
             logoSource = "logo-monogram-mark.svg",
-            payload = GalleryPayloads.lighthouseStory,
-            rasterOptions = storyOutput(),
+            minVersion = 20,
+            rasterOptions = denseOutput(),
         ),
     )
 
@@ -208,19 +209,19 @@ internal object GalleryCatalog {
         backgroundShape = QrLogoBackgroundShape.Circle,
     )
 
-    private fun storyLogoOptions(): QrLogoOptions = QrLogoOptions(
+    private fun denseLogoOptions(): QrLogoOptions = QrLogoOptions(
         sizeFraction = 0.16,
         paddingFraction = 0.02,
         background = QrColor.White,
         backgroundShape = QrLogoBackgroundShape.Circle,
     )
 
-    private fun storyOutput(): QrRasterRenderOptions = QrRasterRenderOptions(
+    private fun denseOutput(): QrRasterRenderOptions = QrRasterRenderOptions(
         sizePx = 1260,
         sizeMode = QrRasterSizeMode.IntegerModules,
     )
 
-    private fun storyCircleStyle(
+    private fun denseCircleStyle(
         logo: QrLogoOptions? = null,
     ): QrStyle = QrStyle(
         foreground = QrColor.fromHex("#0B3A82"),

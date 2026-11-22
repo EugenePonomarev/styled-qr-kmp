@@ -97,8 +97,11 @@ function element(initial = {}) {
   };
 }
 
+const initialContent = html.match(/<textarea id="content">([^<]*)<\/textarea>/)?.[1];
+assert.equal(initialContent, "https://eugeneponomarev.github.io/styled-qr-kmp/");
+
 const elements = {
-  content: element({ value: "https://example.com" }),
+  content: element({ value: initialContent }),
   theme: element({ value: "fintech" }),
   shape: element({ value: "" }),
   ecc: element({ value: "H" }),

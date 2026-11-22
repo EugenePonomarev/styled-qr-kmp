@@ -162,7 +162,7 @@ private fun homeContent(version: String): String = """
           >
         </a>
         <div class="hero-art-caption">
-          <span>Long text, circular modules &amp; a centre logo</span>
+          <span>Version 20, circular modules &amp; a centre logo</span>
           <a href="gallery/story-circle-logo.svg">View SVG ↗</a>
         </div>
       </div>
@@ -263,7 +263,7 @@ private fun homeContent(version: String): String = """
           <span>SHARED API</span>
         </div>
         <pre><code>val qrCode = QrCodeGenerator.encodeText(
-    "https://example.com"
+    "${GalleryPayloads.projectUrl}"
 )
 
 val style = QrThemes.Fintech.createStyle()
@@ -301,8 +301,8 @@ private fun galleryContent(): String = """
         Select an image to open its original SVG.
       </p>
       <p>
-        The long-text examples contain the same complete English short story.
-        They use QR version 20, error correction H and a 97 × 97 matrix.
+        Scan any example to open the Styled QR KMP project site.
+        The four version 20 examples use a 97 × 97 matrix with error correction H.
       </p>
     </section>
 
@@ -356,7 +356,7 @@ private fun gettingStartedContent(version: String): String = """
 import io.github.eugeneponomarev.styledqr.render.SvgQrRenderer
 import io.github.eugeneponomarev.styledqr.theme.QrThemes
 
-val qrCode = QrCodeGenerator.encodeText("https://example.com")
+val qrCode = QrCodeGenerator.encodeText("${GalleryPayloads.projectUrl}")
 val style = QrThemes.Fintech.createStyle()
 val svg = SvgQrRenderer.render(qrCode, style)</code></pre>
 
@@ -380,7 +380,7 @@ val svg = SvgQrRenderer.render(qrCode, style)</code></pre>
 import StyledQrKmp
 
 let renderer = StyledQrImageRenderer()
-renderer.content = "https://example.com"
+renderer.content = "${GalleryPayloads.projectUrl}"
 
 let image = renderer.render(
     sizePoints: 240,
@@ -413,7 +413,7 @@ options.themeId = "fintech";
 options.errorCorrection = "H";
 
 const result = renderStyledQrSvg(
-  "https://example.com",
+  "${GalleryPayloads.projectUrl}",
   options,
 );
 
